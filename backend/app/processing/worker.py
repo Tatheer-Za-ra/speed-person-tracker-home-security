@@ -66,41 +66,43 @@ class ProcessingWorker:
                         for payload in result.get("snapshot_payloads", [])
                     }
 
-                    cap = cv2.VideoCapture(queued_video.stored_path)
-
+                    cap = None
                     try:
-                        for created_event in created_events:
-                            snapshot_payload = snapshot_payloads_by_track_id.get(created_event.track_id)
-                            if not snapshot_payload:
-                                continue
+                        cap = cv2.VideoCapture(queued_video.stored_path)
+                        if cap.isOpened():
+                            for created_event in created_events:
+                                snapshot_payload = snapshot_payloads_by_track_id.get(created_event.track_id)
+                                if not snapshot_payload:
+                                    continue
 
-                            raw_frame_index = snapshot_payload["raw_frame_index"]
-                            bbox = snapshot_payload["bbox"]
-                            label = snapshot_payload["label"]
-                            timestamp_seconds = snapshot_payload["timestamp_seconds"]
+                                raw_frame_index = snapshot_payload["raw_frame_index"]
+                                bbox = snapshot_payload["bbox"]
+                                label = snapshot_payload["label"]
+                                timestamp_seconds = snapshot_payload["timestamp_seconds"]
 
-                            cap.set(cv2.CAP_PROP_POS_FRAMES, raw_frame_index)
-                            success, frame = cap.read()
-                            if not success or frame is None:
-                                continue
+                                cap.set(cv2.CAP_PROP_POS_FRAMES, raw_frame_index)
+                                success, frame = cap.read()
+                                if not success or frame is None:
+                                    continue
 
-                            snapshot_path = save_event_snapshot(
-                                video_id=queued_video.id,
-                                event_id=created_event.id,
-                                frame=frame,
-                                bbox=bbox,
-                                label=label,
-                                track_id=created_event.track_id,
-                                timestamp_seconds=timestamp_seconds,
-                            )
+                                snapshot_path = save_event_snapshot(
+                                    video_id=queued_video.id,
+                                    event_id=created_event.id,
+                                    frame=frame,
+                                    bbox=bbox,
+                                    label=label,
+                                    track_id=created_event.track_id,
+                                    timestamp_seconds=timestamp_seconds,
+                                )
 
-                            created_snapshot = snapshot_repo.create_snapshot(
-                                event_id=created_event.id,
-                                file_path=snapshot_path,
-                            )
-                            created_snapshots.append(created_snapshot)
+                                created_snapshot = snapshot_repo.create_snapshot(
+                                    event_id=created_event.id,
+                                    file_path=snapshot_path,
+                                )
+                                created_snapshots.append(created_snapshot)
                     finally:
-                        cap.release()
+                        if cap is not None:
+                            cap.release()
 
                     for track in result["tracks_summary"]:
                         class_name = track["class_name"]

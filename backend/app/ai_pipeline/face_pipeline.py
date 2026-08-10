@@ -5,7 +5,7 @@ import cv2
 
 from app.ai_pipeline.config import DEBUG_FACES_DIR
 from app.ai_pipeline.face_detector import detect_faces_in_image
-from app.ai_pipeline.face_matcher import classify_face_crop
+from app.ai_pipeline.face_matcher import classify_face_crop, preprocess_face_templates
 
 
 # the whole bbox region without expansion, to avoid cropping out faces near the edges of the bbox
@@ -101,13 +101,18 @@ def scale_bbox_to_raw_frame(
     }
     
 def extract_faces_from_tracks(video_path, tracks_summary, face_templates):
-    cap = cv2.VideoCapture(video_path)
+    cap = None
     faces_output = []
 
     DEBUG_FACES_DIR.mkdir(parents=True, exist_ok=True)
     video_stem = Path(video_path).stem
+    cached_face_templates = preprocess_face_templates(face_templates)
 
     try:
+        cap = cv2.VideoCapture(video_path)
+        if cap is None or not cap.isOpened():
+            return faces_output
+
         for track in tracks_summary:
             if track["class_name"] != "person":
                 continue
@@ -165,7 +170,7 @@ def extract_faces_from_tracks(video_path, tracks_summary, face_templates):
 
                 identity_result = classify_face_crop(
                     face_crop=face_crop,
-                    face_templates=face_templates,
+                    face_templates=cached_face_templates,
                 )
 
                 classified_faces.append({
@@ -188,6 +193,7 @@ def extract_faces_from_tracks(video_path, tracks_summary, face_templates):
             })
 
     finally:
-        cap.release()
+        if cap is not None:
+            cap.release()
 
     return faces_output
