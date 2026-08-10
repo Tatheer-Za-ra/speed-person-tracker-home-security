@@ -97,5 +97,13 @@ class UploadBatch(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
- 
- 
+
+
+class SpeedThreshold(Base):
+    __tablename__ = "speed_thresholds"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    vehicle_category = Column(String(50), nullable=False)  # 'car', 'motorcycle', 'truck'
+    limit_kmh = Column(Float, nullable=False, default=30.0)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

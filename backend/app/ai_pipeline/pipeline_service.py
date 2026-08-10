@@ -23,14 +23,20 @@ from app.ai_pipeline.frame_processor import (
     release_video_capture,
 )
 from app.ai_pipeline import detector
-import json
-from app.ai_pipeline.face_pipeline import extract_faces_from_tracks
+from app.ai_pipeline.speed_calculator import calculate_track_speed
 
-def _determine_event_type(class_name: str) -> str:
+
+def _determine_event_type(class_name: str, speed_status: str = "NORMAL", face_status: str = None) -> str:
     if class_name == "person":
+        if face_status == "unknown":
+            return "unknown_person"
+        elif face_status == "known":
+            return "known_person"
         return "person_detected"
 
     if class_name in {"car", "motorcycle", "truck"}:
+        if speed_status == "OVERSPEED":
+            return "overspeed_vehicle"
         return "vehicle_detected"
 
     return "object_detected"
@@ -51,7 +57,7 @@ def _extract_event_confidence(track_summary: dict) -> float | None:
     return round(max(confidences), 4)
 
 
-def _build_event_metadata(track_summary: dict) -> str:
+def _build_event_metadata(track_summary: dict, speed_info: dict = None, face_info: dict = None) -> str:
     metadata = {
         "start_frame": track_summary.get("start_frame"),
         "end_frame": track_summary.get("end_frame"),
@@ -60,9 +66,39 @@ def _build_event_metadata(track_summary: dict) -> str:
         "bbox_history_length": len(track_summary.get("bbox_history", [])),
     }
 
+    if speed_info:
+        metadata["estimated_speed_kmh"] = speed_info.get("estimated_speed_kmh", 0.0)
+        metadata["max_speed_kmh"] = speed_info.get("max_speed_kmh", 0.0)
+        metadata["speed_limit_kmh"] = speed_info.get("limit_kmh", 30.0)
+        metadata["speed_status"] = speed_info.get("speed_status", "NORMAL")
+
+    if face_info:
+        metadata["face_match_status"] = face_info.get("match_status")
+        metadata["known_person_id"] = face_info.get("known_person_id")
+        metadata["face_similarity"] = face_info.get("similarity")
+
     return json.dumps(metadata)
 
-def build_event_payloads(video_id: int, tracks_summary: list[dict]) -> list[dict]:
+
+def build_event_payloads(
+    video_id: int,
+    tracks_summary: list[dict],
+    fps: float = 25.0,
+    speed_limits: dict = None,
+    faces_output: list[dict] = None
+) -> list[dict]:
+    if speed_limits is None:
+        speed_limits = {"car": 30.0, "motorcycle": 40.0, "truck": 25.0}
+
+    # Map face recognition results by track_id
+    face_map_by_track = {}
+    if faces_output:
+        for item in faces_output:
+            tid = item.get("track_id")
+            faces = item.get("faces", [])
+            if faces:
+                face_map_by_track[tid] = faces[0]
+
     event_payloads = []
 
     for track_summary in tracks_summary:
@@ -70,16 +106,59 @@ def build_event_payloads(video_id: int, tracks_summary: list[dict]) -> list[dict
         if not class_name:
             continue
 
+        track_id = track_summary.get("track_id")
+        bbox_history = track_summary.get("bbox_history", [])
+        is_vehicle = class_name in {"car", "motorcycle", "truck"}
+        is_person = class_name == "person"
+
+        speed_info = None
+        is_alert = False
+        speed_status = "NORMAL"
+
+        # Vehicle Speed Evaluation
+        if is_vehicle:
+            calculated = calculate_track_speed(bbox_history, fps=fps)
+            limit_kmh = float(speed_limits.get(class_name, 30.0))
+
+            if calculated["valid"] and calculated["estimated_speed_kmh"] > limit_kmh:
+                speed_status = "OVERSPEED"
+                is_alert = True
+            else:
+                speed_status = "NORMAL"
+
+            speed_info = {
+                "estimated_speed_kmh": calculated["estimated_speed_kmh"],
+                "max_speed_kmh": calculated["max_speed_kmh"],
+                "limit_kmh": limit_kmh,
+                "speed_status": speed_status,
+            }
+
+        # Person Identity Evaluation
+        face_info = face_map_by_track.get(track_id)
+        face_status = face_info.get("match_status") if face_info else None
+        if is_person and face_status == "unknown":
+            is_alert = True
+
+        event_type = _determine_event_type(
+            class_name=class_name,
+            speed_status=speed_status,
+            face_status=face_status,
+        )
+
         event_payloads.append(
             {
                 "video_id": video_id,
-                "track_id": track_summary.get("track_id"),
-                "event_type": _determine_event_type(class_name),
+                "track_id": track_id,
+                "event_type": event_type,
                 "label": class_name,
                 "timestamp_seconds": track_summary.get("start_time_seconds"),
                 "confidence": _extract_event_confidence(track_summary),
-                "metadata_json": _build_event_metadata(track_summary),
-                "is_alert": False,
+                "metadata_json": _build_event_metadata(
+                    track_summary=track_summary,
+                    speed_info=speed_info,
+                    face_info=face_info,
+                ),
+                "is_alert": is_alert,
             }
         )
 
@@ -131,7 +210,12 @@ def _decide_detection_run(
     return False, "ctd_skipped"
 
 
-def analyze_video_frames(video_path: str, preview_limit: int = 5, face_templates=None):
+def analyze_video_frames(
+    video_path: str,
+    preview_limit: int = 5,
+    face_templates=None,
+    speed_limits: dict = None
+):
     """
     Day 10 pipeline runner (Chunk 1 foundation).
 
@@ -357,6 +441,9 @@ def analyze_video_frames(video_path: str, preview_limit: int = 5, face_templates
             "event_payloads": build_event_payloads(
                 video_id=0,
                 tracks_summary=tracks_summary_list,
+                fps=metadata.fps,
+                speed_limits=speed_limits,
+                faces_output=faces_output,
             ),
             "snapshot_payloads": build_snapshot_payloads(
                 video_id=0,

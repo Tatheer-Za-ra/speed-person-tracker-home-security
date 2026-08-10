@@ -19,6 +19,7 @@ def save_event_snapshot(
     label: str,
     track_id: int | None,
     timestamp_seconds: float,
+    extra_info: str = None,
 ) -> str:
     output_dir = ensure_event_snapshot_dir(video_id)
 
@@ -29,10 +30,13 @@ def save_event_snapshot(
     x2 = int(round(bbox["x2"]))
     y2 = int(round(bbox["y2"]))
 
-    cv2.rectangle(annotated, (x1, y1), (x2, y2), (0, 255, 255), 2)
+    color = (0, 0, 255) if extra_info and "OVERSPEED" in extra_info else (0, 255, 255)
+
+    cv2.rectangle(annotated, (x1, y1), (x2, y2), color, 2)
 
     track_text = f"#{track_id}" if track_id is not None else ""
-    text = f"{label}{track_text} @ {timestamp_seconds:.3f}s"
+    extra_text = f" | {extra_info}" if extra_info else ""
+    text = f"{label}{track_text} @ {timestamp_seconds:.1f}s{extra_text}"
 
     cv2.putText(
         annotated,
@@ -40,7 +44,7 @@ def save_event_snapshot(
         (x1, max(y1 - 10, 20)),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.6,
-        (0, 255, 255),
+        color,
         2,
         cv2.LINE_AA,
     )

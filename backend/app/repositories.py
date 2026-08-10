@@ -1,4 +1,4 @@
-from app.models import FaceTemplate, KnownPerson, User ,Video,ProcessingLog,UploadBatch,Event, Snapshot, Video
+from app.models import FaceTemplate, KnownPerson, User, Video, ProcessingLog, UploadBatch, Event, Snapshot, SpeedThreshold
 from sqlalchemy import func
 
 class UserRepository:
@@ -293,4 +293,45 @@ class SnapshotRepository:
             .filter(Snapshot.event_id == event_id)
             .first()
         )
-   
+
+
+class SpeedThresholdRepository:
+    def __init__(self, db_session):
+        self.db = db_session
+
+    def get_thresholds_for_user(self, user_id: int):
+        return (
+            self.db.query(SpeedThreshold)
+            .filter(SpeedThreshold.user_id == user_id)
+            .all()
+        )
+
+    def get_threshold_map(self, user_id: int) -> dict:
+        records = self.get_thresholds_for_user(user_id)
+        defaults = {"car": 30.0, "motorcycle": 40.0, "truck": 25.0}
+        for rec in records:
+            defaults[rec.vehicle_category] = float(rec.limit_kmh)
+        return defaults
+
+    def set_threshold_for_user(self, user_id: int, vehicle_category: str, limit_kmh: float):
+        record = (
+            self.db.query(SpeedThreshold)
+            .filter(
+                SpeedThreshold.user_id == user_id,
+                SpeedThreshold.vehicle_category == vehicle_category,
+            )
+            .first()
+        )
+        if record:
+            record.limit_kmh = limit_kmh
+        else:
+            record = SpeedThreshold(
+                user_id=user_id,
+                vehicle_category=vehicle_category,
+                limit_kmh=limit_kmh,
+            )
+            self.db.add(record)
+
+        self.db.commit()
+        self.db.refresh(record)
+        return record

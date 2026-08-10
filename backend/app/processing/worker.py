@@ -1,7 +1,8 @@
 from datetime import datetime
+import json
 
 from app.db import get_db_session
-from app.repositories import ProcessingLogRepository, VideoRepository ,EventRepository, SnapshotRepository
+from app.repositories import ProcessingLogRepository, VideoRepository, EventRepository, SnapshotRepository, SpeedThresholdRepository, UploadBatchRepository
 from app.ai_pipeline.pipeline_service import analyze_video_frames
 import cv2
 from app.ai_pipeline.event_snapshot import save_event_snapshot
@@ -14,6 +15,8 @@ class ProcessingWorker:
             log_repo = ProcessingLogRepository(db)
             event_repo = EventRepository(db)
             snapshot_repo = SnapshotRepository(db)
+            speed_repo = SpeedThresholdRepository(db)
+            batch_repo = UploadBatchRepository(db)
 
             videos = video_repo.get_all_videos()
 
@@ -36,7 +39,15 @@ class ProcessingWorker:
                 queued_log.started_at = datetime.now()
                 db.commit()
 
-                result = analyze_video_frames(queued_video.stored_path)
+                # Determine user_id from batch for speed limits
+                batch = batch_repo.get_latest_batch_for_user(1) if hasattr(batch_repo, 'get_latest_batch_for_user') else None
+                user_id = batch.user_id if batch else 1
+                speed_limits = speed_repo.get_threshold_map(user_id)
+
+                result = analyze_video_frames(
+                    queued_video.stored_path,
+                    speed_limits=speed_limits
+                )
 
                 if result["status"] == "success":
                     created_events = []
@@ -85,6 +96,17 @@ class ProcessingWorker:
                                 if not success or frame is None:
                                     continue
 
+                                extra_info = None
+                                if created_event.metadata_json:
+                                    try:
+                                        meta = json.loads(created_event.metadata_json)
+                                        if "estimated_speed_kmh" in meta:
+                                            spd = meta["estimated_speed_kmh"]
+                                            st = meta.get("speed_status", "")
+                                            extra_info = f"{spd} km/h {st}".strip()
+                                    except Exception:
+                                        pass
+
                                 snapshot_path = save_event_snapshot(
                                     video_id=queued_video.id,
                                     event_id=created_event.id,
@@ -93,6 +115,7 @@ class ProcessingWorker:
                                     label=label,
                                     track_id=created_event.track_id,
                                     timestamp_seconds=timestamp_seconds,
+                                    extra_info=extra_info,
                                 )
 
                                 created_snapshot = snapshot_repo.create_snapshot(
