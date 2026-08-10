@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+// frontend/src/features/videos/VideoUploadPage.jsx
+
+import React, { useEffect, useState } from "react";
 import "./VideoUploadPage.css";
 import { listVideos, uploadVideos } from "../../api/videoApi";
 
@@ -17,13 +19,12 @@ function getStatusClass(status) {
   }
 }
 
-
-function VideoUploadPage() {
+function VideoUploadPage({ onNavigateToRun }) {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [videos, setVideos] = useState([]);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("error");
- const [fileInputKey, setFileInputKey] = useState(0);
+  const [fileInputKey, setFileInputKey] = useState(0);
 
   const fetchVideos = async () => {
     try {
@@ -43,18 +44,17 @@ function VideoUploadPage() {
   };
 
   useEffect(() => {
-  fetchVideos();
-
-  const intervalId = setInterval(() => {
     fetchVideos();
-  }, 3000);
 
-  return () => clearInterval(intervalId);
-}, []);
+    const intervalId = setInterval(() => {
+      fetchVideos();
+    }, 3000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   const handleFileChange = (e) => {
     setSelectedFiles(Array.from(e.target.files || []));
-
   };
 
   const handleUpload = async (e) => {
@@ -90,13 +90,13 @@ function VideoUploadPage() {
   return (
     <div className="videos-layout">
       <div className="videos-card">
-        <h2>Upload Videos</h2>
+        <h2>Upload Security Videos</h2>
 
         {message && <p className={`message ${messageType}`}>{message}</p>}
 
         <form onSubmit={handleUpload}>
           <div className="videos-field">
-            <label>Select one or more videos</label>
+            <label>Select one or more CCTV videos (.mp4, .avi, .mov, .mkv)</label>
             <input
               key={fileInputKey}
               type="file"
@@ -107,7 +107,7 @@ function VideoUploadPage() {
           </div>
 
           <button type="submit" className="primary-button">
-            Upload Videos
+            Upload & Start Processing
           </button>
         </form>
 
@@ -124,29 +124,78 @@ function VideoUploadPage() {
       </div>
 
       <div className="videos-card">
-        <h2>Uploaded Videos</h2>
+        <h2>Uploaded Videos & Status</h2>
 
         {videos.length === 0 ? (
           <p>No videos uploaded yet.</p>
         ) : (
           <div className="video-list">
-            {videos.map((video) => (
-              <div key={video.id} className="video-item">
-                <div>
-                  <strong>{video.original_filename}</strong>
+            {videos.map((video) => {
+              const isCompleted = (video.status || "").toLowerCase() === "completed";
 
-                  <p className="video-meta">
-                    Status:{" "}
-                    <span className={getStatusClass(video.status)}>
-                      {video.status || "unknown"}
-                    </span>
-                  </p>
-                  <p className="video-meta">
-                    {video.message || "No message"}
-                  </p>
+              return (
+                <div key={video.id} className="video-item">
+                  <div>
+                    <strong style={{ fontSize: "1.05rem" }}>{video.original_filename}</strong>
+
+                    <p className="video-meta">
+                      Status:{" "}
+                      <span className={getStatusClass(video.status)}>
+                        {video.status || "unknown"}
+                      </span>
+                    </p>
+
+                    <p className="video-meta" style={{ fontSize: "0.8125rem" }}>
+                      {video.message || "No message"}
+                    </p>
+                  </div>
+
+                  {/* Post-Processing Action Panel */}
+                  {isCompleted && (
+                    <div className="post-processing-action-card">
+                      <div className="action-card-header">
+                        ⚡ Processing Finished — Post-Run Actions
+                      </div>
+
+                      <div className="action-buttons-group">
+                        <button
+                          type="button"
+                          className="action-btn details-btn"
+                          onClick={() =>
+                            onNavigateToRun &&
+                            onNavigateToRun(video.id, "events", video.original_filename)
+                          }
+                        >
+                          🔍 Event Details
+                        </button>
+
+                        <button
+                          type="button"
+                          className="action-btn summary-btn"
+                          onClick={() =>
+                            onNavigateToRun &&
+                            onNavigateToRun(video.id, "summary", video.original_filename)
+                          }
+                        >
+                          📊 Run Summary
+                        </button>
+
+                        <button
+                          type="button"
+                          className="action-btn alerts-btn"
+                          onClick={() =>
+                            onNavigateToRun &&
+                            onNavigateToRun(video.id, "alerts", video.original_filename)
+                          }
+                        >
+                          🚨 Security Alerts
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

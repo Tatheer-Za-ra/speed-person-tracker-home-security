@@ -10,6 +10,59 @@
   padding-bottom: 40px;
 }
 
+/* Current Run Isolation Banner */
+.isolation-banner {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(15, 23, 42, 0.9) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 14px;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.15);
+}
+
+.isolation-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.isolation-tag {
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.isolation-text {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.reset-run-btn {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #cbd5e1;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reset-run-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #f87171;
+}
+
 /* Executive Metrics Row */
 .metrics-grid {
   display: grid;
@@ -67,19 +120,40 @@
   color: #64748b;
 }
 
-/* Filter Chips Bar */
-.filter-bar {
+/* Command Filter Container */
+.command-filter-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(12px);
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-group-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.filter-chips-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  background: rgba(15, 23, 42, 0.6);
-  padding: 14px 20px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.filter-chip {
+.command-chip {
   background: rgba(30, 41, 59, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #cbd5e1;
@@ -89,27 +163,30 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 
-.filter-chip:hover {
+.command-chip:hover {
   background: rgba(51, 65, 85, 1);
   color: #ffffff;
 }
 
-.filter-chip.active {
+.command-chip.active {
   background: #0284c7;
   color: #ffffff;
   border-color: #38bdf8;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.5);
 }
 
-.filter-chip.alert-chip.active {
+.command-chip.known-chip.active {
+  background: #059669;
+  border-color: #34d399;
+  box-shadow: 0 0 14px rgba(52, 211, 153, 0.5);
+}
+
+.command-chip.alert-chip.active {
   background: #dc2626;
   border-color: #f87171;
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.5);
 }
 
 /* Section Container */
@@ -178,7 +255,7 @@
 
 .event-card.is-alert:hover {
   border-color: rgba(239, 68, 68, 0.8);
-  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.25);
 }
 
 /* Snapshot Thumbnail Box */

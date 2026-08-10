@@ -116,6 +116,10 @@ class ProcessingWorker:
                                     track_id=created_event.track_id,
                                     timestamp_seconds=timestamp_seconds,
                                     extra_info=extra_info,
+                                    processed_size=(
+                                        snapshot_payload.get("processed_width", 960),
+                                        snapshot_payload.get("processed_height", 540),
+                                    ),
                                 )
 
                                 created_snapshot = snapshot_repo.create_snapshot(

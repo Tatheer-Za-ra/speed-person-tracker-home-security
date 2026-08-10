@@ -138,7 +138,7 @@ def build_event_payloads(
         # Person Identity Evaluation
         face_info = face_map_by_track.get(track_id)
         face_status = face_info.get("match_status") if face_info else None
-        if is_person and face_status == "unknown":
+        if is_person and face_status != "known":
             is_alert = True
 
         event_type = _determine_event_type(
@@ -165,7 +165,12 @@ def build_event_payloads(
         )
 
     return event_payloads
-def build_snapshot_payloads(video_id: int, tracks_summary: list[dict]) -> list[dict]:
+def build_snapshot_payloads(
+    video_id: int,
+    tracks_summary: list[dict],
+    processed_width: int = 960,
+    processed_height: int = 540,
+) -> list[dict]:
     snapshot_payloads = []
 
     for track_summary in tracks_summary:
@@ -182,7 +187,10 @@ def build_snapshot_payloads(video_id: int, tracks_summary: list[dict]) -> list[d
                 "label": track_summary.get("class_name"),
                 "timestamp_seconds": first_entry.get("timestamp_seconds"),
                 "raw_frame_index": first_entry.get("raw_frame_index"),
-                "processed_frame_index": first_entry.get("processed_frame_index"),                "bbox": first_entry.get("bbox"),
+                "processed_frame_index": first_entry.get("processed_frame_index"),
+                "bbox": first_entry.get("bbox"),
+                "processed_width": first_entry.get("processed_frame_width", processed_width),
+                "processed_height": first_entry.get("processed_frame_height", processed_height),
             }
         )
 

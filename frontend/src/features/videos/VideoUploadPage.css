@@ -1,14 +1,25 @@
+/* frontend/src/features/videos/VideoUploadPage.css */
+
 .videos-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
 }
 
+@media (max-width: 900px) {
+  .videos-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
 .videos-card {
-  background: white;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  color: #f8fafc;
 }
 
 .videos-field {
@@ -20,70 +31,110 @@
   margin-bottom: 6px;
   font-size: 14px;
   font-weight: 600;
+  color: #cbd5e1;
 }
 
 .videos-field input {
   width: 100%;
+  padding: 10px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #f8fafc;
 }
 
 .selected-files-box {
   margin-top: 18px;
   padding: 14px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  background: #fafafa;
+  background: rgba(30, 41, 59, 0.5);
 }
 
 .selected-files-box h3 {
   margin-top: 0;
   margin-bottom: 10px;
   font-size: 16px;
+  color: #f8fafc;
 }
 
 .video-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .video-item {
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 14px 16px;
-  background: #fafafa;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 18px;
+  background: rgba(30, 41, 59, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .video-meta {
   margin: 6px 0 0;
-  color: #6b7280;
+  color: #94a3b8;
+  font-size: 0.875rem;
 }
 
-.status-badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
+/* Post-Processing Action Panel */
+.post-processing-action-card {
+  margin-top: 10px;
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.action-card-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #38bdf8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.action-buttons-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.action-btn {
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f8fafc;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.8125rem;
   font-weight: 600;
-  background: #e5e7eb;
-  color: #111827;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.status-badge.queued {
-  background: #fef3c7;
-  color: #92400e;
+.action-btn.details-btn:hover {
+  background: #0284c7;
+  border-color: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
 }
 
-.status-badge.processing {
-  background: #dbeafe;
-  color: #1d4ed8;
+.action-btn.summary-btn:hover {
+  background: #059669;
+  border-color: #34d399;
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.4);
 }
 
-.status-badge.completed {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.status-badge.failed {
-  background: #fee2e2;
-  color: #b91c1c;
+.action-btn.alerts-btn:hover {
+  background: #dc2626;
+  border-color: #f87171;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
 }
