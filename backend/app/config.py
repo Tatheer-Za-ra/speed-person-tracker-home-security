@@ -13,7 +13,9 @@ class Config:
         "UPLOAD_DIR",
         os.path.join(BASE_DIR, "storage", "uploads", "videos"),
     )
-    SNAPSHOT_DIR = os.getenv( "SNAPSHOT_DIR", os.path.join(BASE_DIR, "storage", "snapshots", "events"),
+    SNAPSHOT_DIR = os.getenv(
+        "SNAPSHOT_DIR",
+        os.path.join(BASE_DIR, "storage", "event_snapshots"),
     )
     REPORT_DIR = os.getenv(
         "REPORT_DIR",

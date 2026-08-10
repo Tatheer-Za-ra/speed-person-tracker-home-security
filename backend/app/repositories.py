@@ -124,6 +124,63 @@ class EventRepository:
             .first()
         )
 
+    def get_filtered_events(
+        self,
+        video_id: int | None = None,
+        event_type: str | None = None,
+        label: str | None = None,
+        is_alert: bool | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ):
+        query = self.db.query(Event)
+
+        if video_id is not None:
+            query = query.filter(Event.video_id == video_id)
+        if event_type:
+            query = query.filter(Event.event_type == event_type)
+        if label:
+            query = query.filter(Event.label == label)
+        if is_alert is not None:
+            query = query.filter(Event.is_alert == is_alert)
+
+        return query.order_by(Event.id.desc()).offset(offset).limit(limit).all()
+
+    def get_alert_events(self, limit: int = 50):
+        return (
+            self.db.query(Event)
+            .filter(Event.is_alert == True)
+            .order_by(Event.id.desc())
+            .limit(limit)
+            .all()
+        )
+
+    def get_summary_stats(self):
+        total_events = self.db.query(func.count(Event.id)).scalar() or 0
+        total_alerts = self.db.query(func.count(Event.id)).filter(Event.is_alert == True).scalar() or 0
+        total_videos = self.db.query(func.count(Video.id)).scalar() or 0
+
+        type_counts = dict(
+            self.db.query(Event.event_type, func.count(Event.id))
+            .group_by(Event.event_type)
+            .all()
+        )
+
+        label_counts = dict(
+            self.db.query(Event.label, func.count(Event.id))
+            .filter(Event.label.isnot(None))
+            .group_by(Event.label)
+            .all()
+        )
+
+        return {
+            "total_events": total_events,
+            "total_alerts": total_alerts,
+            "total_videos": total_videos,
+            "breakdown_by_type": type_counts,
+            "breakdown_by_label": label_counts,
+        }
+
 
 class ProcessingLogRepository:
     def __init__(self, db_session=None):

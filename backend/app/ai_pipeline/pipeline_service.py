@@ -22,8 +22,10 @@ from app.ai_pipeline.frame_processor import (
     load_video_capture,
     release_video_capture,
 )
+import json
 from app.ai_pipeline import detector
 from app.ai_pipeline.speed_calculator import calculate_track_speed
+from app.ai_pipeline.face_pipeline import extract_faces_from_tracks
 
 
 def _determine_event_type(class_name: str, speed_status: str = "NORMAL", face_status: str = None) -> str:
