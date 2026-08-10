@@ -1,0 +1,63 @@
+video upload command 
+curl -X POST http://127.0.0.1:5000/api/videos/upload -b cookies.txt -F "videos=@\"C:\Users\PMLS\Pictures\Camera Roll\v1.mp4""
+
+venv\Scripts\activate
+npm run dev
+cd ..
+
+
+curl -X POST http://127.0.0.1:5000/api/auth/login -H "Content-Type: application/json" -c cookies.txt -d "{\"email\":\"zara@example.com\",\"password\":\"123\"}"
+
+
+from app.ai_pipeline_service import analyze_video_frames; import pprint; pprint.pprint(analyze_video_frames(r'C:\Users\PMLS\Videos\Final reels\extra\5.mp4'))
+
+
+process_next_queued_video
+
+python -c "from app.processing.worker import process_next_queued_video; worker = ProcessingWorker(); worker.process_next_queued_video()"
+
+python -c "from app.ai_pipeline.perf_benchmark import run_pipeline_benchmark; import pprint; video = r'C:\Users\PMLS\Desktop\Video Project 3(2).mp4'; tests = [(5, 640), (5, 512), (8, 640), (8, 512)]; results = [run_pipeline_benchmark(video, fs, imgsz) for fs, imgsz in tests]; pprint.pprint(results)"
+
+python -c "from app.ai_pipeline.perf_benchmark import run_pipeline_benchmark; import pprint; video = r'C:\Users\PMLS\Videos\Final reels\20 reels project\X20.mp4'; tests = [('before_ctd', False, None), ('after_ctd', True, 4)]; results = []; for label, enabled, max_skip in tests:r = run_pipeline_benchmark(video, frame_skip=5, detector_imgsz=640, ctd_enabled=enabled, ctd_max_frames_without_detection=max_skip) r['label'] = label results.append(r) pprint.pprint(results)"
+
+python -c "from app.ai_pipeline.pipeline_service import analyze_video_frames; import pprint; pprint.pprint(analyze_video_frames(r'PASTE_VIDEO_PATH_HERE', preview_limit=2))"
+python -c "from app.ai_pipeline.pipeline_service import analyze_video_frames; import pprint; pprint.pprint(analyze_video_frames(r'C:\Users\PMLS\Desktop\Video Project 3(2).mp4', preview_limit=2))"
+
+
+
+python -c "from app.ai_pipeline.perf_benchmark import run_pipeline_benchmark; video = r'C:\Users\PMLS\Desktop\Video Project 3(2).mp4'; before = run_pipeline_benchmark(video, frame_skip=5, detector_imgsz=640, ctd_enabled=False); after = run_pipeline_benchmark(video, frame_skip=5, detector_imgsz=640, ctd_enabled=True, ctd_max_frames_without_detection=4); print('BEFORE CTD =', {'elapsed_seconds': before.get('elapsed_seconds'), 'x_realtime': before.get('x_realtime'), 'detector_calls_count': before.get('detector_calls_count'), 'detector_skipped_frames_count': before.get('detector_skipped_frames_count'), 'total_detections': before.get('total_detections'), 'track_count': before.get('track_count')}); print('AFTER CTD =', {'elapsed_seconds': after.get('elapsed_seconds'), 'x_realtime': after.get('x_realtime'), 'detector_calls_count': after.get('detector_calls_count'), 'detector_skipped_frames_count': after.get('detector_skipped_frames_count'), 'total_detections': after.get('total_detections'), 'track_count': after.get('track_count')})"
+
+
+C:\Users\PMLS\Videos\20 reels project\X6.mp4
+
+python -c "from app.db import get_db_session; from app.models import Event; db = get_db_session(); events = db.query(Event).order_by(Event.id.asc()).all(); print('event_count =', len(events)); [print({'id': e.id, 'video_id': e.video_id, 'track_id': e.track_id, 'event_type': e.event_type, 'label': e.label, 'timestamp_seconds': e.timestamp_seconds, 'confidence': e.confidence}) for e in events]; db.close()"
+
+python -c "from app.ai_pipeline.pipeline_service import analyze_video_frames; result = analyze_video_frames(r'C:\Users\PMLS\Videos\20 reels project\X6.mp4', preview_limit=2); print('status =', result.get('status')); print('event_payload_count =', len(result.get('event_payloads', []))); print('first_event =', result.get('event_payloads', [None])[0]); print('error =', result.get('error'))"
+
+
+
+python -c "from app.ai_pipeline.pipeline_service import analyze_video_frames; result = analyze_video_frames(r'C:\Users\PMLS\Videos\20 reels project\X7.mp4', preview_limit=2); print('status =', result.get('status')); print('track_count =', len(result.get('tracks_summary', []))); print('event_payload_count =', len(result.get('event_payloads', []))); print('first_event =', result.get('event_payloads', [None])[0]); print('error =', result.get('error'))"
+
+
+(venv) C:\Users\PMLS\Desktop\FYP imlp\speed-person-tracker-home-security\backend>python -c "from app.ai_pipeline.pipeline_service import analyze_video_frames; result = analyze_video_frames(r'C:\Users\PMLS\Desktop\9am_helpers.mp4', preview_limit=2); print('faces_output =', result.get('faces_output')); print('error =', result.get('error'))"
+
+
+python -c "from app.ai_pipeline.pipeline_service import analyze_video_frames; result = analyze_video_frames(r'C:\Users\PMLS\Desktop\9 am_helpers.mp4', preview_limit=2); print('faces_output =', result.get('faces_output')); print('error =', result.get('error'))"
+
+
+
+
+python -c "from app.ai_pipeline.pipeline_service import analyze_video_frames; result = analyze_video_frames(r'C:\Users\PMLS\Desktop\9am_helpers.mp4', preview_limit=2); print('faces_output =', result.get('faces_output')); print('error =', result.get('error'))"
+python -c "from app.ai_pipeline.pipeline_service import analyze_video_frames; result = analyze_video_frames(r'C:\Users\PMLS\Desktop\9 am_helpers.mp4', preview_limit=2); print('faces_output =', result.get('faces_output')); print('error =', result.get('error'))"
+
+
+
+
+python -c "from app.ai_pipeline.pipeline_service import analyze_video_frames; result = analyze_video_frames(r'C:\Users\PMLS\Videos\20 reels project\X7.mp4', preview_limit=2); print('status =', result.get('status')); print('track_count =', len(result.get('tracks_summary', []))); print('event_payload_count =', len(result.get('event_payloads', []))); print('first_event =', result.get('event_payloads', [None])[0]); print('error =', result.get('error'))"
+=======================================================================
+python -c "from app.db import get_db_session; from app.repositories import FaceTemplateRepository; from app.ai_pipeline.pipeline_service import analyze_video_frames; import pprint; db=get_db_session(); templates=FaceTemplateRepository(db).list_all_templates(); result=analyze_video_frames(r'C:\Users\PMLS\Videos\20 reels project\X7.mp4', face_templates=templates); pprint.pprint(result.get('faces_output')); db.close()"
+
+
+C:\Users\PMLS\Desktop\9 am_helpers.mp4
+
+python -c "from app.db import get_db_session; from app.repositories import FaceTemplateRepository; from app.ai_pipeline.pipeline_service import analyze_video_frames; import pprint; db=get_db_session(); templates=FaceTemplateRepository(db).list_all_templates(); result=analyze_video_frames(r'C:\Users\PMLS\Desktop\9 am_helpers.mp4', face_templates=templates); pprint.pprint(result.get('faces_output')); db.close()"

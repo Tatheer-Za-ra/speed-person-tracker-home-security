@@ -1,0 +1,79 @@
+# -----------------------------
+# Python
+# -----------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.venv/
+venv/
+env/
+
+# -----------------------------
+# Flask / local env
+# -----------------------------
+.env
+.env.*
+instance/
+*.log
+
+# -----------------------------
+# Database
+# -----------------------------
+*.db
+*.sqlite
+*.sqlite3
+
+# -----------------------------
+# Node / React
+# -----------------------------
+node_modules/
+dist/
+build/
+.next/
+coverage/
+
+# -----------------------------
+# IDE / OS files
+# -----------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# -----------------------------
+# Project local storage
+# -----------------------------
+storage/uploads/videos/*
+storage/event_snapshots/*
+storage/snapshots/*
+storage/known_persons/originals/*
+storage/known_persons/processed/*
+storage/reports/*
+storage/temp/*
+storage/debug_frames/*
+storage/debug_faces/*
+
+# keep folder structure
+!storage/uploads/videos/.gitkeep
+!storage/event_snapshots/.gitkeep
+!storage/snapshots/.gitkeep
+!storage/known_persons/originals/.gitkeep
+!storage/known_persons/processed/.gitkeep
+!storage/reports/.gitkeep
+!storage/temp/.gitkeep
+!storage/debug_frames/.gitkeep
+!storage/debug_faces/.gitkeep
+
+# -----------------------------
+# Models / weights
+# -----------------------------
+models/*
+*.pt
+*.pth
+*.onnx
+*.engine
+
+# keep models folder if empty
+!models/.gitkeep
