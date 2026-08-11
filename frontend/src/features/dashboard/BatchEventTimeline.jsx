@@ -22,7 +22,13 @@ function BatchEventTimeline({ events, onSelectEvent }) {
       map.get(vTitle).push(ev);
     });
 
-    return Array.from(map.entries());
+    // Sort events within each video chronologically (earliest timestamp first)
+    const result = Array.from(map.entries()).map(([vTitle, vEvents]) => {
+      vEvents.sort((a, b) => (a.timestamp_seconds ?? 0) - (b.timestamp_seconds ?? 0));
+      return [vTitle, vEvents];
+    });
+
+    return result;
   }, [events]);
 
   if (events.length === 0) {

@@ -146,7 +146,7 @@ class EventRepository:
         if is_alert is not None:
             query = query.filter(Event.is_alert == is_alert)
 
-        return query.order_by(Event.id.desc()).offset(offset).limit(limit).all()
+        return query.order_by(Event.timestamp_seconds.asc(), Event.id.asc()).offset(offset).limit(limit).all()
 
     def get_alert_events(self, limit: int = 50):
         return (

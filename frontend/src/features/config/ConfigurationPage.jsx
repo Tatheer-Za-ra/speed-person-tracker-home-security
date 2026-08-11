@@ -3,11 +3,12 @@
 import React, { useState } from "react";
 import KnownPersonsPage from "../known-persons/KnownPersonsPage";
 import SpeedConfigModal from "../dashboard/SpeedConfigModal";
+import RetentionConfigPanel from "./RetentionConfigPanel";
 import { fetchSpeedThresholds } from "../../api/configApi";
 import "./ConfigurationPage.css";
 
 function ConfigurationPage() {
-  const [activeTab, setActiveTab] = useState("persons"); // "persons" | "speed"
+  const [activeTab, setActiveTab] = useState("persons"); // "persons" | "speed" | "retention"
   const [speedThresholds, setSpeedThresholds] = useState({
     car: 30.0,
     motorcycle: 40.0,
@@ -48,6 +49,14 @@ function ConfigurationPage() {
         >
           ⚡ Speed Configuration
         </button>
+
+        <button
+          type="button"
+          className={`config-tab-btn ${activeTab === "retention" ? "active" : ""}`}
+          onClick={() => setActiveTab("retention")}
+        >
+          🧹 Data Retention & Storage
+        </button>
       </div>
 
       {/* Sub-Tab Content Rendering */}
@@ -55,7 +64,7 @@ function ConfigurationPage() {
         <div className="config-tab-content">
           <KnownPersonsPage />
         </div>
-      ) : (
+      ) : activeTab === "speed" ? (
         <div className="config-tab-content speed-config-panel">
           <div className="speed-overview-card">
             <h2>⚡ Category Speed Limit Thresholds</h2>
@@ -97,6 +106,10 @@ function ConfigurationPage() {
             onClose={() => setIsSpeedModalOpen(false)}
             onThresholdsUpdated={(updated) => setSpeedThresholds(updated)}
           />
+        </div>
+      ) : (
+        <div className="config-tab-content">
+          <RetentionConfigPanel />
         </div>
       )}
     </div>

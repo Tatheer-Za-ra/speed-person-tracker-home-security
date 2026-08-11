@@ -227,6 +227,9 @@ def generate_pdf_report(
 
         current_row_idx = 1
         for v_title, v_events in events_by_video.items():
+            # Sort events for this video in chronological order (earliest timestamp first)
+            v_events = sorted(v_events, key=lambda e: e.get("timestamp_seconds", 0.0))
+
             # For multi-video batch runs, insert an explicit full-width section header row!
             if not is_single_video:
                 table_rows.append([
@@ -307,9 +310,13 @@ def generate_csv_report(events: List[Dict[str, Any]]) -> str:
     - Excludes numeric database IDs.
     - Adds explicit video section header rows (--- VIDEO: filename.mp4 (N detections) ---) for both single and batch runs.
     - Removes redundant Video Name column from telemetry data rows.
+    - Events within each video section are sorted strictly in chronological order by timestamp.
     """
     output = io.StringIO()
     writer = csv.writer(output)
+
+    # Sort events chronologically
+    events = sorted(events, key=lambda e: e.get("timestamp_seconds", 0.0))
 
     # Group by video title
     events_by_video = {}
@@ -331,6 +338,9 @@ def generate_csv_report(events: List[Dict[str, Any]]) -> str:
     ])
 
     for v_title, v_events in events_by_video.items():
+        # Ensure chronological order for this video
+        v_events = sorted(v_events, key=lambda e: e.get("timestamp_seconds", 0.0))
+
         # Always write the explicit Video section header row as shown in image!
         writer.writerow([f"--- VIDEO: {v_title} ({len(v_events)} detections) ---"])
 
