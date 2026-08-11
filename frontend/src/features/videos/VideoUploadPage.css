@@ -13,12 +13,13 @@
 }
 
 .videos-card {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(12px);
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
   color: #f8fafc;
 }
 
@@ -36,9 +37,9 @@
 
 .videos-field input {
   width: 100%;
-  padding: 10px;
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 14px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
   color: #f8fafc;
 }
@@ -48,7 +49,7 @@
   padding: 14px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  background: rgba(30, 41, 59, 0.5);
+  background: rgba(30, 41, 59, 0.4);
 }
 
 .selected-files-box h3 {
@@ -65,10 +66,11 @@
 }
 
 .video-item {
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   padding: 18px;
-  background: rgba(30, 41, 59, 0.6);
+  background: rgba(30, 41, 59, 0.45);
+  backdrop-filter: blur(12px);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -83,13 +85,14 @@
 /* Post-Processing Action Panel */
 .post-processing-action-card {
   margin-top: 10px;
-  padding: 12px;
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  border-radius: 10px;
+  padding: 14px;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .action-card-header {
@@ -97,7 +100,7 @@
   font-weight: 700;
   color: #38bdf8;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 .action-buttons-group {
@@ -107,7 +110,7 @@
 }
 
 .action-btn {
-  background: rgba(30, 41, 59, 0.9);
+  background: rgba(30, 41, 59, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #f8fafc;
   padding: 8px 14px;
@@ -116,25 +119,25 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
 .action-btn.details-btn:hover {
-  background: #0284c7;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
   border-color: #38bdf8;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.5);
 }
 
 .action-btn.summary-btn:hover {
-  background: #059669;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
   border-color: #34d399;
-  box-shadow: 0 0 12px rgba(52, 211, 153, 0.4);
+  box-shadow: 0 0 14px rgba(52, 211, 153, 0.5);
 }
 
 .action-btn.alerts-btn:hover {
-  background: #dc2626;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
   border-color: #f87171;
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.6);
 }

@@ -196,24 +196,25 @@ function DashboardPage({ currentRunFilter, onResetRunFilter }) {
   const filteredEvents = useMemo(() => {
     return rawEvents.filter((ev) => {
       const meta = ev.metadata || {};
+      const normCat = normalizeCategory(ev.label, meta.face_match_status);
 
       // 1. Quick Mode Filter
       if (activeQuickMode === "ALERTS") {
-        if (!ev.is_alert) return false;
+        const isUnknownPerson = ev.label === "person" && meta.face_match_status !== "known";
+        if (!ev.is_alert && !isUnknownPerson) return false;
       }
 
       // 2. Person Identity Filter
       if (personFilter === "KNOWN") {
-        if (ev.label !== "person" || meta.face_match_status !== "known") return false;
+        if (normCat !== "Known Person") return false;
       } else if (personFilter === "UNKNOWN") {
-        if (ev.label !== "person" || meta.face_match_status === "known") return false;
+        if (normCat !== "Unknown Person") return false;
       }
 
       // 3. Vehicle Category Filter (Strictly: Car, Bike, Truck, Other)
       if (vehicleFilter !== "ALL") {
         if (ev.label === "person") return false;
-        const normalizedCat = normalizeVehicleCategory(ev.label);
-        if (normalizedCat !== vehicleFilter) return false;
+        if (normCat !== vehicleFilter) return false;
       }
 
       return true;
@@ -221,7 +222,11 @@ function DashboardPage({ currentRunFilter, onResetRunFilter }) {
   }, [rawEvents, activeQuickMode, personFilter, vehicleFilter]);
 
   const alertEventsCount = useMemo(() => {
-    return rawEvents.filter((ev) => ev.is_alert).length;
+    return rawEvents.filter((ev) => {
+      const meta = ev.metadata || {};
+      const isUnknownPerson = ev.label === "person" && meta.face_match_status !== "known";
+      return ev.is_alert || isUnknownPerson;
+    }).length;
   }, [rawEvents]);
 
   return (
@@ -256,7 +261,7 @@ function DashboardPage({ currentRunFilter, onResetRunFilter }) {
 
         <div className="metric-card alert-card">
           <div className="metric-title">Security Alerts</div>
-          <div className="metric-value" style={{ color: "#ef4444" }}>
+          <div className="metric-value alert-val">
             {alertEventsCount}
           </div>
           <div className="metric-subtext">Unknown intruders & overspeed flags</div>
@@ -264,7 +269,7 @@ function DashboardPage({ currentRunFilter, onResetRunFilter }) {
 
         <div className="metric-card">
           <div className="metric-title">Vehicles Tracked</div>
-          <div className="metric-value" style={{ color: "#38bdf8" }}>
+          <div className="metric-value vehicle-val">
             {rawEvents.filter((e) => e.label !== "person").length}
           </div>
           <div className="metric-subtext">Normalized: Car, Bike, Truck, Other</div>
@@ -272,7 +277,7 @@ function DashboardPage({ currentRunFilter, onResetRunFilter }) {
 
         <div className="metric-card">
           <div className="metric-title">Persons Detected</div>
-          <div className="metric-value" style={{ color: "#10b981" }}>
+          <div className="metric-value person-val">
             {rawEvents.filter((e) => e.label === "person").length}
           </div>
           <div className="metric-subtext">RetinaFace & Facenet512 classification</div>
