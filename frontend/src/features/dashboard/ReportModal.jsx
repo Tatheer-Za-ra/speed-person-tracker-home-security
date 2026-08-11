@@ -128,7 +128,7 @@ function ReportModal({ isOpen, onClose, defaultVideoId = null, videoFilename = n
                 checked={scope === "ALL"}
                 onChange={() => setScope("ALL")}
               />
-              <span>All Processed Video Runs</span>
+              <span>Latest Video Batch Run</span>
             </label>
           </div>
         </div>

@@ -80,9 +80,9 @@ class TestReportService(unittest.TestCase):
     def test_generate_csv_report_string(self):
         csv_str = generate_csv_report(self.sample_events)
         self.assertIsInstance(csv_str, str)
-        self.assertIn("Event ID", csv_str)
+        self.assertIn("--- VIDEO:", csv_str)
         self.assertIn("front_porch.mp4", csv_str)
-        self.assertIn("OVERSPEED", csv_str)
+        self.assertIn("SPEEDING", csv_str)
 
     def test_download_pdf_endpoint(self):
         response = self.client.get("/api/reports/pdf")
