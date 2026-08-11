@@ -13,7 +13,7 @@ import "./DashboardPage.css";
 
 const API_HOST = "http://localhost:5000";
 
-function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage }) {
+function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage, onNavigateToConfig }) {
   const [summary, setSummary] = useState(null);
   const [rawEvents, setRawEvents] = useState([]);
   const [activeQuickMode, setActiveQuickMode] = useState("ALL");
@@ -131,6 +131,14 @@ function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage })
       {!videoId && (
         <LandingHero
           onNavigateToUpload={() => onNavigateToPage && onNavigateToPage("videos")}
+          onNavigateToConfig={(tab) => {
+            if (onNavigateToConfig) {
+              onNavigateToConfig(tab);
+            } else if (onNavigateToPage) {
+              onNavigateToPage("config");
+            }
+          }}
+          onNavigateToLogs={() => onNavigateToPage && onNavigateToPage("logs")}
           speedThresholds={speedThresholds}
         />
       )}

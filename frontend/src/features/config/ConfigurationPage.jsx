@@ -7,8 +7,8 @@ import RetentionConfigPanel from "./RetentionConfigPanel";
 import { fetchSpeedThresholds } from "../../api/configApi";
 import "./ConfigurationPage.css";
 
-function ConfigurationPage() {
-  const [activeTab, setActiveTab] = useState("persons"); // "persons" | "speed" | "retention"
+function ConfigurationPage({ initialTab = "persons" }) {
+  const [activeTab, setActiveTab] = useState(initialTab); // "persons" | "speed" | "retention"
   const [speedThresholds, setSpeedThresholds] = useState({
     car: 30.0,
     motorcycle: 40.0,

@@ -17,10 +17,16 @@ function App() {
   const [currentPage, setCurrentPage] = useState(() => {
     return localStorage.getItem("currentPage") || "dashboard";
   });
+  const [configTab, setConfigTab] = useState("persons");
   const [authLoading, setAuthLoading] = useState(true);
 
   // Isolated Run Filter state: { videoId: int|null, mode: 'events'|'summary'|'alerts', filename: string }
   const [currentRunFilter, setCurrentRunFilter] = useState(null);
+
+  const handleNavigateToConfig = (tab = "persons") => {
+    setConfigTab(tab);
+    setCurrentPage("config");
+  };
 
   useEffect(() => {
     localStorage.setItem("currentPage", currentPage);
@@ -97,9 +103,10 @@ function App() {
             onResetRunFilter={handleResetRunFilter}
             onNavigateToRun={handleNavigateToRun}
             onNavigateToPage={setCurrentPage}
+            onNavigateToConfig={handleNavigateToConfig}
           />
         ) : currentPage === "config" ? (
-          <ConfigurationPage />
+          <ConfigurationPage initialTab={configTab} />
         ) : currentPage === "videos" ? (
           <VideoUploadPage onNavigateToRun={handleNavigateToRun} />
         ) : currentPage === "logs" ? (

@@ -1,0 +1,66 @@
+/* Container styling to match your clean white interface */
+.hero-container {
+  background-color: #FFFFFF;
+  padding: 5rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* Typography for the massive headline */
+.hero-title {
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 4rem; /* Massive, bold text */
+  font-weight: 800;
+  color: #111827; /* Near-black for sharp contrast */
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+}
+
+/* Style the dynamic text to stand out (e.g., HavenTrack Blue) */
+.dynamic-text {
+  color: #2563EB; 
+}
+
+/* The Blinking Cursor Animation */
+.blinking-cursor {
+  color: #2563EB;
+  font-weight: 300;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Clean sub-headline */
+.hero-subtitle {
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 1.25rem;
+  color: #6B7280; /* Subtle grey so it doesn't fight the headline */
+  max-width: 600px;
+  margin-bottom: 2.5rem;
+  line-height: 1.5;
+}
+
+/* Primary CTA Button with a sleek hover state */
+.hero-cta-button {
+  background-color: #111827;
+  color: #FFFFFF;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 50px; /* Pill-shaped to match your requested icon styling */
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hero-cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
