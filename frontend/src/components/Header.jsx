@@ -1,6 +1,7 @@
 // frontend/src/components/Header.jsx
 
 import React, { useState } from "react";
+import { UserCheck, Gauge, HardDrive, ChevronDown, User, LogOut } from "lucide-react";
 import "./Header.css";
 
 function Header({ currentPage, setCurrentPage, onNavigateToConfig, currentRunFilter, userName, onLogout }) {
@@ -45,7 +46,7 @@ function Header({ currentPage, setCurrentPage, onNavigateToConfig, currentRunFil
               onClick={() => handleSelectConfigOption("persons")}
             >
               <span>Configuration</span>
-              <span className="dropdown-caret">▾</span>
+              <ChevronDown size={14} className={`dropdown-caret ${isConfigDropdownOpen ? "open" : ""}`} />
             </button>
 
             {isConfigDropdownOpen && (
@@ -55,7 +56,7 @@ function Header({ currentPage, setCurrentPage, onNavigateToConfig, currentRunFil
                   className="dropdown-item"
                   onClick={() => handleSelectConfigOption("persons")}
                 >
-                  <span className="dropdown-item-icon">👤</span>
+                  <UserCheck size={16} className="dropdown-item-icon green" />
                   <span className="dropdown-item-text">Known Person Configuration</span>
                 </button>
 
@@ -64,7 +65,7 @@ function Header({ currentPage, setCurrentPage, onNavigateToConfig, currentRunFil
                   className="dropdown-item"
                   onClick={() => handleSelectConfigOption("speed")}
                 >
-                  <span className="dropdown-item-icon">⚡</span>
+                  <Gauge size={16} className="dropdown-item-icon cyan" />
                   <span className="dropdown-item-text">Speed Configuration</span>
                 </button>
 
@@ -73,7 +74,7 @@ function Header({ currentPage, setCurrentPage, onNavigateToConfig, currentRunFil
                   className="dropdown-item"
                   onClick={() => handleSelectConfigOption("retention")}
                 >
-                  <span className="dropdown-item-icon">🧹</span>
+                  <HardDrive size={16} className="dropdown-item-icon purple" />
                   <span className="dropdown-item-text">Data Retention & Storage</span>
                 </button>
               </div>
@@ -110,12 +111,12 @@ function Header({ currentPage, setCurrentPage, onNavigateToConfig, currentRunFil
         {/* Right-Side Utilities */}
         <div className="header-utilities">
           <div className="user-greeting">
-            <span className="user-icon">👤</span>
+            <User size={16} className="user-icon" />
             <span className="user-name">{userName || "User"}</span>
           </div>
 
           <button type="button" className="logout-btn" onClick={onLogout} title="Logout">
-            <span className="logout-icon">🚪</span>
+            <LogOut size={15} className="logout-icon" />
             <span>Logout</span>
           </button>
         </div>

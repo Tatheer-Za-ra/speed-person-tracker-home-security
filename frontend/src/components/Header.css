@@ -156,7 +156,24 @@
 }
 
 .dropdown-item-icon {
-  font-size: 1.1rem;
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.dropdown-item-icon.green {
+  color: #059669;
+}
+
+.dropdown-item-icon.cyan {
+  color: #0284c7;
+}
+
+.dropdown-item-icon.purple {
+  color: #9333ea;
+}
+
+.dropdown-item:hover .dropdown-item-icon {
+  color: #0066cc;
 }
 
 /* Right-Side Utilities */
