@@ -8,6 +8,7 @@ import SpeedConfigModal from "./SpeedConfigModal";
 import BatchEventTimeline from "./BatchEventTimeline";
 import SnapshotModal from "./SnapshotModal";
 import ReportModal from "./ReportModal";
+import LandingHero from "./LandingHero";
 import "./DashboardPage.css";
 
 const API_HOST = "http://localhost:5000";
@@ -126,6 +127,14 @@ function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage })
 
   return (
     <div className="dashboard-container">
+      {/* Landing Hero Section */}
+      {!videoId && (
+        <LandingHero
+          onNavigateToUpload={() => onNavigateToPage && onNavigateToPage("videos")}
+          speedThresholds={speedThresholds}
+        />
+      )}
+
       {/* Top Navigation Hub Bar */}
       <div className="dashboard-header-actions">
         <div className="speed-threshold-pills">
