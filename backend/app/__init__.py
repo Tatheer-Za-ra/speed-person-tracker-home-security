@@ -10,6 +10,7 @@ from app.videos.routes import videos_bp
 from app.processing.routes import processing_bp
 from app.config_routes import config_bp
 from app.events_routes import events_bp
+from app.reports_routes import reports_bp
 from app.processing.scheduler import ProcessingScheduler
 
 scheduler = ProcessingScheduler(interval_seconds=5)
@@ -62,6 +63,7 @@ def create_app():
     app.register_blueprint(processing_bp)
     app.register_blueprint(config_bp)
     app.register_blueprint(events_bp)
+    app.register_blueprint(reports_bp)
     
     if not app.debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true":
         scheduler.start()

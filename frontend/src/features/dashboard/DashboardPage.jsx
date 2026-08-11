@@ -7,6 +7,7 @@ import FilterBar, { normalizeCategory } from "./FilterBar";
 import SpeedConfigModal from "./SpeedConfigModal";
 import BatchEventTimeline from "./BatchEventTimeline";
 import SnapshotModal from "./SnapshotModal";
+import ReportModal from "./ReportModal";
 import "./DashboardPage.css";
 
 const API_HOST = "http://localhost:5000";
@@ -20,6 +21,7 @@ function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage })
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   // Speed Limit Threshold State & Modal Visibility
   const [speedThresholds, setSpeedThresholds] = useState({
@@ -142,6 +144,15 @@ function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage })
           <button
             type="button"
             className="speed-settings-btn"
+            style={{ background: "rgba(5, 150, 105, 0.2)", borderColor: "rgba(52, 211, 153, 0.4)", color: "#34d399" }}
+            onClick={() => setIsReportModalOpen(true)}
+          >
+            📄 Export Audit Report
+          </button>
+
+          <button
+            type="button"
+            className="speed-settings-btn"
             onClick={() => onNavigateToPage && onNavigateToPage("config")}
           >
             ⚙️ Configuration Hub
@@ -252,6 +263,14 @@ function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage })
         isOpen={isSpeedModalOpen}
         onClose={() => setIsSpeedModalOpen(false)}
         onThresholdsUpdated={(updated) => setSpeedThresholds(updated)}
+      />
+
+      {/* Report Generator Modal */}
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        defaultVideoId={videoId}
+        videoFilename={currentRunFilter?.filename}
       />
 
       {/* Snapshot Lightbox Modal */}

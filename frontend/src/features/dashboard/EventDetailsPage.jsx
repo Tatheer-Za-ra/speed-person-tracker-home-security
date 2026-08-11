@@ -5,6 +5,7 @@ import { fetchEvents } from "../../api/eventsApi";
 import FilterBar, { normalizeCategory } from "./FilterBar";
 import BatchEventTimeline from "./BatchEventTimeline";
 import SnapshotModal from "./SnapshotModal";
+import ReportModal from "./ReportModal";
 import "./DashboardPage.css";
 
 function EventDetailsPage({ runFilter, onBackToVideos }) {
@@ -12,11 +13,12 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Filters
+  // Filters & Modals
   const [activeQuickMode, setActiveQuickMode] = useState("ALL");
   const [personFilter, setPersonFilter] = useState("ALL");
   const [vehicleFilter, setVehicleFilter] = useState("ALL");
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const videoId = runFilter?.videoId || null;
   const filename = runFilter?.filename || null;
@@ -79,10 +81,6 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
     }).length;
   }, [events]);
 
-  const handleTriggerReportGeneration = () => {
-    alert(`📄 Report Generation triggered for Video Run #${videoId}!\nPDF/CSV Export Engine will compile telemetric summary report.`);
-  };
-
   if (!videoId) {
     return (
       <div className="dashboard-container" style={{ padding: "40px", textAlign: "center" }}>
@@ -114,7 +112,7 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
             type="button"
             className="primary-button"
             style={{ background: "linear-gradient(135deg, #059669 0%, #047857 100%)", boxShadow: "0 0 14px rgba(52, 211, 153, 0.4)" }}
-            onClick={handleTriggerReportGeneration}
+            onClick={() => setIsReportModalOpen(true)}
           >
             📄 Generate Security Audit Report
           </button>
@@ -192,6 +190,14 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
           />
         )}
       </div>
+
+      {/* Report Generator Modal */}
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        defaultVideoId={videoId}
+        videoFilename={filename}
+      />
 
       {/* Snapshot Lightbox Inspection Modal */}
       {selectedEvent && (
