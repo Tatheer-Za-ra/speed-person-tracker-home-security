@@ -184,43 +184,6 @@ function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage })
         </div>
       )}
 
-      {/* Executive Metrics Grid */}
-      <div className="metrics-grid">
-        <div className="metric-card">
-          <div className="metric-title">
-            {videoId ? (currentRunFilter?.filename || "Isolated Video Events") : "Total Processed Events"}
-          </div>
-          <div className="metric-value">{videoId ? rawEvents.length : (summary?.total_events ?? 0)}</div>
-          <div className="metric-subtext">
-            {videoId ? `Strictly isolated to ${currentRunFilter?.filename ? `"${currentRunFilter.filename}"` : `Video ${videoId}`}` : `Recorded across ${summary?.total_videos ?? 0} videos`}
-          </div>
-        </div>
-
-        <div className="metric-card alert-card">
-          <div className="metric-title">Security Alerts</div>
-          <div className="metric-value alert-val">
-            {alertEventsCount}
-          </div>
-          <div className="metric-subtext">Unknown intruders & overspeed flags</div>
-        </div>
-
-        <div className="metric-card">
-          <div className="metric-title">Vehicles Tracked</div>
-          <div className="metric-value vehicle-val">
-            {rawEvents.filter((e) => e.label !== "person").length}
-          </div>
-          <div className="metric-subtext">Normalized: Car, Bike, Truck, Other</div>
-        </div>
-
-        <div className="metric-card">
-          <div className="metric-title">Persons Detected</div>
-          <div className="metric-value person-val">
-            {rawEvents.filter((e) => e.label === "person").length}
-          </div>
-          <div className="metric-subtext">RetinaFace & Facenet512 classification</div>
-        </div>
-      </div>
-
       {/* Clean Filtering Engine */}
       <FilterBar
         personFilter={personFilter}

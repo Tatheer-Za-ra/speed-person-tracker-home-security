@@ -17,21 +17,27 @@ const RETENTION_OPTIONS = [
 ];
 
 function RetentionConfigPanel() {
-  const [retentionDays, setRetentionDays] = useState(30);
+  const [activeRetentionDays, setActiveRetentionDays] = useState(30);
+  const [selectedPolicyDays, setSelectedPolicyDays] = useState(30);
   const [lastCleanupAt, setLastCleanupAt] = useState(null);
   const [totalVideos, setTotalVideos] = useState(0);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [cleaning, setCleaning] = useState(false);
-  const [message, setMessage] = useState(null);
+
+  // Toast / Alert notifications
+  const [toastMessage, setToastMessage] = useState(null);
+  const [cleanupReportModal, setCleanupReportModal] = useState(null);
 
   const loadRetentionInfo = async () => {
     setLoading(true);
     try {
       const { response, data } = await fetchRetentionConfig();
       if (response.ok && data.status === "success" && data.retention) {
-        setRetentionDays(data.retention.retention_days ?? 30);
+        const days = data.retention.retention_days ?? 30;
+        setActiveRetentionDays(days);
+        setSelectedPolicyDays(days);
         setLastCleanupAt(data.retention.last_cleanup_at || null);
         setTotalVideos(data.retention.total_videos ?? 0);
       }
@@ -46,20 +52,26 @@ function RetentionConfigPanel() {
     loadRetentionInfo();
   }, []);
 
-  const handleSavePolicy = async (daysVal) => {
+  const handleSavePolicy = async () => {
     setSaving(true);
-    setMessage(null);
+    setToastMessage(null);
     try {
-      const { response, data } = await updateRetentionConfig(daysVal);
+      const { response, data } = await updateRetentionConfig(selectedPolicyDays);
       if (response.ok && data.status === "success") {
-        setRetentionDays(daysVal);
-        setMessage({ type: "success", text: `Retention policy updated to ${daysVal === 0 ? "Disabled (Keep Forever)" : `${daysVal} days`}.` });
+        setActiveRetentionDays(selectedPolicyDays);
+        setToastMessage({
+          type: "success",
+          text: `Retention policy settings saved successfully! Window set to ${
+            selectedPolicyDays === 0 ? "Disabled (Keep Forever)" : `${selectedPolicyDays} Days`
+          }.`,
+        });
+        setTimeout(() => setToastMessage(null), 4000);
       } else {
-        setMessage({ type: "error", text: data.message || "Failed to save retention policy." });
+        setToastMessage({ type: "error", text: data.message || "Failed to save retention policy." });
       }
     } catch (err) {
       console.error(err);
-      setMessage({ type: "error", text: "Could not connect to backend server." });
+      setToastMessage({ type: "error", text: "Could not connect to backend server." });
     } finally {
       setSaving(false);
     }
@@ -67,18 +79,31 @@ function RetentionConfigPanel() {
 
   const handleRunCleanupNow = async () => {
     setCleaning(true);
-    setMessage(null);
+    setToastMessage(null);
     try {
       const { response, data } = await triggerManualCleanup();
       if (response.ok && data.status === "success") {
-        setMessage({ type: "success", text: data.message });
+        const report = data.result || {};
+        setCleanupReportModal({
+          purgedVideos: report.purged_videos ?? 0,
+          retentionDays: report.retention_days ?? activeRetentionDays,
+          lastCleanupAt: report.last_cleanup_at || new Date().toISOString(),
+          cutoffDate: report.cutoff_date || null,
+          message: data.message,
+        });
+
+        setToastMessage({
+          type: "success",
+          text: data.message,
+        });
+
         await loadRetentionInfo();
       } else {
-        setMessage({ type: "error", text: data.message || "Storage cleanup failed." });
+        setToastMessage({ type: "error", text: data.message || "Storage cleanup failed." });
       }
     } catch (err) {
       console.error(err);
-      setMessage({ type: "error", text: "Could not execute storage cleanup." });
+      setToastMessage({ type: "error", text: "Could not execute storage cleanup." });
     } finally {
       setCleaning(false);
     }
@@ -105,9 +130,11 @@ function RetentionConfigPanel() {
           </button>
         </div>
 
-        {message && (
-          <div className={`retention-alert ${message.type}`}>
-            {message.text}
+        {/* Toast Alert Notification */}
+        {toastMessage && (
+          <div className={`retention-alert ${toastMessage.type}`}>
+            <span className="alert-icon">{toastMessage.type === "success" ? "✅" : "⚠️"}</span>
+            <span>{toastMessage.text}</span>
           </div>
         )}
 
@@ -116,7 +143,7 @@ function RetentionConfigPanel() {
           <div className="retention-stat-box">
             <span className="stat-label">Active Retention Window</span>
             <span className="stat-val highlight">
-              {retentionDays === 0 ? "Disabled (Keep Forever)" : `${retentionDays} Days`}
+              {activeRetentionDays === 0 ? "Disabled (Keep Forever)" : `${activeRetentionDays} Days`}
             </span>
           </div>
 
@@ -139,19 +166,19 @@ function RetentionConfigPanel() {
 
           <div className="retention-options-grid">
             {RETENTION_OPTIONS.map((opt) => {
-              const isSelected = retentionDays === opt.value;
+              const isSelected = selectedPolicyDays === opt.value;
               return (
                 <div
                   key={opt.value}
                   className={`retention-opt-card ${isSelected ? "selected" : ""}`}
-                  onClick={() => handleSavePolicy(opt.value)}
+                  onClick={() => setSelectedPolicyDays(opt.value)}
                 >
                   <div className="opt-radio">
                     <input
                       type="radio"
                       name="retentionPolicy"
                       checked={isSelected}
-                      onChange={() => {}}
+                      onChange={() => setSelectedPolicyDays(opt.value)}
                     />
                   </div>
                   <div className="opt-info">
@@ -162,8 +189,70 @@ function RetentionConfigPanel() {
               );
             })}
           </div>
+
+          {/* Explicit Save Button */}
+          <div className="retention-save-bar">
+            <button
+              type="button"
+              className="primary-button save-retention-btn"
+              onClick={handleSavePolicy}
+              disabled={saving}
+            >
+              {saving ? "Saving Settings..." : "💾 Save Retention Settings"}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Storage Cleanup Execution Report Modal / Alert */}
+      {cleanupReportModal && (
+        <div className="retention-modal-overlay" onClick={() => setCleanupReportModal(null)}>
+          <div className="retention-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="retention-modal-header">
+              <span className="modal-header-icon">🧹</span>
+              <div>
+                <h3>Storage Cleanup Execution Report</h3>
+                <p className="modal-header-sub">Manual storage retention purge results</p>
+              </div>
+            </div>
+
+            <div className="retention-report-details">
+              <div className="report-row">
+                <span className="report-key">Execution Status:</span>
+                <span className="report-val success">SUCCESS</span>
+              </div>
+              <div className="report-row">
+                <span className="report-key">Purged Video Runs:</span>
+                <span className="report-val highlight">{cleanupReportModal.purgedVideos} Runs</span>
+              </div>
+              <div className="report-row">
+                <span className="report-key">Retention Window:</span>
+                <span className="report-val">{cleanupReportModal.retentionDays} Days</span>
+              </div>
+              {cleanupReportModal.cutoffDate && (
+                <div className="report-row">
+                  <span className="report-key">Cutoff Upload Date:</span>
+                  <span className="report-val">{new Date(cleanupReportModal.cutoffDate).toLocaleString()}</span>
+                </div>
+              )}
+              <div className="report-row">
+                <span className="report-key">Completed Timestamp:</span>
+                <span className="report-val">{new Date(cleanupReportModal.lastCleanupAt).toLocaleString()}</span>
+              </div>
+            </div>
+
+            <div className="retention-modal-footer">
+              <button
+                type="button"
+                className="primary-button modal-close-btn"
+                onClick={() => setCleanupReportModal(null)}
+              >
+                Close Report
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

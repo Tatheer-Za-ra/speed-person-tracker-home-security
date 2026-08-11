@@ -9,6 +9,8 @@ import ConfigurationPage from "./features/config/ConfigurationPage";
 import VideoUploadPage from "./features/videos/VideoUploadPage";
 import EventDetailsPage from "./features/dashboard/EventDetailsPage";
 import LogHistoryPage from "./features/logs/LogHistoryPage";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
 
 function App() {
   const [loggedInUser, setLoggedInUser] = useState(null);
@@ -65,8 +67,8 @@ function App() {
     return (
       <div className="auth-page">
         <div className="auth-card">
-          <h1 className="auth-title">Speed Person Tracker Home Security</h1>
-          <p className="auth-subtitle">Checking session...</p>
+          <h1 className="auth-title">HavenTrack</h1>
+          <p className="auth-subtitle">Loading security session...</p>
         </div>
       </div>
     );
@@ -77,87 +79,44 @@ function App() {
   }
 
   return (
-    <div className="app-shell">
-      {/* Central Topbar Header */}
-      <div className="topbar">
-        <div>
-          <h1 className="shell-title">Speed Person Tracker Home Security</h1>
-          <p className="shell-subtitle">Welcome, {loggedInUser.name} | Security Command Center</p>
-        </div>
+    <div className="app-root-layout">
+      {/* Sleek Horizontal Header Navigation Bar */}
+      <Header
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        currentRunFilter={currentRunFilter}
+        userName={loggedInUser.name}
+        onLogout={handleLogout}
+      />
 
-        <button className="primary-button" onClick={handleLogout} type="button">
-          Logout
-        </button>
-      </div>
-
-      {/* Global Navigation Hub */}
-      <div className="page-switch">
-        <button
-          className={currentPage === "dashboard" ? "active" : ""}
-          onClick={() => setCurrentPage("dashboard")}
-          type="button"
-        >
-          🏠 Dashboard Hub
-        </button>
-
-        <button
-          className={currentPage === "config" ? "active" : ""}
-          onClick={() => setCurrentPage("config")}
-          type="button"
-        >
-          ⚙️ Configuration
-        </button>
-
-        <button
-          className={currentPage === "videos" ? "active" : ""}
-          onClick={() => setCurrentPage("videos")}
-          type="button"
-        >
-          📹 Video Upload
-        </button>
-
-        <button
-          className={currentPage === "logs" ? "active" : ""}
-          onClick={() => setCurrentPage("logs")}
-          type="button"
-        >
-          📜 Event Logs / History
-        </button>
-
-        {currentRunFilter && (
-          <button
-            className={currentPage === "event-details" ? "active" : ""}
-            onClick={() => setCurrentPage("event-details")}
-            type="button"
-          >
-            🔍 Event Details ({currentRunFilter.filename || "Processed Run"})
-          </button>
+      {/* Main View Router Content */}
+      <main className="app-main-content">
+        {currentPage === "dashboard" ? (
+          <DashboardPage
+            currentRunFilter={currentRunFilter}
+            onResetRunFilter={handleResetRunFilter}
+            onNavigateToRun={handleNavigateToRun}
+            onNavigateToPage={setCurrentPage}
+          />
+        ) : currentPage === "config" ? (
+          <ConfigurationPage />
+        ) : currentPage === "videos" ? (
+          <VideoUploadPage onNavigateToRun={handleNavigateToRun} />
+        ) : currentPage === "logs" ? (
+          <LogHistoryPage
+            onNavigateToRun={handleNavigateToRun}
+            onNavigateToUpload={() => setCurrentPage("videos")}
+          />
+        ) : (
+          <EventDetailsPage
+            runFilter={currentRunFilter}
+            onBackToVideos={() => setCurrentPage("videos")}
+          />
         )}
-      </div>
+      </main>
 
-      {/* Main View Router */}
-      {currentPage === "dashboard" ? (
-        <DashboardPage
-          currentRunFilter={currentRunFilter}
-          onResetRunFilter={handleResetRunFilter}
-          onNavigateToRun={handleNavigateToRun}
-          onNavigateToPage={setCurrentPage}
-        />
-      ) : currentPage === "config" ? (
-        <ConfigurationPage />
-      ) : currentPage === "videos" ? (
-        <VideoUploadPage onNavigateToRun={handleNavigateToRun} />
-      ) : currentPage === "logs" ? (
-        <LogHistoryPage
-          onNavigateToRun={handleNavigateToRun}
-          onNavigateToUpload={() => setCurrentPage("videos")}
-        />
-      ) : (
-        <EventDetailsPage
-          runFilter={currentRunFilter}
-          onBackToVideos={() => setCurrentPage("videos")}
-        />
-      )}
+      {/* Anchored Clean White Footer */}
+      <Footer />
     </div>
   );
 }

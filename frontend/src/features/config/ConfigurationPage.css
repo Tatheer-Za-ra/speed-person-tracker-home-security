@@ -4,30 +4,29 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  max-width: 1280px;
+  max-width: 1360px;
   margin: 0 auto;
   width: 100%;
 }
 
 .config-tab-bar {
   display: flex;
-  gap: 12px;
-  background: rgba(7, 11, 20, 0.75);
-  backdrop-filter: blur(16px);
-  padding: 8px;
-  border-radius: 14px;
-  border: 1px solid rgba(56, 189, 248, 0.15);
+  gap: 8px;
+  background: #ffffff;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
   width: fit-content;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .config-tab-btn {
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: #475569;
   padding: 10px 20px;
-  border-radius: 10px;
-  font-size: 0.9375rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -37,44 +36,43 @@
 }
 
 .config-tab-btn:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.05);
+  color: #0f172a;
+  background: #f8fafc;
 }
 
 .config-tab-btn.active {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  background: #0066cc;
   color: #ffffff;
-  box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+  box-shadow: 0 2px 6px rgba(0, 102, 204, 0.25);
 }
 
 .speed-overview-card {
-  background: rgba(7, 11, 20, 0.75);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(56, 189, 248, 0.15);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
   padding: 28px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  color: #f8fafc;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  color: #0f172a;
 }
 
 .speed-overview-card h2 {
   margin: 0;
   font-size: 1.35rem;
-  color: #f8fafc;
+  color: #0f172a;
 }
 
 .speed-overview-desc {
   margin: 0;
-  color: #94a3b8;
+  color: #475569;
   font-size: 0.9375rem;
   line-height: 1.5;
 }
 
 .speed-overview-desc strong {
-  color: #ef4444;
+  color: #dc2626;
 }
 
 .speed-values-grid {
@@ -85,8 +83,8 @@
 }
 
 .speed-value-card {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 14px;
   padding: 20px;
   display: flex;
@@ -102,18 +100,17 @@
 
 .speed-cat-name {
   font-size: 0.875rem;
-  color: #94a3b8;
-  font-weight: 500;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
 }
 
 .speed-cat-limit {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #38bdf8;
-  text-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0066cc;
 }
 
 .edit-speed-btn {
-  width: fit-content;
-  margin-top: 10px;
+  align-self: flex-start;
 }

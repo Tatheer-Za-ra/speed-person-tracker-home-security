@@ -1,0 +1,65 @@
+/* frontend/src/features/dashboard/SystemHealthBar.css */
+
+.system-health-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(4, 7, 13, 0.7);
+  border: 1px solid rgba(56, 189, 248, 0.12);
+  border-radius: 10px;
+  padding: 8px 16px;
+  margin-bottom: 20px;
+  backdrop-filter: blur(10px);
+  font-size: 0.78rem;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.health-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.health-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #64748b;
+  display: inline-block;
+}
+
+.health-dot.online {
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+.health-dot.pulse {
+  animation: healthPulse 2s infinite ease-in-out;
+}
+
+@keyframes healthPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.health-label {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.health-value {
+  color: #cbd5e1;
+  font-weight: 700;
+}
+
+.health-value.highlight {
+  color: #38bdf8;
+}

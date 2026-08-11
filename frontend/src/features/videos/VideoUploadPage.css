@@ -13,14 +13,17 @@
 }
 
 .videos-card {
-  background: rgba(7, 11, 20, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(56, 189, 248, 0.15);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  color: #f8fafc;
+  padding: 28px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  color: #0f172a;
+}
+
+.videos-card h2 {
+  margin-top: 0;
+  color: #0f172a;
 }
 
 .videos-field {
@@ -32,31 +35,31 @@
   margin-bottom: 6px;
   font-size: 14px;
   font-weight: 600;
-  color: #cbd5e1;
+  color: #475569;
 }
 
 .videos-field input {
   width: 100%;
   padding: 10px 14px;
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
-  color: #f8fafc;
+  color: #0f172a;
 }
 
 .selected-files-box {
   margin-top: 18px;
   padding: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.6);
+  background: #f8fafc;
 }
 
 .selected-files-box h3 {
   margin-top: 0;
   margin-bottom: 10px;
   font-size: 16px;
-  color: #f8fafc;
+  color: #0f172a;
 }
 
 .video-list {
@@ -66,11 +69,11 @@
 }
 
 .video-item {
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #e2e8f0;
   border-radius: 14px;
   padding: 18px;
-  background: rgba(10, 16, 28, 0.85);
-  backdrop-filter: blur(12px);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -78,7 +81,7 @@
 
 .video-meta {
   margin: 6px 0 0;
-  color: #94a3b8;
+  color: #64748b;
   font-size: 0.875rem;
 }
 
@@ -86,58 +89,62 @@
 .post-processing-action-card {
   margin-top: 10px;
   padding: 14px;
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(6, 11, 20, 0.9) 100%);
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
   border-radius: 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .action-card-header {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #38bdf8;
+  color: #0066cc;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
 }
 
-.action-buttons-group {
+.run-actions-group {
   display: flex;
+  gap: 10px;
   flex-wrap: wrap;
-  gap: 8px;
 }
 
-.action-btn {
-  background: rgba(15, 23, 42, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #f8fafc;
-  padding: 8px 14px;
+.run-action-btn {
+  border: none;
   border-radius: 8px;
+  padding: 8px 14px;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
 }
 
-.action-btn.details-btn:hover {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-  border-color: #38bdf8;
-  box-shadow: 0 0 14px rgba(56, 189, 248, 0.5);
+.run-action-btn.inspect {
+  background: #0066cc;
+  color: #ffffff;
 }
 
-.action-btn.summary-btn:hover {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  border-color: #34d399;
-  box-shadow: 0 0 14px rgba(52, 211, 153, 0.5);
+.run-action-btn.inspect:hover {
+  background: #0052a3;
 }
 
-.action-btn.alerts-btn:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  border-color: #f87171;
-  box-shadow: 0 0 14px rgba(239, 68, 68, 0.6);
+.run-action-btn.summary {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+}
+
+.run-action-btn.summary:hover {
+  background: #e2e8f0;
+}
+
+.run-action-btn.alerts {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.run-action-btn.alerts:hover {
+  background: #b91c1c;
 }
