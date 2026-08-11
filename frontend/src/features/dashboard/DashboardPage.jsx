@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { fetchEventSummary, fetchEvents } from "../../api/eventsApi";
+import { fetchSpeedThresholds } from "../../api/configApi";
 import FilterBar, { normalizeCategory } from "./FilterBar";
+import SpeedConfigModal from "./SpeedConfigModal";
+import BatchEventTimeline from "./BatchEventTimeline";
 import "./DashboardPage.css";
 
 const API_HOST = "http://localhost:5000";
@@ -139,7 +142,7 @@ function SnapshotModal({ event, onClose }) {
   );
 }
 
-function DashboardPage({ currentRunFilter, onResetRunFilter }) {
+function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage }) {
   const [summary, setSummary] = useState(null);
   const [rawEvents, setRawEvents] = useState([]);
   const [activeQuickMode, setActiveQuickMode] = useState("ALL");
@@ -148,6 +151,14 @@ function DashboardPage({ currentRunFilter, onResetRunFilter }) {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Speed Limit Threshold State & Modal Visibility
+  const [speedThresholds, setSpeedThresholds] = useState({
+    car: 30.0,
+    motorcycle: 40.0,
+    truck: 25.0,
+  });
+  const [isSpeedModalOpen, setIsSpeedModalOpen] = useState(false);
 
   const videoId = currentRunFilter?.videoId || null;
   const initialMode = currentRunFilter?.mode || "all";
@@ -159,6 +170,18 @@ function DashboardPage({ currentRunFilter, onResetRunFilter }) {
       setActiveQuickMode("ALL");
     }
   }, [initialMode, videoId]);
+
+  // Fetch Speed Limits Configuration
+  const loadSpeedThresholds = async () => {
+    try {
+      const { response, data } = await fetchSpeedThresholds();
+      if (response.ok && data.status === "success" && data.thresholds) {
+        setSpeedThresholds(data.thresholds);
+      }
+    } catch (err) {
+      console.error("Could not fetch speed thresholds:", err);
+    }
+  };
 
   const loadDashboardData = async () => {
     setLoading(true);
@@ -190,6 +213,7 @@ function DashboardPage({ currentRunFilter, onResetRunFilter }) {
 
   useEffect(() => {
     loadDashboardData();
+    loadSpeedThresholds();
   }, [videoId]);
 
   // Clean Filtering Engine using useMemo
@@ -231,13 +255,46 @@ function DashboardPage({ currentRunFilter, onResetRunFilter }) {
 
   return (
     <div className="dashboard-container">
+      {/* Top Navigation Hub Bar */}
+      <div className="dashboard-header-actions">
+        <div className="speed-threshold-pills">
+          <span className="threshold-pill">
+            🚗 Car Limit: <strong>{speedThresholds.car ?? 30} km/h</strong>
+          </span>
+          <span className="threshold-pill">
+            🏍️ Bike Limit: <strong>{speedThresholds.motorcycle ?? 40} km/h</strong>
+          </span>
+          <span className="threshold-pill">
+            🚚 Truck Limit: <strong>{speedThresholds.truck ?? 25} km/h</strong>
+          </span>
+        </div>
+
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button
+            type="button"
+            className="speed-settings-btn"
+            onClick={() => onNavigateToPage && onNavigateToPage("config")}
+          >
+            ⚙️ Configuration Hub
+          </button>
+
+          <button
+            type="button"
+            className="speed-settings-btn"
+            onClick={() => setIsSpeedModalOpen(true)}
+          >
+            ⚡ Speed Settings
+          </button>
+        </div>
+      </div>
+
       {/* Current Run Isolation Banner */}
       {videoId && (
         <div className="isolation-banner">
           <div className="isolation-info">
             <span className="isolation-tag">Run Isolation Active</span>
             <span className="isolation-text">
-              Displaying telemetry strictly for Video Run #{videoId} {currentRunFilter?.filename ? `(${currentRunFilter.filename})` : ""}
+              Displaying telemetry strictly for {currentRunFilter?.filename ? `"${currentRunFilter.filename}"` : `Video ${videoId}`}
             </span>
           </div>
 
@@ -251,11 +308,11 @@ function DashboardPage({ currentRunFilter, onResetRunFilter }) {
       <div className="metrics-grid">
         <div className="metric-card">
           <div className="metric-title">
-            {videoId ? `Run #${videoId} Total Events` : "Total Processed Events"}
+            {videoId ? (currentRunFilter?.filename || "Isolated Video Events") : "Total Processed Events"}
           </div>
           <div className="metric-value">{videoId ? rawEvents.length : (summary?.total_events ?? 0)}</div>
           <div className="metric-subtext">
-            {videoId ? `Strictly isolated to Run #${videoId}` : `Recorded across ${summary?.total_videos ?? 0} videos`}
+            {videoId ? `Strictly isolated to ${currentRunFilter?.filename ? `"${currentRunFilter.filename}"` : `Video ${videoId}`}` : `Recorded across ${summary?.total_videos ?? 0} videos`}
           </div>
         </div>
 
@@ -296,11 +353,11 @@ function DashboardPage({ currentRunFilter, onResetRunFilter }) {
         alertEventsCount={alertEventsCount}
       />
 
-      {/* Events Feed Section */}
+      {/* Events Feed Section with Batch Segregation */}
       <div className="events-section">
         <div className="section-header">
           <div className="section-title">
-            Security Event Feed
+            Security Event Feed & Video Segregation
             <span className="event-count-badge">{filteredEvents.length} matching events</span>
           </div>
         </div>
@@ -313,69 +370,20 @@ function DashboardPage({ currentRunFilter, onResetRunFilter }) {
           <div style={{ padding: "30px", background: "rgba(239,68,68,0.1)", color: "#ef4444", borderRadius: "12px" }}>
             {error}
           </div>
-        ) : filteredEvents.length === 0 ? (
-          <div style={{ padding: "40px", textAlign: "center", color: "#64748b" }}>
-            No security events match the current filter selection.
-          </div>
         ) : (
-          <div className="events-feed-grid">
-            {filteredEvents.map((ev) => {
-              const meta = ev.metadata || {};
-              const snapshotUrl = ev.snapshot_url ? `${API_HOST}${ev.snapshot_url}` : null;
-              const isOverspeed = meta.speed_status === "OVERSPEED";
-              const normCategory = normalizeCategory(ev.label, meta.face_match_status);
-              const isUnknownPerson = ev.label === "person" && meta.face_match_status !== "known";
-              const isAlert = ev.is_alert || isUnknownPerson;
-
-              return (
-                <div
-                  key={ev.id}
-                  className={`event-card ${isAlert ? "is-alert" : ""}`}
-                  onClick={() => setSelectedEvent(ev)}
-                >
-                  <div className="snapshot-thumb-container">
-                    {snapshotUrl ? (
-                      <img src={snapshotUrl} alt={`Event ${ev.id}`} className="snapshot-thumb-img" />
-                    ) : (
-                      <div className="snapshot-placeholder">No Snapshot</div>
-                    )}
-
-                    <div className="badge-overlay-top">
-                      {isAlert ? (
-                        <span className="status-badge alert">ALERT</span>
-                      ) : meta.face_match_status === "known" ? (
-                        <span className="status-badge known">KNOWN</span>
-                      ) : (
-                        <span className="status-badge normal">DETECTED</span>
-                      )}
-                    </div>
-
-                    {meta.estimated_speed_kmh !== undefined && (
-                      <div className={`speed-badge-top ${isOverspeed ? "overspeed" : ""}`}>
-                        ⚡ {meta.estimated_speed_kmh} km/h
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="event-details-body">
-                    <div className="event-main-header">
-                      <span className="event-type-name">
-                        {normCategory.toUpperCase()} #{ev.track_id ?? ev.id}
-                      </span>
-                      <span className="event-timestamp">@ {ev.timestamp_seconds}s</span>
-                    </div>
-
-                    <div className="event-meta-row">
-                      <span>Raw: {ev.label}</span>
-                      <span>Conf: {ev.confidence ? `${(ev.confidence * 100).toFixed(0)}%` : "N/A"}</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <BatchEventTimeline
+            events={filteredEvents}
+            onSelectEvent={(ev) => setSelectedEvent(ev)}
+          />
         )}
       </div>
+
+      {/* Speed Threshold Settings Modal */}
+      <SpeedConfigModal
+        isOpen={isSpeedModalOpen}
+        onClose={() => setIsSpeedModalOpen(false)}
+        onThresholdsUpdated={(updated) => setSpeedThresholds(updated)}
+      />
 
       {/* Snapshot Lightbox Modal */}
       {selectedEvent && (

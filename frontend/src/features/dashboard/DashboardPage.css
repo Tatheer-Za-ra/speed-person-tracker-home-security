@@ -578,3 +578,51 @@
   color: #f8fafc;
   font-weight: 600;
 }
+
+/* Batch Segregation Timeline Styles */
+.batch-timeline-container {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.video-batch-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: rgba(10, 16, 28, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 18px;
+  border-radius: 14px;
+}
+
+.video-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 10px;
+}
+
+.video-title-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.video-badge {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+  box-shadow: 0 0 10px rgba(2, 132, 199, 0.4);
+}
+
+.video-subtext {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  font-weight: 500;
+}

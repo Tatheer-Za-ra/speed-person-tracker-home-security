@@ -1,12 +1,13 @@
 // frontend/src/App.jsx
 
 import React, { useState, useEffect } from "react";
-import "./app.css";
+import "./App.css";
 import { getCurrentUser, logoutUser } from "./api/authApi";
 import AuthPage from "./features/auth/AuthPage";
 import DashboardPage from "./features/dashboard/DashboardPage";
-import KnownPersonsPage from "./features/known-persons/KnownPersonsPage";
+import ConfigurationPage from "./features/config/ConfigurationPage";
 import VideoUploadPage from "./features/videos/VideoUploadPage";
+import EventDetailsPage from "./features/dashboard/EventDetailsPage";
 
 function App() {
   const [loggedInUser, setLoggedInUser] = useState(null);
@@ -51,11 +52,16 @@ function App() {
 
   const handleNavigateToRun = (videoId, mode, filename) => {
     setCurrentRunFilter({ videoId, mode, filename });
-    setCurrentPage("dashboard");
+    setCurrentPage("event-details");
   };
 
   const handleResetRunFilter = () => {
     setCurrentRunFilter(null);
+    setCurrentPage("dashboard");
+  };
+
+  const handleOpenLogsPlaceholder = () => {
+    alert("📜 Event Logs / History Module (Scheduled for Implementation in Day 5)\nThis section will provide searchable video run history and log deletion capability.");
   };
 
   if (authLoading) {
@@ -75,10 +81,11 @@ function App() {
 
   return (
     <div className="app-shell">
+      {/* Central Topbar Header */}
       <div className="topbar">
         <div>
           <h1 className="shell-title">Speed Person Tracker Home Security</h1>
-          <p className="shell-subtitle">Welcome, {loggedInUser.name}</p>
+          <p className="shell-subtitle">Welcome, {loggedInUser.name} | Security Command Center</p>
         </div>
 
         <button className="primary-button" onClick={handleLogout} type="button">
@@ -86,21 +93,22 @@ function App() {
         </button>
       </div>
 
+      {/* Global Navigation Hub */}
       <div className="page-switch">
         <button
           className={currentPage === "dashboard" ? "active" : ""}
           onClick={() => setCurrentPage("dashboard")}
           type="button"
         >
-          Dashboard
+          🏠 Dashboard Hub
         </button>
 
         <button
-          className={currentPage === "known-persons" ? "active" : ""}
-          onClick={() => setCurrentPage("known-persons")}
+          className={currentPage === "config" ? "active" : ""}
+          onClick={() => setCurrentPage("config")}
           type="button"
         >
-          Known Persons
+          ⚙️ Configuration
         </button>
 
         <button
@@ -108,19 +116,46 @@ function App() {
           onClick={() => setCurrentPage("videos")}
           type="button"
         >
-          Videos
+          📹 Video Upload
+        </button>
+
+        {currentRunFilter && (
+          <button
+            className={currentPage === "event-details" ? "active" : ""}
+            onClick={() => setCurrentPage("event-details")}
+            type="button"
+          >
+            🔍 Event Details ({currentRunFilter.filename || "Processed Run"})
+          </button>
+        )}
+
+        <button
+          className="logs-placeholder-btn"
+          onClick={handleOpenLogsPlaceholder}
+          type="button"
+          title="Scheduled for Day 5"
+        >
+          📜 Event Logs / History <span className="badge-soon">Day 5</span>
         </button>
       </div>
 
+      {/* Main View Router */}
       {currentPage === "dashboard" ? (
         <DashboardPage
           currentRunFilter={currentRunFilter}
           onResetRunFilter={handleResetRunFilter}
+          onNavigateToRun={handleNavigateToRun}
+          onNavigateToPage={setCurrentPage}
         />
-      ) : currentPage === "known-persons" ? (
-        <KnownPersonsPage />
-      ) : (
+      ) : currentPage === "config" ? (
+        <ConfigurationPage />
+      ) : currentPage === "videos" ? (
         <VideoUploadPage onNavigateToRun={handleNavigateToRun} />
+      ) : (
+        <EventDetailsPage
+          runFilter={currentRunFilter}
+          onBackToVideos={() => setCurrentPage("videos")}
+        />
       )}
     </div>
   );

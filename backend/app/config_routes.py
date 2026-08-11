@@ -56,7 +56,7 @@ def update_speed_thresholds():
         if limit_val <= 0:
             return jsonify({
                 "status": "error",
-                "message": f"Speed limit for '{category}' must be greater than zero."
+                "message": f"Speed limit for '{category}' value must be positive."
             }), 400
 
         record = repo.set_threshold_for_user(user_id, category, limit_val)

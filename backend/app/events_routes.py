@@ -5,13 +5,13 @@ from pathlib import Path
 from flask import Blueprint, jsonify, request
 from app.auth.service import login_required
 from app.db import get_db_session
-from app.repositories import EventRepository, SnapshotRepository
+from app.repositories import EventRepository, SnapshotRepository, VideoRepository
 
 events_bp = Blueprint("events_bp", __name__, url_prefix="/api/events")
 
 
-def _format_event(event, snapshot_repo) -> dict:
-    """Format event record for JSON response, attaching metadata & snapshot URL."""
+def _format_event(event, snapshot_repo, video_repo=None) -> dict:
+    """Format event record for JSON response, attaching metadata, snapshot URL & video title."""
     snapshot = snapshot_repo.get_snapshot_by_event_id(event.id)
     snapshot_url = None
 
@@ -28,9 +28,16 @@ def _format_event(event, snapshot_repo) -> dict:
         except Exception:
             metadata = {}
 
+    video_title = None
+    if video_repo and event.video_id:
+        v = video_repo.get_video_by_id(event.video_id)
+        if v:
+            video_title = v.original_filename
+
     return {
         "id": event.id,
         "video_id": event.video_id,
+        "video_title": video_title or f"Video #{event.video_id}",
         "track_id": event.track_id,
         "event_type": event.event_type,
         "label": event.label,
@@ -64,6 +71,7 @@ def list_events():
     db = get_db_session()
     event_repo = EventRepository(db)
     snapshot_repo = SnapshotRepository(db)
+    video_repo = VideoRepository(db)
 
     events = event_repo.get_filtered_events(
         video_id=video_id_param,
@@ -74,7 +82,7 @@ def list_events():
         offset=offset,
     )
 
-    formatted = [_format_event(ev, snapshot_repo) for ev in events]
+    formatted = [_format_event(ev, snapshot_repo, video_repo) for ev in events]
 
     return jsonify({
         "status": "success",
@@ -94,9 +102,10 @@ def list_alerts():
     db = get_db_session()
     event_repo = EventRepository(db)
     snapshot_repo = SnapshotRepository(db)
+    video_repo = VideoRepository(db)
 
     alerts = event_repo.get_alert_events(limit=limit)
-    formatted = [_format_event(ev, snapshot_repo) for ev in alerts]
+    formatted = [_format_event(ev, snapshot_repo, video_repo) for ev in alerts]
 
     return jsonify({
         "status": "success",
