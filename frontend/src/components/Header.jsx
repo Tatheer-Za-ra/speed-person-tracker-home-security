@@ -1,9 +1,20 @@
 // frontend/src/components/Header.jsx
 
-import React from "react";
+import React, { useState } from "react";
 import "./Header.css";
 
-function Header({ currentPage, setCurrentPage, currentRunFilter, userName, onLogout }) {
+function Header({ currentPage, setCurrentPage, onNavigateToConfig, currentRunFilter, userName, onLogout }) {
+  const [isConfigDropdownOpen, setIsConfigDropdownOpen] = useState(false);
+
+  const handleSelectConfigOption = (tabName) => {
+    if (onNavigateToConfig) {
+      onNavigateToConfig(tabName);
+    } else {
+      setCurrentPage("config");
+    }
+    setIsConfigDropdownOpen(false);
+  };
+
   return (
     <header className="haventrack-header">
       <div className="header-container">
@@ -22,13 +33,52 @@ function Header({ currentPage, setCurrentPage, currentRunFilter, userName, onLog
             Dashboard
           </button>
 
-          <button
-            type="button"
-            className={`nav-link ${currentPage === "config" ? "active" : ""}`}
-            onClick={() => setCurrentPage("config")}
+          {/* Configuration Menu with Dropdown */}
+          <div
+            className="nav-dropdown-wrapper"
+            onMouseEnter={() => setIsConfigDropdownOpen(true)}
+            onMouseLeave={() => setIsConfigDropdownOpen(false)}
           >
-            Configuration
-          </button>
+            <button
+              type="button"
+              className={`nav-link ${currentPage === "config" ? "active" : ""}`}
+              onClick={() => handleSelectConfigOption("persons")}
+            >
+              <span>Configuration</span>
+              <span className="dropdown-caret">▾</span>
+            </button>
+
+            {isConfigDropdownOpen && (
+              <div className="header-dropdown-menu">
+                <button
+                  type="button"
+                  className="dropdown-item"
+                  onClick={() => handleSelectConfigOption("persons")}
+                >
+                  <span className="dropdown-item-icon">👤</span>
+                  <span className="dropdown-item-text">Known Person Configuration</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="dropdown-item"
+                  onClick={() => handleSelectConfigOption("speed")}
+                >
+                  <span className="dropdown-item-icon">⚡</span>
+                  <span className="dropdown-item-text">Speed Configuration</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="dropdown-item"
+                  onClick={() => handleSelectConfigOption("retention")}
+                >
+                  <span className="dropdown-item-icon">🧹</span>
+                  <span className="dropdown-item-text">Data Retention & Storage</span>
+                </button>
+              </div>
+            )}
+          </div>
 
           <button
             type="button"

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import './a.css';
+import './TypewriterHero.css';
 
 const TypewriterHero = () => {
   const [text, setText] = useState('');
@@ -42,7 +42,7 @@ const TypewriterHero = () => {
   return (
     <div className="hero-container">
       <h1 className="hero-title">
-        <span className="static-text">Smarter Security.</span>
+        <span className="static-text">Smarter Security,</span>
         <br />
         <span className="dynamic-text">{text}</span>
         <span className="blinking-cursor">|</span>

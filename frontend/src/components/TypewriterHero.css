@@ -23,6 +23,10 @@
 /* Style the dynamic text to stand out (e.g., HavenTrack Blue) */
 .dynamic-text {
   color: #2563EB; 
+  font-size: 2.1rem;
+  font-weight: 700;
+  white-space: nowrap;
+  display: inline-block;
 }
 
 /* The Blinking Cursor Animation */

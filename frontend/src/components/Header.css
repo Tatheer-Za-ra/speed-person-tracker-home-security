@@ -84,6 +84,81 @@
   border-radius: 3px 3px 0 0;
 }
 
+/* Navigation Dropdown Menu Container */
+.nav-dropdown-wrapper {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.dropdown-caret {
+  margin-left: 6px;
+  font-size: 0.75rem;
+  color: #64748b;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.nav-dropdown-wrapper:hover .dropdown-caret {
+  transform: rotate(180deg);
+  color: #0066cc;
+}
+
+.header-dropdown-menu {
+  position: absolute;
+  top: calc(100% - 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 260px;
+  z-index: 120;
+  animation: fadeInDown 0.15s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.dropdown-item {
+  background: transparent;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, color 0.15s ease;
+  width: 100%;
+}
+
+.dropdown-item:hover {
+  background: #f0f9ff;
+  color: #0066cc;
+}
+
+.dropdown-item-icon {
+  font-size: 1.1rem;
+}
+
 /* Right-Side Utilities */
 .header-utilities {
   display: flex;
@@ -98,22 +173,23 @@
   font-size: 0.875rem;
   font-weight: 600;
   color: #334155;
-  background: #f1f5f9;
-  padding: 6px 14px;
-  border-radius: 20px;
 }
 
 .user-icon {
-  font-size: 1rem;
+  font-size: 1.1rem;
+}
+
+.user-name {
+  color: #0f172a;
 }
 
 .logout-btn {
-  background: transparent;
+  background: #f8fafc;
   border: 1px solid #cbd5e1;
   color: #475569;
-  padding: 7px 14px;
+  padding: 8px 14px;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -123,7 +199,7 @@
 }
 
 .logout-btn:hover {
-  background: #f8fafc;
-  color: #dc2626;
+  background: #fef2f2;
   border-color: #fca5a5;
+  color: #dc2626;
 }

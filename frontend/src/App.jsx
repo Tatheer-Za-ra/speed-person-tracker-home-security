@@ -90,6 +90,7 @@ function App() {
       <Header
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
+        onNavigateToConfig={handleNavigateToConfig}
         currentRunFilter={currentRunFilter}
         userName={loggedInUser.name}
         onLogout={handleLogout}
