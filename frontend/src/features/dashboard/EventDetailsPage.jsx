@@ -4,9 +4,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { fetchEvents } from "../../api/eventsApi";
 import FilterBar, { normalizeCategory } from "./FilterBar";
 import BatchEventTimeline from "./BatchEventTimeline";
+import SnapshotModal from "./SnapshotModal";
 import "./DashboardPage.css";
-
-const API_HOST = "http://localhost:5000";
 
 function EventDetailsPage({ runFilter, onBackToVideos }) {
   const [events, setEvents] = useState([]);
@@ -193,6 +192,11 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
           />
         )}
       </div>
+
+      {/* Snapshot Lightbox Inspection Modal */}
+      {selectedEvent && (
+        <SnapshotModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+      )}
     </div>
   );
 }

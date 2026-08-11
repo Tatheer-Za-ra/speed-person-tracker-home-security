@@ -142,7 +142,7 @@ function SpeedConfigModal({ isOpen, onClose, onThresholdsUpdated }) {
         </div>
 
         <p className="speed-modal-description">
-          Set maximum velocity speed limits (km/h) for vehicle categories. Any detected target exceeding its limit will automatically trigger a <strong>HIGH PRIORITY SECURITY ALERT</strong>.
+          Set maximum velocity speed limits (km/h) for vehicle categories. Any detected target exceeding its limit will automatically trigger a <strong>SECURITY ALERT</strong>.
         </p>
 
         {errorMessage && <div className="speed-modal-alert error">{errorMessage}</div>}

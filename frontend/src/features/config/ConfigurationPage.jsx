@@ -60,7 +60,7 @@ function ConfigurationPage() {
           <div className="speed-overview-card">
             <h2>⚡ Category Speed Limit Thresholds</h2>
             <p className="speed-overview-desc">
-              Configure maximum velocity speed limits (km/h) for target vehicle classification categories. Any vehicle exceeding its configured speed limit will trigger a <strong>HIGH PRIORITY SECURITY ALERT</strong>.
+              Configure maximum velocity speed limits (km/h) for target vehicle classification categories. Any vehicle exceeding its configured speed limit will trigger a <strong>SECURITY ALERT</strong>.
             </p>
 
             <div className="speed-values-grid">
