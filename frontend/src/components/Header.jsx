@@ -26,14 +26,6 @@ function Header({ currentPage, setCurrentPage, onNavigateToConfig, currentRunFil
 
         {/* Primary Horizontal Navigation Links */}
         <nav className="header-nav">
-          <button
-            type="button"
-            className={`nav-link ${currentPage === "dashboard" ? "active" : ""}`}
-            onClick={() => setCurrentPage("dashboard")}
-          >
-            Dashboard
-          </button>
-
           {/* Configuration Menu with Dropdown */}
           <div
             className="nav-dropdown-wrapper"

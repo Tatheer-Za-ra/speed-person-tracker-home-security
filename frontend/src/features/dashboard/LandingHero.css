@@ -36,6 +36,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  text-align: left;
 }
 
 .hero-badge {
@@ -66,6 +67,7 @@
   letter-spacing: -0.03em;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   min-height: 110px;
+  text-align: left;
 }
 
 @media (max-width: 768px) {
@@ -105,6 +107,7 @@
   color: #475569;
   margin: 0 0 28px;
   max-width: 540px;
+  text-align: left;
 }
 
 .hero-actions {
@@ -186,6 +189,7 @@
   justify-content: space-between;
   height: 100%;
   box-sizing: border-box;
+  text-align: left;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -194,16 +198,12 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
-.card-main-content {
+/* Card Top Section: Icon Top Left, Title 1-Line, Subtitle 2-Lines */
+.card-top-section {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .card-icon-box {
@@ -214,6 +214,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  margin-bottom: 12px;
 }
 
 .card-icon-box.cyan {
@@ -241,39 +242,52 @@
 }
 
 .card-title {
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 1.05rem;
+  font-weight: 800;
   color: #0f172a;
-  margin: 0 0 2px;
+  margin: 0 0 4px 0;
+  text-align: left;
+  white-space: nowrap;
 }
 
 .card-subtitle {
   font-size: 0.8125rem;
   color: #64748b;
   margin: 0;
+  text-align: left;
+  line-height: 1.35;
+  min-height: 32px;
+}
+
+/* Clean Horizontal Dividers */
+.card-divider {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 12px 0;
+  width: 100%;
 }
 
 .card-desc {
-  font-size: 0.875rem;
+  font-size: 0.84rem;
   color: #475569;
   line-height: 1.45;
-  margin: 0;
+  margin: 0 0 12px 0;
+  text-align: left;
+  min-height: 38px;
 }
 
-/* Soft Pill-Shaped Badges */
+/* Soft Pill-Shaped Badges Box (Left-Aligned, Theme Colors Matching Top Icon) */
 .pill-badges-row {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 8px;
-  margin-top: 4px;
+  width: 100%;
+  margin-bottom: 4px;
 }
 
 .pill-badge {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  color: #334155;
-  padding: 5px 12px;
+  padding: 6px 12px;
   border-radius: 20px;
   font-size: 0.78rem;
   font-weight: 600;
@@ -283,45 +297,71 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.pill-badge strong {
+.pill-badge.cyan {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #0284c7;
+}
+
+.pill-badge.cyan strong {
   color: #0066cc;
 }
 
-.pill-badge.success {
+.pill-badge.green {
   background: #ecfdf5;
-  border-color: #a7f3d0;
+  border: 1px solid #a7f3d0;
   color: #059669;
 }
 
-.pill-badge.alert {
+.pill-badge.red {
   background: #fef2f2;
-  border-color: #fecaca;
+  border: 1px solid #fecaca;
   color: #dc2626;
+}
+
+.pill-badge.purple {
+  background: #faf5ff;
+  border: 1px solid #e9d5ff;
+  color: #9333ea;
 }
 
 .pill-icon {
   flex-shrink: 0;
 }
 
-/* Quick Link Navigation Buttons Anchored at Bottom */
+/* Quick Link Navigation Buttons (Left-Aligned, Anchored at Bottom, Matching Theme Color) */
 .card-quick-link {
-  margin-top: 16px;
-  padding-top: 12px;
-  border: none;
-  border-top: 1px solid #e2e8f0;
   background: transparent;
-  color: #0066cc;
+  border: none;
   font-size: 0.84rem;
   font-weight: 700;
   cursor: pointer;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  padding: 4px 0;
+  text-align: left;
   transition: all 0.2s ease;
 }
 
+.card-quick-link.cyan {
+  color: #0284c7;
+}
+
+.card-quick-link.green {
+  color: #059669;
+}
+
+.card-quick-link.red {
+  color: #dc2626;
+}
+
+.card-quick-link.purple {
+  color: #9333ea;
+}
+
 .card-quick-link:hover {
-  color: #004499;
+  opacity: 0.8;
   padding-left: 4px;
 }

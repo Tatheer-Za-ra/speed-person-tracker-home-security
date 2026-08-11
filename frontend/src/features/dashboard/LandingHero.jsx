@@ -129,55 +129,54 @@ function LandingHero({ onNavigateToUpload, onNavigateToConfig, onNavigateToLogs,
           </motion.div>
         </div>
 
-        {/* Bottom Section: 4 Feature Cards Row (4 Equal-Height Columns) */}
+        {/* Bottom Section: 4 Feature Cards Row (Strict Left-Aligned Equal Layout) */}
         <div className="hero-cards-row">
           {/* Card 1: Speed Telemetry */}
           <motion.div
-            className="feature-card"
+            className="feature-card cyan-theme"
             custom={0}
             variants={cardVariants}
             initial="hidden"
             animate="visible"
             whileHover={{ scale: 1.02, translateY: -4 }}
           >
-            <div className="card-main-content">
-              <div className="card-header">
-                <div className="card-icon-box cyan">
-                  <Gauge size={22} />
-                </div>
-                <div>
-                  <h3 className="card-title">Speed Telemetry</h3>
-                  <p className="card-subtitle">Vehicle velocity monitoring</p>
-                </div>
+            <div className="card-top-section">
+              <div className="card-icon-box cyan">
+                <Gauge size={22} />
               </div>
 
-              <p className="card-desc">
-                Monitors vehicle speeds in real-time and alerts you immediately whenever customized speed limits are exceeded.
-              </p>
-
-              {/* Pill-Shaped Badges */}
-              <div className="pill-badges-row">
-                <span className="pill-badge">
-                  <Car size={14} className="pill-icon" />
-                  <span>Car: <strong>{speedThresholds?.car ?? 30} km/h</strong></span>
-                </span>
-
-                <span className="pill-badge">
-                  <Bike size={14} className="pill-icon" />
-                  <span>Bike: <strong>{speedThresholds?.motorcycle ?? 40} km/h</strong></span>
-                </span>
-
-                <span className="pill-badge">
-                  <Truck size={14} className="pill-icon" />
-                  <span>Truck: <strong>{speedThresholds?.truck ?? 25} km/h</strong></span>
-                </span>
-              </div>
+              <h3 className="card-title">Speed Telemetry</h3>
+              <p className="card-subtitle">Real-time velocity tracking</p>
             </div>
 
-            {/* Quick Link to Speed Config Tab */}
+            <hr className="card-divider" />
+
+            <p className="card-desc">
+              Monitors vehicle speeds in real-time and flags violations exceeding limits.
+            </p>
+
+            <div className="pill-badges-row">
+              <span className="pill-badge cyan">
+                <Car size={14} className="pill-icon" />
+                <span>Car: <strong>{speedThresholds?.car ?? 30} km/h</strong></span>
+              </span>
+
+              <span className="pill-badge cyan">
+                <Bike size={14} className="pill-icon" />
+                <span>Bike: <strong>{speedThresholds?.motorcycle ?? 40} km/h</strong></span>
+              </span>
+
+              <span className="pill-badge cyan">
+                <Truck size={14} className="pill-icon" />
+                <span>Truck: <strong>{speedThresholds?.truck ?? 25} km/h</strong></span>
+              </span>
+            </div>
+
+            <hr className="card-divider" />
+
             <button
               type="button"
-              className="card-quick-link"
+              className="card-quick-link cyan"
               onClick={() => onNavigateToConfig && onNavigateToConfig("speed")}
             >
               <span>Configure Speed Limits</span>
@@ -185,48 +184,47 @@ function LandingHero({ onNavigateToUpload, onNavigateToConfig, onNavigateToLogs,
             </button>
           </motion.div>
 
-          {/* Card 2: Known Person Recognition */}
+          {/* Card 2: Person Recognition */}
           <motion.div
-            className="feature-card"
+            className="feature-card green-theme"
             custom={1}
             variants={cardVariants}
             initial="hidden"
             animate="visible"
             whileHover={{ scale: 1.02, translateY: -4 }}
           >
-            <div className="card-main-content">
-              <div className="card-header">
-                <div className="card-icon-box green">
-                  <UserCheck size={22} />
-                </div>
-                <div>
-                  <h3 className="card-title">Known Person Recognition</h3>
-                  <p className="card-subtitle">Identify residents & visitors</p>
-                </div>
+            <div className="card-top-section">
+              <div className="card-icon-box green">
+                <UserCheck size={22} />
               </div>
 
-              <p className="card-desc">
-                Automatically identifies family members and authorized residents upon entering the property canvas.
-              </p>
-
-              {/* Pill-Shaped Badges */}
-              <div className="pill-badges-row">
-                <span className="pill-badge success">
-                  <UserCheck size={14} className="pill-icon" />
-                  <span>Recognized Resident</span>
-                </span>
-
-                <span className="pill-badge">
-                  <Shield size={14} className="pill-icon" />
-                  <span>Authorized Visitor</span>
-                </span>
-              </div>
+              <h3 className="card-title">Person Recognition</h3>
+              <p className="card-subtitle">Identify residents & visitors</p>
             </div>
 
-            {/* Quick Link to Known Persons Config Tab */}
+            <hr className="card-divider" />
+
+            <p className="card-desc">
+              Identifies family members and authorized residents upon entering property.
+            </p>
+
+            <div className="pill-badges-row">
+              <span className="pill-badge green">
+                <UserCheck size={14} className="pill-icon" />
+                <span>Recognized Resident</span>
+              </span>
+
+              <span className="pill-badge green">
+                <Shield size={14} className="pill-icon" />
+                <span>Authorized Visitor</span>
+              </span>
+            </div>
+
+            <hr className="card-divider" />
+
             <button
               type="button"
-              className="card-quick-link"
+              className="card-quick-link green"
               onClick={() => onNavigateToConfig && onNavigateToConfig("persons")}
             >
               <span>Manage Known Persons</span>
@@ -236,46 +234,45 @@ function LandingHero({ onNavigateToUpload, onNavigateToConfig, onNavigateToLogs,
 
           {/* Card 3: Security Alerts */}
           <motion.div
-            className="feature-card"
+            className="feature-card red-theme"
             custom={2}
             variants={cardVariants}
             initial="hidden"
             animate="visible"
             whileHover={{ scale: 1.02, translateY: -4 }}
           >
-            <div className="card-main-content">
-              <div className="card-header">
-                <div className="card-icon-box red">
-                  <AlertTriangle size={22} />
-                </div>
-                <div>
-                  <h3 className="card-title">Security Alerts</h3>
-                  <p className="card-subtitle">Instant threat notifications</p>
-                </div>
+            <div className="card-top-section">
+              <div className="card-icon-box red">
+                <AlertTriangle size={22} />
               </div>
 
-              <p className="card-desc">
-                Generates real-time security alert tags whenever unauthorized visitors or speeding vehicles are detected.
-              </p>
-
-              {/* Pill-Shaped Badges */}
-              <div className="pill-badges-row">
-                <span className="pill-badge alert">
-                  <AlertTriangle size={14} className="pill-icon" />
-                  <span>Unrecognized Intruder</span>
-                </span>
-
-                <span className="pill-badge alert">
-                  <Zap size={14} className="pill-icon" />
-                  <span>Overspeed Flagged</span>
-                </span>
-              </div>
+              <h3 className="card-title">Security Alerts</h3>
+              <p className="card-subtitle">Instant threat notifications</p>
             </div>
 
-            {/* Quick Link to Event Logs */}
+            <hr className="card-divider" />
+
+            <p className="card-desc">
+              Generates security alert tags whenever intruders or speeding vehicles are detected.
+            </p>
+
+            <div className="pill-badges-row">
+              <span className="pill-badge red">
+                <AlertTriangle size={14} className="pill-icon" />
+                <span>Unrecognized Intruder</span>
+              </span>
+
+              <span className="pill-badge red">
+                <Zap size={14} className="pill-icon" />
+                <span>Overspeed Flagged</span>
+              </span>
+            </div>
+
+            <hr className="card-divider" />
+
             <button
               type="button"
-              className="card-quick-link"
+              className="card-quick-link red"
               onClick={onNavigateToLogs}
             >
               <span>View Event Logs</span>
@@ -283,48 +280,47 @@ function LandingHero({ onNavigateToUpload, onNavigateToConfig, onNavigateToLogs,
             </button>
           </motion.div>
 
-          {/* Card 4: Data Retention & Storage */}
+          {/* Card 4: Storage Retention */}
           <motion.div
-            className="feature-card"
+            className="feature-card purple-theme"
             custom={3}
             variants={cardVariants}
             initial="hidden"
             animate="visible"
             whileHover={{ scale: 1.02, translateY: -4 }}
           >
-            <div className="card-main-content">
-              <div className="card-header">
-                <div className="card-icon-box purple">
-                  <HardDrive size={22} />
-                </div>
-                <div>
-                  <h3 className="card-title">Data Retention & Storage</h3>
-                  <p className="card-subtitle">Automated storage management</p>
-                </div>
+            <div className="card-top-section">
+              <div className="card-icon-box purple">
+                <HardDrive size={22} />
               </div>
 
-              <p className="card-desc">
-                Automates disk space cleanup and manages video event log retention policies to optimize storage.
-              </p>
-
-              {/* Pill-Shaped Badges */}
-              <div className="pill-badges-row">
-                <span className="pill-badge">
-                  <Clock size={14} className="pill-icon" />
-                  <span>14 Days Policy</span>
-                </span>
-
-                <span className="pill-badge success">
-                  <Zap size={14} className="pill-icon" />
-                  <span>Automated Cleanup</span>
-                </span>
-              </div>
+              <h3 className="card-title">Storage Retention</h3>
+              <p className="card-subtitle">Automated storage cleanup</p>
             </div>
 
-            {/* Quick Link to Retention Config Tab */}
+            <hr className="card-divider" />
+
+            <p className="card-desc">
+              Automates disk space cleanup and manages video event log retention policies.
+            </p>
+
+            <div className="pill-badges-row">
+              <span className="pill-badge purple">
+                <Clock size={14} className="pill-icon" />
+                <span>14 Days Policy</span>
+              </span>
+
+              <span className="pill-badge purple">
+                <Zap size={14} className="pill-icon" />
+                <span>Auto Cleanup</span>
+              </span>
+            </div>
+
+            <hr className="card-divider" />
+
             <button
               type="button"
-              className="card-quick-link"
+              className="card-quick-link purple"
               onClick={() => onNavigateToConfig && onNavigateToConfig("retention")}
             >
               <span>Manage Retention Settings</span>

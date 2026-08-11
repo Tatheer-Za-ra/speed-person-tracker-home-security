@@ -81,7 +81,14 @@ function App() {
   }
 
   if (!loggedInUser) {
-    return <AuthPage onLoginSuccess={setLoggedInUser} />;
+    return (
+      <AuthPage
+        onLoginSuccess={(user) => {
+          setLoggedInUser(user);
+          setCurrentPage("dashboard");
+        }}
+      />
+    );
   }
 
   return (
