@@ -114,3 +114,35 @@ def get_video_status(video_id):
         }), 200
     finally:
         db.close()
+
+
+@videos_bp.route("/logs", methods=["GET"])
+@login_required
+def list_all_video_logs():
+    """
+    Day 5: Return complete list of historical video processing logs with telemetry stats.
+    """
+    db = get_db_session()
+    try:
+        video_repo = VideoRepository(db)
+        logs_data = video_repo.get_all_videos_with_stats()
+        return jsonify({"status": "success", "logs": logs_data}), 200
+    finally:
+        db.close()
+
+
+@videos_bp.route("/logs/<int:video_id>", methods=["DELETE"])
+@login_required
+def delete_video_log(video_id):
+    """
+    Day 5: Permanently delete a video processing run, cascading deletion to events, snapshots, and disk files.
+    """
+    db = get_db_session()
+    try:
+        video_repo = VideoRepository(db)
+        success = video_repo.delete_video_cascade(video_id)
+        if not success:
+            return jsonify({"status": "error", "message": f"Video run #{video_id} not found."}), 404
+        return jsonify({"status": "success", "message": f"Video run #{video_id} deleted successfully."}), 200
+    finally:
+        db.close()

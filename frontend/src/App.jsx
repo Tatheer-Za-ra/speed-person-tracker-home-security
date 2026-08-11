@@ -8,6 +8,7 @@ import DashboardPage from "./features/dashboard/DashboardPage";
 import ConfigurationPage from "./features/config/ConfigurationPage";
 import VideoUploadPage from "./features/videos/VideoUploadPage";
 import EventDetailsPage from "./features/dashboard/EventDetailsPage";
+import LogHistoryPage from "./features/logs/LogHistoryPage";
 
 function App() {
   const [loggedInUser, setLoggedInUser] = useState(null);
@@ -58,10 +59,6 @@ function App() {
   const handleResetRunFilter = () => {
     setCurrentRunFilter(null);
     setCurrentPage("dashboard");
-  };
-
-  const handleOpenLogsPlaceholder = () => {
-    alert("📜 Event Logs / History Module (Scheduled for Implementation in Day 5)\nThis section will provide searchable video run history and log deletion capability.");
   };
 
   if (authLoading) {
@@ -119,6 +116,14 @@ function App() {
           📹 Video Upload
         </button>
 
+        <button
+          className={currentPage === "logs" ? "active" : ""}
+          onClick={() => setCurrentPage("logs")}
+          type="button"
+        >
+          📜 Event Logs / History
+        </button>
+
         {currentRunFilter && (
           <button
             className={currentPage === "event-details" ? "active" : ""}
@@ -128,15 +133,6 @@ function App() {
             🔍 Event Details ({currentRunFilter.filename || "Processed Run"})
           </button>
         )}
-
-        <button
-          className="logs-placeholder-btn"
-          onClick={handleOpenLogsPlaceholder}
-          type="button"
-          title="Scheduled for Day 5"
-        >
-          📜 Event Logs / History <span className="badge-soon">Day 5</span>
-        </button>
       </div>
 
       {/* Main View Router */}
@@ -151,6 +147,11 @@ function App() {
         <ConfigurationPage />
       ) : currentPage === "videos" ? (
         <VideoUploadPage onNavigateToRun={handleNavigateToRun} />
+      ) : currentPage === "logs" ? (
+        <LogHistoryPage
+          onNavigateToRun={handleNavigateToRun}
+          onNavigateToUpload={() => setCurrentPage("videos")}
+        />
       ) : (
         <EventDetailsPage
           runFilter={currentRunFilter}

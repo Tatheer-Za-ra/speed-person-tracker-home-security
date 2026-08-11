@@ -1,3 +1,5 @@
+import os
+import json
 from app.models import FaceTemplate, KnownPerson, User, Video, ProcessingLog, UploadBatch, Event, Snapshot, SpeedThreshold
 from sqlalchemy import func
 
@@ -249,11 +251,88 @@ class VideoRepository:
         )
     def get_videos_by_batch_id(self, batch_id: int):
         return (
-        self.db.query(Video)
-        .filter(Video.batch_id == batch_id)
-        .order_by(Video.id.asc())
-        .all()
-    )
+            self.db.query(Video)
+            .filter(Video.batch_id == batch_id)
+            .order_by(Video.id.asc())
+            .all()
+        )
+
+    def get_all_videos_with_stats(self):
+        """
+        Returns all videos joined with processing status, total event count, and alert count.
+        """
+        videos = self.db.query(Video).order_by(Video.id.desc()).all()
+        result = []
+        for v in videos:
+            log = self.db.query(ProcessingLog).filter(ProcessingLog.video_id == v.id).first()
+            status = log.status if log else "completed"
+            message = log.message if log else None
+            completed_at = log.completed_at if log else v.uploaded_at
+
+            events = self.db.query(Event).filter(Event.video_id == v.id).all()
+            total_events = len(events)
+            alert_count = sum(
+                1 for e in events
+                if e.is_alert or (e.label == "person" and (json.loads(e.metadata_json or "{}")).get("face_match_status") != "known")
+            )
+
+            result.append({
+                "video_id": v.id,
+                "batch_id": v.batch_id,
+                "original_filename": v.original_filename,
+                "stored_path": v.stored_path,
+                "uploaded_at": v.uploaded_at.isoformat() if v.uploaded_at else None,
+                "status": status,
+                "message": message,
+                "completed_at": completed_at.isoformat() if completed_at else None,
+                "total_events": total_events,
+                "alert_count": alert_count,
+            })
+        return result
+
+    def delete_video_cascade(self, video_id: int) -> bool:
+        """
+        Deletes a video record and permanently unlinks all snapshot images and related DB rows.
+        """
+        v = self.get_video_by_id(video_id)
+        if not v:
+            return False
+
+        # 1. Fetch all events for video
+        events = self.db.query(Event).filter(Event.video_id == video_id).all()
+        event_ids = [e.id for e in events]
+
+        # 2. Unlink snapshot files from disk & delete snapshot records
+        if event_ids:
+            snapshots = self.db.query(Snapshot).filter(Snapshot.event_id.in_(event_ids)).all()
+            for s in snapshots:
+                if s.file_path and os.path.exists(s.file_path):
+                    try:
+                        os.remove(s.file_path)
+                    except Exception as err:
+                        print(f"Could not remove snapshot file {s.file_path}: {err}")
+                self.db.delete(s)
+
+            # 3. Delete events
+            for e in events:
+                self.db.delete(e)
+
+        # 4. Delete processing logs
+        logs = self.db.query(ProcessingLog).filter(ProcessingLog.video_id == video_id).all()
+        for log in logs:
+            self.db.delete(log)
+
+        # 5. Delete stored video file if exists
+        if v.stored_path and os.path.exists(v.stored_path):
+            try:
+                os.remove(v.stored_path)
+            except Exception as err:
+                print(f"Could not remove video file {v.stored_path}: {err}")
+
+        # 6. Delete video record
+        self.db.delete(v)
+        self.db.commit()
+        return True
 
 class UploadBatchRepository:
     def __init__(self, db_session):
