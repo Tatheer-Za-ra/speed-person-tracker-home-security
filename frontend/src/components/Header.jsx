@@ -94,7 +94,7 @@ function Header({ currentPage, setCurrentPage, onNavigateToConfig, currentRunFil
             className={`nav-link ${currentPage === "logs" ? "active" : ""}`}
             onClick={() => setCurrentPage("logs")}
           >
-            Event Logs / History
+            Event Logs
           </button>
 
           {currentRunFilter && (
