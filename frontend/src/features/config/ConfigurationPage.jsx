@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import KnownPersonsPage from "../known-persons/KnownPersonsPage";
 import SpeedConfigModal from "../dashboard/SpeedConfigModal";
 import RetentionConfigPanel from "./RetentionConfigPanel";
+import CameraCalibrationPanel from "./CameraCalibrationPanel";
 import { fetchSpeedThresholds } from "../../api/configApi";
 import "./ConfigurationPage.css";
 
@@ -106,6 +107,9 @@ function ConfigurationPage({ initialTab = "persons" }) {
             onClose={() => setIsSpeedModalOpen(false)}
             onThresholdsUpdated={(updated) => setSpeedThresholds(updated)}
           />
+
+          {/* Camera Position & 3D Perspective Geometry Calibration */}
+          <CameraCalibrationPanel />
         </div>
       ) : (
         <div className="config-tab-content">

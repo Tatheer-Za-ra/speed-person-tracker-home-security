@@ -1,0 +1,165 @@
+/* frontend/src/features/config/CameraCalibrationPanel.css */
+
+.camera-calibration-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  margin-top: 24px;
+}
+
+.header-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+  letter-spacing: 0.03em;
+}
+
+.status-dot.green {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #16a34a;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
+}
+
+.calibration-header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.calibration-desc {
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.calibration-alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 20px;
+}
+
+.calibration-alert.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+
+.calibration-alert.success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+}
+
+.section-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 14px;
+}
+
+.dimensions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.dim-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
+  position: relative;
+}
+
+.dim-icon {
+  font-size: 1.5rem;
+  margin-bottom: 6px;
+}
+
+.dim-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.dim-specs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.825rem;
+  color: #475569;
+  margin-bottom: 12px;
+}
+
+.dim-badge {
+  display: inline-block;
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: #0066cc;
+  background: #e0f2fe;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.calibration-footer-ai {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 16px 20px;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .calibration-footer-ai {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.ai-footer-info {
+  font-size: 0.875rem;
+  color: #334155;
+}
+
+.recalculate-events-btn {
+  background: #0066cc;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+
+.recalculate-events-btn:hover:not(:disabled) {
+  background: #0052a3;
+}
+
+.recalculate-events-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

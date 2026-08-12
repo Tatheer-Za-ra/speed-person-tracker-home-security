@@ -70,6 +70,120 @@ def update_speed_thresholds():
     }), 200
 
 
+def get_camera_calibration_config(db):
+    """Retrieves camera position calibration from DB or default configuration."""
+    from app.models import Config
+    from app.ai_pipeline.speed_calculator import DEFAULT_CAMERA_CALIBRATION
+    import json
+
+    row = db.query(Config).filter(Config.key == "camera_calibration").first()
+    if not row or not row.value:
+        return DEFAULT_CAMERA_CALIBRATION
+    try:
+        val = json.loads(row.value)
+        return {**DEFAULT_CAMERA_CALIBRATION, **val}
+    except Exception:
+        return DEFAULT_CAMERA_CALIBRATION
+
+
+def set_camera_calibration_config(db, data: dict):
+    """Updates camera position calibration settings in DB."""
+    from app.models import Config
+    from app.ai_pipeline.speed_calculator import DEFAULT_CAMERA_CALIBRATION
+    import json
+
+    row = db.query(Config).filter(Config.key == "camera_calibration").first()
+    merged = {**DEFAULT_CAMERA_CALIBRATION, **data}
+    if not row:
+        row = Config(key="camera_calibration", value=json.dumps(merged))
+        db.add(row)
+    else:
+        row.value = json.dumps(merged)
+    db.commit()
+    return merged
+
+
+def recalculate_all_event_speeds(db):
+    """Re-runs speed calculation across all vehicle events using active camera calibration."""
+    from app.models import Event
+    from app.ai_pipeline.speed_calculator import calculate_track_speed
+    from app.repositories import SpeedThresholdRepository
+    import json
+
+    camera_params = get_camera_calibration_config(db)
+    speed_repo = SpeedThresholdRepository(db)
+    speed_limits = speed_repo.get_threshold_map(1)
+
+    events = db.query(Event).filter(Event.label.in_(["car", "motorcycle", "truck"])).all()
+    recalculated_count = 0
+
+    for ev in events:
+        if not ev.metadata_json:
+            continue
+        try:
+            meta = json.loads(ev.metadata_json)
+            bbox_history = meta.get("bbox_history", [])
+            if not bbox_history or len(bbox_history) < 2:
+                continue
+
+            calculated = calculate_track_speed(bbox_history, fps=25.0, camera_params=camera_params, class_name=ev.label)
+            limit_kmh = float(speed_limits.get(ev.label, 30.0))
+
+            speed_status = "OVERSPEED" if (calculated["valid"] and calculated["estimated_speed_kmh"] > limit_kmh) else "NORMAL"
+            ev.is_alert = (speed_status == "OVERSPEED")
+
+            meta["estimated_speed_kmh"] = calculated["estimated_speed_kmh"]
+            meta["max_speed_kmh"] = calculated["max_speed_kmh"]
+            meta["speed_status"] = speed_status
+
+            ev.metadata_json = json.dumps(meta)
+            recalculated_count += 1
+        except Exception:
+            continue
+
+    db.commit()
+    return recalculated_count
+
+
+@config_bp.route("/camera-calibration", methods=["GET"])
+@login_required
+def get_camera_calibration():
+    """Retrieve camera position calibration geometry settings."""
+    db = get_db_session()
+    try:
+        calibration = get_camera_calibration_config(db)
+        return jsonify({
+            "status": "success",
+            "calibration": calibration
+        }), 200
+    finally:
+        db.close()
+
+
+@config_bp.route("/camera-calibration", methods=["PUT"])
+@login_required
+def update_camera_calibration():
+    """Update camera position calibration parameters (height, tilt angle, FOV, scale correction)."""
+    data = request.get_json() or {}
+    if not isinstance(data, dict):
+        return jsonify({"status": "error", "message": "Invalid configuration payload"}), 400
+
+    db = get_db_session()
+    try:
+        updated = set_camera_calibration_config(db, data)
+        recalculated_count = recalculate_all_event_speeds(db)
+        return jsonify({
+            "status": "success",
+            "message": f"Camera calibration saved. Recalculated speed for {recalculated_count} recorded events.",
+            "calibration": updated,
+            "recalculated_events_count": recalculated_count
+        }), 200
+    finally:
+        db.close()
+
+
+
+
 @config_bp.route("/retention", methods=["GET"])
 @login_required
 def get_retention_config():

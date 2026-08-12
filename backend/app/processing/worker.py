@@ -44,9 +44,13 @@ class ProcessingWorker:
                 user_id = batch.user_id if batch else 1
                 speed_limits = speed_repo.get_threshold_map(user_id)
 
+                from app.config_routes import get_camera_calibration_config
+                camera_params = get_camera_calibration_config(db)
+
                 result = analyze_video_frames(
                     queued_video.stored_path,
-                    speed_limits=speed_limits
+                    speed_limits=speed_limits,
+                    camera_params=camera_params
                 )
 
                 if result["status"] == "success":

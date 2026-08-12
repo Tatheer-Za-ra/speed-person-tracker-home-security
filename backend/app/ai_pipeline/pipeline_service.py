@@ -66,6 +66,7 @@ def _build_event_metadata(track_summary: dict, speed_info: dict = None, face_inf
         "start_time_seconds": track_summary.get("start_time_seconds"),
         "end_time_seconds": track_summary.get("end_time_seconds"),
         "bbox_history_length": len(track_summary.get("bbox_history", [])),
+        "bbox_history": track_summary.get("bbox_history", []),
     }
 
     if speed_info:
@@ -87,7 +88,8 @@ def build_event_payloads(
     tracks_summary: list[dict],
     fps: float = 25.0,
     speed_limits: dict = None,
-    faces_output: list[dict] = None
+    faces_output: list[dict] = None,
+    camera_params: dict = None
 ) -> list[dict]:
     if speed_limits is None:
         speed_limits = {"car": 30.0, "motorcycle": 40.0, "truck": 25.0}
@@ -117,9 +119,9 @@ def build_event_payloads(
         is_alert = False
         speed_status = "NORMAL"
 
-        # Vehicle Speed Evaluation
+        # Vehicle Speed Evaluation with Method 1 AI Self-Calibration
         if is_vehicle:
-            calculated = calculate_track_speed(bbox_history, fps=fps)
+            calculated = calculate_track_speed(bbox_history, fps=fps, camera_params=camera_params, class_name=class_name)
             limit_kmh = float(speed_limits.get(class_name, 30.0))
 
             if calculated["valid"] and calculated["estimated_speed_kmh"] > limit_kmh:
@@ -224,7 +226,8 @@ def analyze_video_frames(
     video_path: str,
     preview_limit: int = 5,
     face_templates=None,
-    speed_limits: dict = None
+    speed_limits: dict = None,
+    camera_params: dict = None
 ):
     """
     Day 10 pipeline runner (Chunk 1 foundation).
@@ -454,6 +457,7 @@ def analyze_video_frames(
                 fps=metadata.fps,
                 speed_limits=speed_limits,
                 faces_output=faces_output,
+                camera_params=camera_params,
             ),
             "snapshot_payloads": build_snapshot_payloads(
                 video_id=0,

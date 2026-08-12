@@ -77,3 +77,32 @@ export async function triggerManualCleanup() {
   const data = await response.json();
   return { response, data };
 }
+
+/**
+ * GET /api/config/camera-calibration
+ */
+export async function fetchCameraCalibration() {
+  const response = await fetch(`${API_BASE}/camera-calibration`, {
+    method: "GET",
+    credentials: "include",
+  });
+  const data = await response.json();
+  return { response, data };
+}
+
+/**
+ * PUT /api/config/camera-calibration
+ */
+export async function updateCameraCalibration(calibration) {
+  const response = await fetch(`${API_BASE}/camera-calibration`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(calibration),
+  });
+  const data = await response.json();
+  return { response, data };
+}
+
