@@ -81,6 +81,18 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
     }).length;
   }, [events]);
 
+  // Extract exact speed limits applied during this video run
+  const runSpeedLimits = useMemo(() => {
+    const limits = { car: 30, motorcycle: 40, truck: 25 };
+    events.forEach((ev) => {
+      const meta = ev.metadata || {};
+      if (ev.label && meta.speed_limit_kmh) {
+        limits[ev.label] = meta.speed_limit_kmh;
+      }
+    });
+    return limits;
+  }, [events]);
+
   if (!videoId) {
     return (
       <div className="dashboard-container" style={{ padding: "40px", textAlign: "center" }}>
@@ -120,6 +132,34 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
           <button type="button" className="reset-run-btn" onClick={onBackToVideos}>
             ← Back to Videos
           </button>
+        </div>
+      </div>
+
+      {/* Speed Limits Banner for This Specific Run */}
+      <div className="speed-limits-run-bar" style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "10px",
+        padding: "12px 18px",
+        marginBottom: "16px",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.03)"
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "600", color: "#334155", fontSize: "0.875rem" }}>
+          <span>⚡ Speed Thresholds Set For This Run:</span>
+        </div>
+        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+          <span style={{ background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600" }}>
+            🚗 Car Limit: <strong>{runSpeedLimits.car} km/h</strong>
+          </span>
+          <span style={{ background: "#fefce8", color: "#a16207", border: "1px solid #fef08a", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600" }}>
+            🏍️ Bike Limit: <strong>{runSpeedLimits.motorcycle} km/h</strong>
+          </span>
+          <span style={{ background: "#f0fdf4", color: "#15803d", border: "1px solid #bbf7d0", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600" }}>
+            🚚 Truck Limit: <strong>{runSpeedLimits.truck} km/h</strong>
+          </span>
         </div>
       </div>
 

@@ -276,6 +276,16 @@ class VideoRepository:
                 if e.is_alert or (e.label == "person" and (json.loads(e.metadata_json or "{}")).get("face_match_status") != "known")
             )
 
+            run_thresholds = {"car": 30.0, "motorcycle": 40.0, "truck": 25.0}
+            for e in events:
+                if e.metadata_json and e.label in run_thresholds:
+                    try:
+                        m = json.loads(e.metadata_json)
+                        if "speed_limit_kmh" in m and m["speed_limit_kmh"] is not None:
+                            run_thresholds[e.label] = float(m["speed_limit_kmh"])
+                    except Exception:
+                        pass
+
             result.append({
                 "video_id": v.id,
                 "batch_id": v.batch_id,
@@ -287,6 +297,7 @@ class VideoRepository:
                 "completed_at": completed_at.isoformat() if completed_at else None,
                 "total_events": total_events,
                 "alert_count": alert_count,
+                "run_thresholds": run_thresholds,
             })
         return result
 
