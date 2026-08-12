@@ -241,21 +241,11 @@ def analyze_video_frames(
     preview_limit: int = 5,
     face_templates=None,
     speed_limits: dict = None,
-    camera_params: dict = None
+    camera_params: dict = None,
+    progress_callback: callable = None,
 ):
     """
     Day 10 pipeline runner (Chunk 1 foundation).
-
-    It:
-    - opens a video
-    - reads metadata
-    - iterates processed frames
-    - runs YOLO inference on sampled frames
-    - stores detections in memory for the current video
-    - passes detections into tracking stage
-    - returns structured detection + tracking placeholders
-
-    No DB writes, no event creation yet.
     """
     cap = None
 
@@ -264,7 +254,8 @@ def analyze_video_frames(
         release_video_capture(cap)
         cap = None
 
-       # detector = YoloDetector()
+        total_frames = getattr(metadata, "total_frames", 1) or 1
+
         detector = create_detector()
         detector_backend_used = getattr(detector, "backend_name", "unknown")
         fallback_reason = getattr(detector, "fallback_reason", None)
@@ -304,6 +295,13 @@ def analyze_video_frames(
 
         for processed_frame in iter_processed_frames(video_path):
             processed_frames_count += 1
+
+            if progress_callback and (processed_frames_count % 2 == 0 or processed_frames_count == total_frames):
+                pct = min(99, int((processed_frames_count / max(1, total_frames)) * 100))
+                try:
+                    progress_callback(pct, processed_frames_count, total_frames)
+                except Exception:
+                    pass
 
             if auto_y_horizon is None and processed_frame.frame is not None:
                 auto_y_horizon = detect_vanishing_point_and_horizon(processed_frame.frame)

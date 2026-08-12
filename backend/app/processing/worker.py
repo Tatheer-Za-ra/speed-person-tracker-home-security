@@ -47,10 +47,18 @@ class ProcessingWorker:
                 from app.config_routes import get_camera_calibration_config
                 camera_params = get_camera_calibration_config(db)
 
+                def on_progress(pct, current_f, total_f):
+                    try:
+                        queued_log.message = f"Processing video... {pct}% ({current_f}/{total_f} frames)"
+                        db.commit()
+                    except Exception:
+                        pass
+
                 result = analyze_video_frames(
                     queued_video.stored_path,
                     speed_limits=speed_limits,
-                    camera_params=camera_params
+                    camera_params=camera_params,
+                    progress_callback=on_progress,
                 )
 
                 if result["status"] == "success":

@@ -62,9 +62,22 @@ def list_current_batch_videos():
 
         videos = video_repo.get_videos_by_batch_id(latest_batch.id)
 
+        import re
         output = []
         for video in videos:
             log = log_repo.get_log_by_video_id(video.id)
+            status = log.status if log else None
+            msg = log.message if log else None
+            progress = 0
+            if (status or "").lower() == "completed":
+                progress = 100
+            elif (status or "").lower() == "processing":
+                if msg and "%" in msg:
+                    match = re.search(r"(\d+)%", msg)
+                    if match:
+                        progress = int(match.group(1))
+                if progress == 0:
+                    progress = 10
 
             output.append({
                 "id": video.id,
@@ -72,8 +85,9 @@ def list_current_batch_videos():
                 "original_filename": video.original_filename,
                 "stored_path": video.stored_path,
                 "uploaded_at": str(video.uploaded_at) if video.uploaded_at else None,
-                "status": log.status if log else None,
-                "message": log.message if log else None,
+                "status": status,
+                "message": msg,
+                "progress_percent": progress,
             })
 
         return jsonify(output), 200

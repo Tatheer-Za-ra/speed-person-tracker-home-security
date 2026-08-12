@@ -1,7 +1,7 @@
 // frontend/src/features/videos/VideoUploadPage.jsx
 
 import React, { useEffect, useState } from "react";
-import { Zap, Eye, BarChart2, ShieldAlert } from "lucide-react";
+import { Zap, Eye, BarChart2, ShieldAlert, Loader2 } from "lucide-react";
 import "./VideoUploadPage.css";
 import { listVideos, uploadVideos } from "../../api/videoApi";
 
@@ -121,7 +121,10 @@ function VideoUploadPage({ onNavigateToRun }) {
         ) : (
           <div className="video-list">
             {videos.map((video) => {
-              const isCompleted = (video.status || "").toLowerCase() === "completed";
+              const statusLower = (video.status || "").toLowerCase();
+              const isCompleted = statusLower === "completed";
+              const isProcessing = statusLower === "processing" || statusLower === "queued";
+              const progressPct = video.progress_percent ?? (isCompleted ? 100 : isProcessing ? 15 : 0);
 
               return (
                 <div key={video.id} className="video-item-wrapper">
@@ -140,6 +143,31 @@ function VideoUploadPage({ onNavigateToRun }) {
                     <p className="video-meta" style={{ fontSize: "0.8125rem" }}>
                       {video.message || "No message"}
                     </p>
+
+                    {/* Dynamic Real-Time Frame Processing Progress Bar */}
+                    {isProcessing && (
+                      <div className="processing-progress-box" style={{ marginTop: "12px", background: "#f8fafc", padding: "10px 14px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                          <span style={{ fontSize: "0.8125rem", fontWeight: "600", color: "#0284c7", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                            <Loader2 size={14} style={{ animation: "spin 1.2s linear infinite" }} />
+                            <span>AI Frame Processing & Tracking...</span>
+                          </span>
+                          <span style={{ fontSize: "0.8125rem", fontWeight: "700", color: "#0369a1" }}>
+                            {progressPct}%
+                          </span>
+                        </div>
+
+                        <div style={{ width: "100%", height: "8px", background: "#cbd5e1", borderRadius: "10px", overflow: "hidden" }}>
+                          <div style={{
+                            width: `${Math.max(6, progressPct)}%`,
+                            height: "100%",
+                            background: "linear-gradient(90deg, #0284c7 0%, #059669 100%)",
+                            borderRadius: "10px",
+                            transition: "width 0.5s ease-in-out"
+                          }} />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Post-Processing Action Panel */}
