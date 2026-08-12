@@ -1,6 +1,7 @@
 // frontend/src/features/videos/VideoUploadPage.jsx
 
 import React, { useEffect, useState } from "react";
+import { Zap, Eye, BarChart2, ShieldAlert } from "lucide-react";
 import "./VideoUploadPage.css";
 import { listVideos, uploadVideos } from "../../api/videoApi";
 
@@ -23,59 +24,48 @@ function VideoUploadPage({ onNavigateToRun }) {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [videos, setVideos] = useState([]);
   const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState("error");
+  const [messageType, setMessageType] = useState("info");
   const [fileInputKey, setFileInputKey] = useState(0);
 
   const fetchVideos = async () => {
     try {
       const { response, data } = await listVideos();
-
-      if (!response.ok) {
-        setMessageType("error");
-        setMessage(data.error || "Could not load videos");
-        return;
+      if (response.ok && data) {
+        const list = Array.isArray(data) ? data : (data.videos || data.results || []);
+        setVideos(list);
       }
-
-      setVideos(data);
-    } catch {
-      setMessageType("error");
-      setMessage("Could not connect to backend");
+    } catch (err) {
+      console.error("Could not fetch uploaded videos list:", err);
     }
   };
 
   useEffect(() => {
     fetchVideos();
-
     const intervalId = setInterval(() => {
       fetchVideos();
-    }, 3000);
+    }, 2000);
 
     return () => clearInterval(intervalId);
   }, []);
 
   const handleFileChange = (e) => {
-    setSelectedFiles(Array.from(e.target.files || []));
+    const files = Array.from(e.target.files || []);
+    setSelectedFiles(files);
   };
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    setMessage("");
 
     if (selectedFiles.length === 0) {
       setMessageType("error");
-      setMessage("Please select at least one video");
+      setMessage("Please select at least one video file first.");
       return;
     }
 
     try {
-      const { response, data } = await uploadVideos(selectedFiles);
-
-      if (!response.ok) {
-        setMessageType("error");
-        setMessage(data.error || "Video upload failed");
-        return;
-      }
-
+      setMessageType("info");
+      setMessage("Uploading and starting processing...");
+      await uploadVideos(selectedFiles);
       setMessageType("success");
       setMessage("Video upload completed");
       setSelectedFiles([]);
@@ -134,9 +124,11 @@ function VideoUploadPage({ onNavigateToRun }) {
               const isCompleted = (video.status || "").toLowerCase() === "completed";
 
               return (
-                <div key={video.id} className="video-item">
-                  <div>
-                    <strong style={{ fontSize: "1.05rem" }}>{video.original_filename}</strong>
+                <div key={video.id} className="video-item-wrapper">
+                  <div className="video-item">
+                    <p className="video-title">
+                      <strong>{video.original_filename}</strong>
+                    </p>
 
                     <p className="video-meta">
                       Status:{" "}
@@ -153,42 +145,49 @@ function VideoUploadPage({ onNavigateToRun }) {
                   {/* Post-Processing Action Panel */}
                   {isCompleted && (
                     <div className="post-processing-action-card">
-                      <div className="action-card-header">
-                        ⚡ Processing Finished — Post-Run Actions
+                      <div className="action-card-header" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <Zap size={15} style={{ color: "#059669" }} />
+                        <span>Processing Finished — Post-Run Actions</span>
                       </div>
 
                       <div className="action-buttons-group">
                         <button
                           type="button"
                           className="action-btn details-btn"
+                          style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
                           onClick={() =>
                             onNavigateToRun &&
                             onNavigateToRun(video.id, "events", video.original_filename)
                           }
                         >
-                          🔍 Event Details
+                          <Eye size={14} />
+                          <span>Event Details</span>
                         </button>
 
                         <button
                           type="button"
                           className="action-btn summary-btn"
+                          style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
                           onClick={() =>
                             onNavigateToRun &&
                             onNavigateToRun(video.id, "summary", video.original_filename)
                           }
                         >
-                          📊 Run Summary
+                          <BarChart2 size={14} />
+                          <span>Run Summary</span>
                         </button>
 
                         <button
                           type="button"
                           className="action-btn alerts-btn"
+                          style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
                           onClick={() =>
                             onNavigateToRun &&
                             onNavigateToRun(video.id, "alerts", video.original_filename)
                           }
                         >
-                          🚨 Security Alerts
+                          <ShieldAlert size={14} />
+                          <span>Security Alerts</span>
                         </button>
                       </div>
                     </div>

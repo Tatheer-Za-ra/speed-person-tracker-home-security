@@ -110,63 +110,59 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
 
   return (
     <div className="dashboard-container">
-      {/* Dynamic Run Header & Report Trigger Banner */}
-      <div className="isolation-banner">
-        <div className="isolation-info">
-          <span className="isolation-tag">Last Run Data Isolation</span>
-          <span className="isolation-text">
-            Strictly displaying telemetry for {filename ? `"${filename}"` : `Video ${videoId}`}
-          </span>
-        </div>
-
-        <div style={{ display: "flex", gap: "10px" }}>
-          {/* Prominent Report Generation Button */}
-          <button
-            type="button"
-            className="primary-button"
-            style={{ background: "linear-gradient(135deg, #059669 0%, #047857 100%)", boxShadow: "0 0 14px rgba(52, 211, 153, 0.4)", display: "inline-flex", alignItems: "center", gap: "8px" }}
-            onClick={() => setIsReportModalOpen(true)}
-          >
-            <FileSpreadsheet size={16} />
-            <span>Generate Security Audit Report</span>
-          </button>
-
-          <button type="button" className="reset-run-btn" onClick={onBackToVideos} style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-            <ArrowLeft size={14} />
-            <span>Back to Videos</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Speed Limits Banner for This Specific Run */}
+      {/* Unified Control & Speed Thresholds Top Bar */}
       <div className="speed-limits-run-bar" style={{
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         background: "#ffffff",
         border: "1px solid #e2e8f0",
-        borderRadius: "10px",
-        padding: "12px 18px",
-        marginBottom: "16px",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.03)"
+        borderRadius: "12px",
+        padding: "12px 20px",
+        marginBottom: "20px",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+        flexWrap: "wrap",
+        gap: "12px"
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "600", color: "#334155", fontSize: "0.875rem" }}>
-          <Zap size={16} style={{ color: "#d97706" }} />
-          <span>Speed Thresholds Set For This Run:</span>
+        {/* Speed Thresholds Pills */}
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "700", color: "#334155", fontSize: "0.875rem" }}>
+            <Zap size={16} style={{ color: "#d97706" }} />
+            <span>Speed Thresholds Set For This Run:</span>
+          </div>
+
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <span style={{ background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+              <Car size={14} />
+              <span>Car Limit: <strong>{runSpeedLimits.car} km/h</strong></span>
+            </span>
+            <span style={{ background: "#fefce8", color: "#a16207", border: "1px solid #fef08a", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+              <Bike size={14} />
+              <span>Bike Limit: <strong>{runSpeedLimits.motorcycle} km/h</strong></span>
+            </span>
+            <span style={{ background: "#f0fdf4", color: "#15803d", border: "1px solid #bbf7d0", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+              <Truck size={14} />
+              <span>Truck Limit: <strong>{runSpeedLimits.truck} km/h</strong></span>
+            </span>
+          </div>
         </div>
-        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-          <span style={{ background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "6px" }}>
-            <Car size={14} />
-            <span>Car Limit: <strong>{runSpeedLimits.car} km/h</strong></span>
-          </span>
-          <span style={{ background: "#fefce8", color: "#a16207", border: "1px solid #fef08a", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "6px" }}>
-            <Bike size={14} />
-            <span>Bike Limit: <strong>{runSpeedLimits.motorcycle} km/h</strong></span>
-          </span>
-          <span style={{ background: "#f0fdf4", color: "#15803d", border: "1px solid #bbf7d0", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "6px" }}>
-            <Truck size={14} />
-            <span>Truck Limit: <strong>{runSpeedLimits.truck} km/h</strong></span>
-          </span>
+
+        {/* Action Buttons */}
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <button
+            type="button"
+            className="primary-button"
+            style={{ background: "linear-gradient(135deg, #059669 0%, #047857 100%)", boxShadow: "0 0 12px rgba(52, 211, 153, 0.35)", display: "inline-flex", alignItems: "center", gap: "8px", padding: "8px 16px", fontSize: "0.875rem" }}
+            onClick={() => setIsReportModalOpen(true)}
+          >
+            <FileSpreadsheet size={16} />
+            <span>Generate Security Audit Report</span>
+          </button>
+
+          <button type="button" className="reset-run-btn" onClick={onBackToVideos} style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "8px 14px", fontSize: "0.875rem" }}>
+            <ArrowLeft size={14} />
+            <span>Back to Videos</span>
+          </button>
         </div>
       </div>
 
