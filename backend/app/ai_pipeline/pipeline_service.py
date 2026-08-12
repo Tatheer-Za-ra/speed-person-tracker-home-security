@@ -108,7 +108,8 @@ def build_event_payloads(
             if faces:
                 face_map_by_track[tid] = faces[0]
 
-    detected_scene = auto_detect_camera_scene(tracks_summary)
+    detected_scene = auto_detect_camera_scene(tracks_summary, frame_height=540.0)
+    print(f"=== AUTO-DETECTED SCENE PRESET FOR VIDEO: {detected_scene} ===")
     event_payloads = []
 
     for track_summary in tracks_summary:

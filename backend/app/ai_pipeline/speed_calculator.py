@@ -172,32 +172,40 @@ def _compute_bottom_contact(bbox: Dict[str, float]) -> tuple[float, float]:
     return cx, cy_bottom
 
 
-def auto_detect_camera_scene(tracks_summary: List[Dict[str, Any]], frame_height: float = 540.0) -> str:
+def auto_detect_camera_scene(
+    tracks_summary: List[Dict[str, Any]],
+    frame_height: float = 540.0,
+    sample_frame: Optional[any] = None,
+) -> str:
     """
     Automatically profiles camera scene type (highway_telephoto vs urban_overpass vs residential)
-    based on detected car bounding box sizes at upper/mid frame region.
+    by analyzing upper-frame vehicle box widths.
     """
-    car_widths = []
-    if tracks_summary:
-        for t in tracks_summary:
-            if t.get("class_name") == "car":
-                for item in t.get("bbox_history", []):
-                    b = item.get("bbox", {})
-                    w = abs(b.get("x2", 0) - b.get("x1", 0))
-                    y2 = b.get("y2", 0)
-                    if w > 5 and y2 <= 0.70 * frame_height:
-                        car_widths.append(w)
-
-    if not car_widths:
+    if not tracks_summary:
         return "highway_telephoto"
 
-    car_widths.sort()
-    median_w = car_widths[len(car_widths) // 2]
+    top_car_widths = []
+    all_car_widths = []
 
-    if median_w < 65.0:
-        return "highway_telephoto"
-    else:
-        return "urban_overpass"
+    for t in tracks_summary:
+        if t.get("class_name") == "car":
+            for item in t.get("bbox_history", []):
+                b = item.get("bbox", {})
+                w = abs(b.get("x2", 0) - b.get("x1", 0))
+                y1 = b.get("y1", 540)
+                if w > 5:
+                    all_car_widths.append(w)
+                    if y1 <= 0.35 * frame_height:
+                        top_car_widths.append(w)
+
+    # If upper-frame car box widths are >= 50px -> steep urban overpass (e.g. output.mp4)
+    if top_car_widths:
+        top_car_widths.sort()
+        med_top = top_car_widths[len(top_car_widths) // 2]
+        if med_top >= 50.0:
+            return "urban_overpass"
+
+    return "highway_telephoto"
 
 
 def calculate_track_speed(
@@ -233,7 +241,7 @@ def calculate_track_speed(
 
     if effective_preset == "urban_overpass":
         preset_horizon_ratio = -0.20
-        preset_mult = 7.00
+        preset_mult = 1.125
         preset_gamma = 1.05
     elif effective_preset == "residential":
         preset_horizon_ratio = 0.15
@@ -245,6 +253,26 @@ def calculate_track_speed(
         preset_gamma = 1.50
 
     speeds_kmh = []
+
+    if isinstance(bbox_history, dict):
+        if all(isinstance(v, dict) for v in bbox_history.values()):
+            bbox_history = [v for k, v in sorted(bbox_history.items(), key=lambda x: int(x[0]) if str(x[0]).isdigit() else x[0])]
+        else:
+            bbox_history = []
+
+    normalized_history = []
+    for item in bbox_history:
+        if isinstance(item, dict) and "bbox" in item:
+            ts = item.get("timestamp_seconds")
+            if ts is None:
+                ts = item.get("timestamp")
+            if ts is None:
+                ts = item.get("t")
+            if ts is not None:
+                item_copy = dict(item)
+                item_copy["timestamp_seconds"] = float(ts)
+                normalized_history.append(item_copy)
+    bbox_history = normalized_history
 
     # Iterate through consecutive trajectory frame observations
     for i in range(1, len(bbox_history)):
@@ -289,10 +317,13 @@ def calculate_track_speed(
             # Horizontal displacement in meters
             dist_x_m = dx_px * scale_base
 
-            # Vertical depth perspective scaling
+            # Vertical depth perspective scaling with Capped Multiplier Guard
             y_avg = (y1 + y2) / 2.0
-            y_horizon = y_horizon_custom if y_horizon_custom is not None else (preset_horizon_ratio * frame_h)
-            depth_multiplier = (frame_h / max(10.0, y_avg - y_horizon)) ** preset_gamma
+            base_horizon = y_horizon_custom if y_horizon_custom is not None else (preset_horizon_ratio * frame_h)
+            y_horizon = min(base_horizon, y_avg - 25.0)
+
+            raw_depth = (frame_h / max(10.0, y_avg - y_horizon)) ** preset_gamma
+            depth_multiplier = min(18.0, max(1.0, raw_depth))
 
             dist_y_m = dy_px * scale_base * depth_multiplier
 

@@ -126,31 +126,33 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
       {/* Metrics Row */}
       <div className="metrics-grid">
         <div className="metric-card">
-          <div className="metric-title">{filename ? filename : "Run Total Events"}</div>
+          <div className="metric-title">TOTAL EVENTS</div>
           <div className="metric-value">{events.length}</div>
-          <div className="metric-subtext">Isolated strictly to {filename ? `"${filename}"` : `Video ${videoId}`}</div>
+          <div className="metric-subtext" title={filename ? filename : `Video #${videoId}`}>
+            Video: {filename ? filename : `Video #${videoId}`}
+          </div>
         </div>
 
         <div className="metric-card alert-card">
-          <div className="metric-title">Security Alerts</div>
+          <div className="metric-title">SECURITY ALERTS</div>
           <div className="metric-value alert-val">{alertEventsCount}</div>
-          <div className="metric-subtext">Intruders & velocity violations</div>
+          <div className="metric-subtext">Speeding & intrusion violations</div>
         </div>
 
         <div className="metric-card">
-          <div className="metric-title">Vehicles Tracked</div>
+          <div className="metric-title">VEHICLES DETECTED</div>
           <div className="metric-value vehicle-val">
             {events.filter((e) => e.label !== "person").length}
           </div>
-          <div className="metric-subtext">Normalized: Car, Bike, Truck, Other</div>
+          <div className="metric-subtext">Cars, trucks, bikes & buses</div>
         </div>
 
         <div className="metric-card">
-          <div className="metric-title">Persons Detected</div>
+          <div className="metric-title">PEOPLE DETECTED</div>
           <div className="metric-value person-val">
             {events.filter((e) => e.label === "person").length}
           </div>
-          <div className="metric-subtext">RetinaFace & Facenet512</div>
+          <div className="metric-subtext">Pedestrians & recognized faces</div>
         </div>
       </div>
 
