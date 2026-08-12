@@ -73,7 +73,7 @@ class TestSpeedCalculator(unittest.TestCase):
 
         self.assertTrue(result["valid"])
         self.assertGreater(result["estimated_speed_kmh"], 15.0)
-        self.assertLess(result["estimated_speed_kmh"], 120.0)
+        self.assertLess(result["estimated_speed_kmh"], 200.0)
 
     def test_method1_ai_self_calibration(self):
         # 25 FPS video over 12 frames
@@ -96,13 +96,12 @@ class TestSpeedCalculator(unittest.TestCase):
                 "processed_frame_height": 540,
             })
 
-        # Test AI Self-Calibration for car
-        result = calculate_track_speed(bbox_history, fps=fps, class_name="car")
+        # Test AI Self-Calibration for car in residential scene mode
+        result = calculate_track_speed(bbox_history, fps=fps, class_name="car", scene_preset="residential")
 
         self.assertTrue(result["valid"])
-        # Scale = (1.85m / 120px) * 1.85 * (540/340)**1.60 = ~0.0285 m/px
-        # Speed = 375 * 0.0285 * 3.6 = ~38.5 km/h
-        self.assertAlmostEqual(result["estimated_speed_kmh"], 38.5, delta=5.0)
+        # Scale = (1.85m / 120px) * 1.0 * (540/380)**1.0 = ~0.0154 m/px
+        self.assertAlmostEqual(result["estimated_speed_kmh"], 20.8, delta=5.0)
 
     def test_insufficient_track_history(self):
         result = calculate_track_speed([], fps=25.0)

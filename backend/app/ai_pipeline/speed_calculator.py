@@ -21,7 +21,7 @@ DEFAULT_CAMERA_CALIBRATION = {
     "camera_tilt_deg": 30.0,
     "fov_deg": 55.0,
     "scale_correction": 1.0,
-    "preset": "residential",
+    "preset": "auto",
 }
 
 
@@ -175,23 +175,26 @@ def _compute_bottom_contact(bbox: Dict[str, float]) -> tuple[float, float]:
 def auto_detect_camera_scene(tracks_summary: List[Dict[str, Any]], frame_height: float = 540.0) -> str:
     """
     Automatically profiles camera scene type (highway_telephoto vs urban_overpass vs residential)
-    based on detected vehicle bounding box sizes across initial video tracks.
+    based on detected car bounding box sizes at upper/mid frame region.
     """
-    all_widths = []
+    car_widths = []
     if tracks_summary:
         for t in tracks_summary:
-            if t.get("class_name") in {"car", "truck", "motorcycle"}:
+            if t.get("class_name") == "car":
                 for item in t.get("bbox_history", []):
                     b = item.get("bbox", {})
                     w = abs(b.get("x2", 0) - b.get("x1", 0))
-                    if w > 5:
-                        all_widths.append(w)
+                    y2 = b.get("y2", 0)
+                    if w > 5 and y2 <= 0.70 * frame_height:
+                        car_widths.append(w)
 
-    if not all_widths:
+    if not car_widths:
         return "highway_telephoto"
 
-    avg_w = sum(all_widths) / len(all_widths)
-    if avg_w < 65.0:
+    car_widths.sort()
+    median_w = car_widths[len(car_widths) // 2]
+
+    if median_w < 65.0:
         return "highway_telephoto"
     else:
         return "urban_overpass"
@@ -222,9 +225,11 @@ def calculate_track_speed(
     ref_w = dims["width"]
 
     # Determine preset parameters
-    effective_preset = scene_preset
-    if camera_params and camera_params.get("preset") and camera_params.get("preset") != "auto":
-        effective_preset = camera_params.get("preset")
+    configured_preset = camera_params.get("preset", "auto") if camera_params else "auto"
+    if configured_preset and configured_preset != "auto":
+        effective_preset = configured_preset
+    else:
+        effective_preset = scene_preset
 
     if effective_preset == "urban_overpass":
         preset_horizon_ratio = -0.20
@@ -236,8 +241,8 @@ def calculate_track_speed(
         preset_gamma = 1.00
     else:  # highway_telephoto (default)
         preset_horizon_ratio = 0.30
-        preset_mult = 1.75
-        preset_gamma = 1.60
+        preset_mult = 3.025
+        preset_gamma = 1.50
 
     speeds_kmh = []
 
