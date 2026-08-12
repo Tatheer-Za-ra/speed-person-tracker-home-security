@@ -95,7 +95,7 @@ function Header({ currentPage, setCurrentPage, onNavigateToConfig, currentRunFil
               className={`nav-link ${currentPage === "event-details" ? "active" : ""}`}
               onClick={() => setCurrentPage("event-details")}
             >
-              Event Details ({currentRunFilter.filename || "Run"})
+              Event Details
             </button>
           )}
         </nav>

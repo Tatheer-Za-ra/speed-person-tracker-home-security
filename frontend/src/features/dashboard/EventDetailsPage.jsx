@@ -136,7 +136,7 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
         <div className="metric-card alert-card">
           <div className="metric-title">SECURITY ALERTS</div>
           <div className="metric-value alert-val">{alertEventsCount}</div>
-          <div className="metric-subtext">Speeding & intrusion violations</div>
+          <div className="metric-subtext">Speeding & unknown face alerts</div>
         </div>
 
         <div className="metric-card">
@@ -144,7 +144,7 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
           <div className="metric-value vehicle-val">
             {events.filter((e) => e.label !== "person").length}
           </div>
-          <div className="metric-subtext">Cars, trucks, bikes & buses</div>
+          <div className="metric-subtext">Cars, trucks & motorbikes</div>
         </div>
 
         <div className="metric-card">
