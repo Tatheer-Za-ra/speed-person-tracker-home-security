@@ -1,6 +1,7 @@
 // frontend/src/features/dashboard/EventDetailsPage.jsx
 
 import React, { useState, useEffect, useMemo } from "react";
+import { Zap, Car, Bike, Truck, FileSpreadsheet, ArrowLeft } from "lucide-react";
 import { fetchEvents } from "../../api/eventsApi";
 import FilterBar, { normalizeCategory } from "./FilterBar";
 import BatchEventTimeline from "./BatchEventTimeline";
@@ -101,7 +102,7 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
           The Event Details page strictly displays telemetry for a completed video processing run. Please upload a video first.
         </p>
         <button type="button" className="primary-button" onClick={onBackToVideos}>
-          📹 Go to Video Upload Page
+          <ArrowLeft size={16} style={{ marginRight: "6px" }} /> Go to Video Upload Page
         </button>
       </div>
     );
@@ -123,14 +124,16 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
           <button
             type="button"
             className="primary-button"
-            style={{ background: "linear-gradient(135deg, #059669 0%, #047857 100%)", boxShadow: "0 0 14px rgba(52, 211, 153, 0.4)" }}
+            style={{ background: "linear-gradient(135deg, #059669 0%, #047857 100%)", boxShadow: "0 0 14px rgba(52, 211, 153, 0.4)", display: "inline-flex", alignItems: "center", gap: "8px" }}
             onClick={() => setIsReportModalOpen(true)}
           >
-            📄 Generate Security Audit Report
+            <FileSpreadsheet size={16} />
+            <span>Generate Security Audit Report</span>
           </button>
 
-          <button type="button" className="reset-run-btn" onClick={onBackToVideos}>
-            ← Back to Videos
+          <button type="button" className="reset-run-btn" onClick={onBackToVideos} style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <ArrowLeft size={14} />
+            <span>Back to Videos</span>
           </button>
         </div>
       </div>
@@ -148,17 +151,21 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
         boxShadow: "0 1px 3px rgba(0,0,0,0.03)"
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "600", color: "#334155", fontSize: "0.875rem" }}>
-          <span>⚡ Speed Thresholds Set For This Run:</span>
+          <Zap size={16} style={{ color: "#d97706" }} />
+          <span>Speed Thresholds Set For This Run:</span>
         </div>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-          <span style={{ background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600" }}>
-            🚗 Car Limit: <strong>{runSpeedLimits.car} km/h</strong>
+          <span style={{ background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <Car size={14} />
+            <span>Car Limit: <strong>{runSpeedLimits.car} km/h</strong></span>
           </span>
-          <span style={{ background: "#fefce8", color: "#a16207", border: "1px solid #fef08a", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600" }}>
-            🏍️ Bike Limit: <strong>{runSpeedLimits.motorcycle} km/h</strong>
+          <span style={{ background: "#fefce8", color: "#a16207", border: "1px solid #fef08a", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <Bike size={14} />
+            <span>Bike Limit: <strong>{runSpeedLimits.motorcycle} km/h</strong></span>
           </span>
-          <span style={{ background: "#f0fdf4", color: "#15803d", border: "1px solid #bbf7d0", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600" }}>
-            🚚 Truck Limit: <strong>{runSpeedLimits.truck} km/h</strong>
+          <span style={{ background: "#f0fdf4", color: "#15803d", border: "1px solid #bbf7d0", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <Truck size={14} />
+            <span>Truck Limit: <strong>{runSpeedLimits.truck} km/h</strong></span>
           </span>
         </div>
       </div>

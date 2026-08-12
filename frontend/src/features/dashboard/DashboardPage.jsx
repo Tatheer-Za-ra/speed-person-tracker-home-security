@@ -1,7 +1,10 @@
 // frontend/src/features/dashboard/DashboardPage.jsx
 
 import React, { useState, useEffect, useMemo } from "react";
+import { Car, Bike, Truck } from "lucide-react";
 import { fetchEventSummary, fetchEvents } from "../../api/eventsApi";
+
+// ... existing imports stay same
 import { fetchSpeedThresholds } from "../../api/configApi";
 import FilterBar, { normalizeCategory } from "./FilterBar";
 import SpeedConfigModal from "./SpeedConfigModal";
@@ -146,14 +149,17 @@ function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage, o
       {/* Top Navigation Hub Bar */}
       <div className="dashboard-header-actions">
         <div className="speed-threshold-pills">
-          <span className="threshold-pill">
-            🚗 Car Limit: <strong>{speedThresholds.car ?? 30} km/h</strong>
+          <span className="threshold-pill" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <Car size={14} />
+            <span>Car Limit: <strong>{speedThresholds.car ?? 30} km/h</strong></span>
           </span>
-          <span className="threshold-pill">
-            🏍️ Bike Limit: <strong>{speedThresholds.motorcycle ?? 40} km/h</strong>
+          <span className="threshold-pill" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <Bike size={14} />
+            <span>Bike Limit: <strong>{speedThresholds.motorcycle ?? 40} km/h</strong></span>
           </span>
-          <span className="threshold-pill">
-            🚚 Truck Limit: <strong>{speedThresholds.truck ?? 25} km/h</strong>
+          <span className="threshold-pill" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <Truck size={14} />
+            <span>Truck Limit: <strong>{speedThresholds.truck ?? 25} km/h</strong></span>
           </span>
         </div>
 
