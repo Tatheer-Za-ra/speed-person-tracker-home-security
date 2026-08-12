@@ -126,7 +126,7 @@ def calculate_track_speed(
             gx2, gy2 = project_image_to_ground(x2, y2, frame_w, frame_h, camera_params)
             distance_meters = math.sqrt((gx2 - gx1) ** 2 + (gy2 - gy1) ** 2) * scale_corr
         else:
-            # Method 1: AI Object Self-Calibration with Perspective Depth Multiplier (DEFAULT)
+            # Method 1: AI Object Self-Calibration with Highway Telephoto Perspective Scaling (DEFAULT)
             w1 = abs(prev["bbox"]["x2"] - prev["bbox"]["x1"])
             w2 = abs(curr["bbox"]["x2"] - curr["bbox"]["x1"])
             w_avg = (w1 + w2) / 2.0
@@ -134,15 +134,15 @@ def calculate_track_speed(
             if w_avg <= 1.0:
                 scale_base = DEFAULT_METERS_PER_PIXEL
             else:
-                scale_base = ref_w / w_avg
+                scale_base = (ref_w / w_avg) * 1.85
 
             # Horizontal displacement in meters
             dist_x_m = dx_px * scale_base
 
-            # Vertical depth perspective scaling (accounts for distance from horizon)
+            # Vertical depth perspective scaling (accounts for distance from horizon line)
             y_avg = (y1 + y2) / 2.0
-            y_horizon = 0.15 * frame_h
-            depth_multiplier = frame_h / max(20.0, y_avg - y_horizon)
+            y_horizon = 0.30 * frame_h
+            depth_multiplier = (frame_h / max(10.0, y_avg - y_horizon)) ** 1.60
 
             dist_y_m = dy_px * scale_base * depth_multiplier
 

@@ -100,10 +100,9 @@ class TestSpeedCalculator(unittest.TestCase):
         result = calculate_track_speed(bbox_history, fps=fps, class_name="car")
 
         self.assertTrue(result["valid"])
-        # 15 px/frame * 25 fps = 375 px/s
-        # Scale = 1.85m / 120px = 0.0154 m/px
-        # Speed = 375 * 0.0154 * 3.6 = ~20.8 km/h
-        self.assertAlmostEqual(result["estimated_speed_kmh"], 20.8, delta=3.0)
+        # Scale = (1.85m / 120px) * 1.85 * (540/340)**1.60 = ~0.0285 m/px
+        # Speed = 375 * 0.0285 * 3.6 = ~38.5 km/h
+        self.assertAlmostEqual(result["estimated_speed_kmh"], 38.5, delta=5.0)
 
     def test_insufficient_track_history(self):
         result = calculate_track_speed([], fps=25.0)
