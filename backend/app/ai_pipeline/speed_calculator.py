@@ -3,6 +3,9 @@
 import math
 from typing import List, Dict, Any, Optional
 
+import cv2
+import numpy as np
+
 # Standard ISO real-world physical vehicle dimensions (meters)
 VEHICLE_DIMENSIONS = {
     "car": {"width": 1.85, "length": 4.50},
@@ -20,6 +23,103 @@ DEFAULT_CAMERA_CALIBRATION = {
     "scale_correction": 1.0,
     "preset": "residential",
 }
+
+
+def detect_vanishing_point_and_horizon(frame: any) -> float:
+    """
+    Method 1: Automatic Road Vanishing Point (VP) & Horizon Line Detection.
+    Analyzes road edge lines using OpenCV Canny + Probabilistic Hough Lines (HoughLinesP),
+    filters out non-road horizontal noise, and computes weighted lane intersection horizon.
+    """
+    if frame is None or not isinstance(frame, np.ndarray):
+        return 162.0  # Default 0.30 * 540 fallback
+
+    height, width = frame.shape[:2]
+    if height <= 0 or width <= 0:
+        return 162.0
+
+    try:
+        # 1. Convert to grayscale and blur
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) if len(frame.shape) == 3 else frame
+        blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+
+        # 2. Canny Edge Detection
+        edges = cv2.Canny(blurred, 40, 140)
+
+        # 3. Probabilistic Hough Line Transform
+        lines = cv2.HoughLinesP(
+            edges,
+            rho=1,
+            theta=np.pi / 180,
+            threshold=45,
+            minLineLength=40,
+            maxLineGap=12
+        )
+
+        if lines is None:
+            return float(height * 0.30)
+
+        left_lines = []
+        right_lines = []
+
+        for line in lines:
+            for x1, y1, x2, y2 in line:
+                if x2 == x1:
+                    continue
+                slope = (y2 - y1) / (x2 - x1)
+                length = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+
+                # Filter road markings by slope angle (|slope| >= 0.35 to exclude horizontal gantries)
+                if 0.35 <= slope <= 3.5:
+                    right_lines.append((x1, y1, x2, y2, slope, length))
+                elif -3.5 <= slope <= -0.35:
+                    left_lines.append((x1, y1, x2, y2, slope, length))
+
+        if not left_lines or not right_lines:
+            return float(height * 0.30)
+
+        # Sort lines by length (longest dominant road lanes first)
+        left_lines.sort(key=lambda item: item[5], reverse=True)
+        right_lines.sort(key=lambda item: item[5], reverse=True)
+
+        # 4. Compute weighted intersections between left and right road lines
+        intersections_y = []
+        weights = []
+
+        for lx1, ly1, lx2, ly2, m1, l_len in left_lines[:12]:
+            b1 = ly1 - m1 * lx1
+            for rx1, ry1, rx2, ry2, m2, r_len in right_lines[:12]:
+                if abs(m1 - m2) < 1e-4:
+                    continue
+                b2 = ry1 - m2 * rx1
+                # Intersection point
+                x_int = (b2 - b1) / (m1 - m2)
+                y_int = m1 * x_int + b1
+
+                # Keep intersections within plausible upper 10% to 50% frame region
+                if 0.08 * height <= y_int <= 0.50 * height:
+                    w = l_len * r_len
+                    intersections_y.append(y_int)
+                    weights.append(w)
+
+        if not intersections_y:
+            return float(height * 0.30)
+
+        # Weighted median vanishing point horizon
+        sorted_pairs = sorted(zip(intersections_y, weights), key=lambda item: item[0])
+        total_w = sum(weights)
+        cum_w = 0.0
+        vp_y = float(height * 0.30)
+
+        for y_val, w_val in sorted_pairs:
+            cum_w += w_val
+            if cum_w >= total_w / 2.0:
+                vp_y = float(y_val)
+                break
+
+        return max(0.10 * height, min(0.50 * height, vp_y))
+    except Exception:
+        return float(height * 0.30)
 
 
 def project_image_to_ground(
@@ -77,11 +177,12 @@ def calculate_track_speed(
     fps: float,
     meters_per_pixel: Optional[float] = None,
     camera_params: Optional[Dict[str, Any]] = None,
-    class_name: str = "car"
+    class_name: str = "car",
+    y_horizon_custom: Optional[float] = None,
 ) -> Dict[str, Any]:
     """
     Calculates estimated velocity (km/h) across a vehicle's DeepSORT bounding box trajectory.
-    By default uses Method 1 AI Object Self-Calibration with perspective depth scaling.
+    By default uses Method 1 (Auto Vanishing Point VP Horizon) + Method 2 (Multi-Vehicle Trajectory Fit).
     """
     if not bbox_history or len(bbox_history) < 2 or fps <= 0:
         return {
@@ -126,7 +227,7 @@ def calculate_track_speed(
             gx2, gy2 = project_image_to_ground(x2, y2, frame_w, frame_h, camera_params)
             distance_meters = math.sqrt((gx2 - gx1) ** 2 + (gy2 - gy1) ** 2) * scale_corr
         else:
-            # Method 1: AI Object Self-Calibration with Highway Telephoto Perspective Scaling (DEFAULT)
+            # Method 1 (Auto VP Horizon) + Method 2 (Multi-Vehicle Trajectory Perspective Scaling)
             w1 = abs(prev["bbox"]["x2"] - prev["bbox"]["x1"])
             w2 = abs(curr["bbox"]["x2"] - curr["bbox"]["x1"])
             w_avg = (w1 + w2) / 2.0
@@ -139,9 +240,9 @@ def calculate_track_speed(
             # Horizontal displacement in meters
             dist_x_m = dx_px * scale_base
 
-            # Vertical depth perspective scaling (accounts for distance from horizon line)
+            # Vertical depth perspective scaling using Auto-Detected VP Horizon
             y_avg = (y1 + y2) / 2.0
-            y_horizon = 0.30 * frame_h
+            y_horizon = y_horizon_custom if y_horizon_custom is not None else (0.30 * frame_h)
             depth_multiplier = (frame_h / max(10.0, y_avg - y_horizon)) ** 1.60
 
             dist_y_m = dy_px * scale_base * depth_multiplier

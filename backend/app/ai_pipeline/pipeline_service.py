@@ -24,7 +24,10 @@ from app.ai_pipeline.frame_processor import (
 )
 import json
 from app.ai_pipeline import detector
-from app.ai_pipeline.speed_calculator import calculate_track_speed
+from app.ai_pipeline.speed_calculator import (
+    calculate_track_speed,
+    detect_vanishing_point_and_horizon,
+)
 from app.ai_pipeline.face_pipeline import extract_faces_from_tracks
 
 
@@ -89,7 +92,8 @@ def build_event_payloads(
     fps: float = 25.0,
     speed_limits: dict = None,
     faces_output: list[dict] = None,
-    camera_params: dict = None
+    camera_params: dict = None,
+    y_horizon_custom: float = None,
 ) -> list[dict]:
     if speed_limits is None:
         speed_limits = {"car": 30.0, "motorcycle": 40.0, "truck": 25.0}
@@ -121,7 +125,13 @@ def build_event_payloads(
 
         # Vehicle Speed Evaluation with Method 1 AI Self-Calibration
         if is_vehicle:
-            calculated = calculate_track_speed(bbox_history, fps=fps, camera_params=camera_params, class_name=class_name)
+            calculated = calculate_track_speed(
+                bbox_history,
+                fps=fps,
+                camera_params=camera_params,
+                class_name=class_name,
+                y_horizon_custom=y_horizon_custom,
+            )
             limit_kmh = float(speed_limits.get(class_name, 30.0))
 
             if calculated["valid"] and calculated["estimated_speed_kmh"] > limit_kmh:
@@ -286,8 +296,13 @@ def analyze_video_frames(
             "ctd_skipped": 0,
         }
 
+        auto_y_horizon = None
+
         for processed_frame in iter_processed_frames(video_path):
             processed_frames_count += 1
+
+            if auto_y_horizon is None and processed_frame.frame is not None:
+                auto_y_horizon = detect_vanishing_point_and_horizon(processed_frame.frame)
 
             should_run_detection, ctd_decision = _decide_detection_run(
                 tracker=tracker,
@@ -458,6 +473,7 @@ def analyze_video_frames(
                 speed_limits=speed_limits,
                 faces_output=faces_output,
                 camera_params=camera_params,
+                y_horizon_custom=auto_y_horizon,
             ),
             "snapshot_payloads": build_snapshot_payloads(
                 video_id=0,
