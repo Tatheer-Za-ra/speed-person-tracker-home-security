@@ -87,6 +87,23 @@
   border-radius: 10px;
   padding: 16px;
   position: relative;
+  transition: all 0.2s ease;
+}
+
+.dim-card.clickable {
+  cursor: pointer;
+}
+
+.dim-card.clickable:hover {
+  border-color: #0066cc;
+  background: #f0f9ff;
+  transform: translateY(-2px);
+}
+
+.dim-card.clickable.active {
+  border: 2px solid #0066cc;
+  background: #eff6ff;
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.15);
 }
 
 .dim-icon {

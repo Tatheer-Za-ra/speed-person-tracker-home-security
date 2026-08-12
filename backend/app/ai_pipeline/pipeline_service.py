@@ -27,6 +27,7 @@ from app.ai_pipeline import detector
 from app.ai_pipeline.speed_calculator import (
     calculate_track_speed,
     detect_vanishing_point_and_horizon,
+    auto_detect_camera_scene,
 )
 from app.ai_pipeline.face_pipeline import extract_faces_from_tracks
 
@@ -107,6 +108,7 @@ def build_event_payloads(
             if faces:
                 face_map_by_track[tid] = faces[0]
 
+    detected_scene = auto_detect_camera_scene(tracks_summary)
     event_payloads = []
 
     for track_summary in tracks_summary:
@@ -131,6 +133,7 @@ def build_event_payloads(
                 camera_params=camera_params,
                 class_name=class_name,
                 y_horizon_custom=y_horizon_custom,
+                scene_preset=detected_scene,
             )
             limit_kmh = float(speed_limits.get(class_name, 30.0))
 

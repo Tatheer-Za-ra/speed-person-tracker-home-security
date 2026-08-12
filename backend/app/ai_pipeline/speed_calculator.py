@@ -172,6 +172,31 @@ def _compute_bottom_contact(bbox: Dict[str, float]) -> tuple[float, float]:
     return cx, cy_bottom
 
 
+def auto_detect_camera_scene(tracks_summary: List[Dict[str, Any]], frame_height: float = 540.0) -> str:
+    """
+    Automatically profiles camera scene type (highway_telephoto vs urban_overpass vs residential)
+    based on detected vehicle bounding box sizes across initial video tracks.
+    """
+    all_widths = []
+    if tracks_summary:
+        for t in tracks_summary:
+            if t.get("class_name") in {"car", "truck", "motorcycle"}:
+                for item in t.get("bbox_history", []):
+                    b = item.get("bbox", {})
+                    w = abs(b.get("x2", 0) - b.get("x1", 0))
+                    if w > 5:
+                        all_widths.append(w)
+
+    if not all_widths:
+        return "highway_telephoto"
+
+    avg_w = sum(all_widths) / len(all_widths)
+    if avg_w < 65.0:
+        return "highway_telephoto"
+    else:
+        return "urban_overpass"
+
+
 def calculate_track_speed(
     bbox_history: List[Dict[str, Any]],
     fps: float,
@@ -179,10 +204,11 @@ def calculate_track_speed(
     camera_params: Optional[Dict[str, Any]] = None,
     class_name: str = "car",
     y_horizon_custom: Optional[float] = None,
+    scene_preset: str = "auto",
 ) -> Dict[str, Any]:
     """
     Calculates estimated velocity (km/h) across a vehicle's DeepSORT bounding box trajectory.
-    By default uses Method 1 (Auto Vanishing Point VP Horizon) + Method 2 (Multi-Vehicle Trajectory Fit).
+    Supports Auto-Scene Profiling (highway_telephoto vs urban_overpass vs residential).
     """
     if not bbox_history or len(bbox_history) < 2 or fps <= 0:
         return {
@@ -194,6 +220,24 @@ def calculate_track_speed(
 
     dims = VEHICLE_DIMENSIONS.get(class_name, VEHICLE_DIMENSIONS["car"])
     ref_w = dims["width"]
+
+    # Determine preset parameters
+    effective_preset = scene_preset
+    if camera_params and camera_params.get("preset") and camera_params.get("preset") != "auto":
+        effective_preset = camera_params.get("preset")
+
+    if effective_preset == "urban_overpass":
+        preset_horizon_ratio = -0.20
+        preset_mult = 7.00
+        preset_gamma = 1.05
+    elif effective_preset == "residential":
+        preset_horizon_ratio = 0.15
+        preset_mult = 1.00
+        preset_gamma = 1.00
+    else:  # highway_telephoto (default)
+        preset_horizon_ratio = 0.30
+        preset_mult = 1.75
+        preset_gamma = 1.60
 
     speeds_kmh = []
 
@@ -227,7 +271,7 @@ def calculate_track_speed(
             gx2, gy2 = project_image_to_ground(x2, y2, frame_w, frame_h, camera_params)
             distance_meters = math.sqrt((gx2 - gx1) ** 2 + (gy2 - gy1) ** 2) * scale_corr
         else:
-            # Method 1 (Auto VP Horizon) + Method 2 (Multi-Vehicle Trajectory Perspective Scaling)
+            # AI Self-Calibration with Dynamic Scene Profiling
             w1 = abs(prev["bbox"]["x2"] - prev["bbox"]["x1"])
             w2 = abs(curr["bbox"]["x2"] - curr["bbox"]["x1"])
             w_avg = (w1 + w2) / 2.0
@@ -235,15 +279,15 @@ def calculate_track_speed(
             if w_avg <= 1.0:
                 scale_base = DEFAULT_METERS_PER_PIXEL
             else:
-                scale_base = (ref_w / w_avg) * 1.85
+                scale_base = (ref_w / w_avg) * preset_mult
 
             # Horizontal displacement in meters
             dist_x_m = dx_px * scale_base
 
-            # Vertical depth perspective scaling using Auto-Detected VP Horizon
+            # Vertical depth perspective scaling
             y_avg = (y1 + y2) / 2.0
-            y_horizon = y_horizon_custom if y_horizon_custom is not None else (0.30 * frame_h)
-            depth_multiplier = (frame_h / max(10.0, y_avg - y_horizon)) ** 1.60
+            y_horizon = y_horizon_custom if y_horizon_custom is not None else (preset_horizon_ratio * frame_h)
+            depth_multiplier = (frame_h / max(10.0, y_avg - y_horizon)) ** preset_gamma
 
             dist_y_m = dy_px * scale_base * depth_multiplier
 
