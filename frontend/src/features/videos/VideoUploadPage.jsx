@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Zap, Eye, BarChart2, ShieldAlert, Loader2, Upload } from "lucide-react";
+import { Zap, Eye, BarChart2, ShieldAlert, Loader2, Upload, FileVideo, Film, X } from "lucide-react";
 import "./VideoUploadPage.css";
 import { listVideos, uploadVideos } from "../../api/videoApi";
 
@@ -50,6 +50,12 @@ function VideoUploadPage({ onNavigateToRun }) {
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files || []);
     setSelectedFiles(files);
+    setMessage(""); // Clear banner message when new files are selected
+  };
+
+  const removeSelectedFile = (indexToRemove) => {
+    setSelectedFiles((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+    setMessage("");
   };
 
   const isProcessingBatch = isUploading || videos.some((v) => {
@@ -148,13 +154,39 @@ function VideoUploadPage({ onNavigateToRun }) {
         </form>
 
         {selectedFiles.length > 0 && (
-          <div className="selected-files-box">
-            <h3>Selected Files</h3>
-            <ul>
-              {selectedFiles.map((file, index) => (
-                <li key={`${file.name}-${index}`}>{file.name}</li>
-              ))}
-            </ul>
+          <div className="selected-files-card">
+            <div className="selected-files-header">
+              <Film size={16} className="selected-files-icon" />
+              <span>Selected Videos ({selectedFiles.length})</span>
+            </div>
+
+            <div className="selected-files-list">
+              {selectedFiles.map((file, index) => {
+                const sizeInMB = file.size ? (file.size / (1024 * 1024)).toFixed(1) : null;
+                return (
+                  <div key={`${file.name}-${index}`} className="selected-file-item">
+                    <div className="file-info-left">
+                      <FileVideo size={16} className="file-type-icon" />
+                      <div className="file-name-meta">
+                        <span className="file-name">{file.name}</span>
+                        {sizeInMB && <span className="file-size">{sizeInMB} MB</span>}
+                      </div>
+                    </div>
+
+                    {!isProcessingBatch && (
+                      <button
+                        type="button"
+                        className="remove-file-btn"
+                        onClick={() => removeSelectedFile(index)}
+                        title="Remove file"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
