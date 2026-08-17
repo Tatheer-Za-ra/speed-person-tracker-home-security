@@ -300,6 +300,76 @@
   background: #b91c1c;
 }
 
+/* Site Calibration Toggle Card */
+.site-calibration-toggle-card {
+  margin: 18px 0;
+  padding: 14px 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.site-calibration-toggle-card:hover {
+  border-color: #86efac;
+  background: #dcfce7;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-container input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+  accent-color: #16a34a;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.checkbox-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+
+.checkbox-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #15803d;
+  line-height: 1.4;
+}
+
+.checkbox-desc {
+  font-size: 0.8rem;
+  color: #475569;
+  line-height: 1.4;
+}
+
+/* Calibration Map Button */
+.calib-map-btn {
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calib-map-btn:hover {
+  background: #0369a1;
+}
+
 @keyframes spin {
   from {
     transform: rotate(0deg);

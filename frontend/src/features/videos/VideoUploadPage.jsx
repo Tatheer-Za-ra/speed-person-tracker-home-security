@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Zap, Eye, BarChart2, ShieldAlert, Loader2, Upload, FileVideo, Film, X } from "lucide-react";
+import { Zap, Eye, BarChart2, ShieldAlert, Loader2, Upload, FileVideo, Film, X, Target, Compass } from "lucide-react";
 import "./VideoUploadPage.css";
 import { listVideos, uploadVideos } from "../../api/videoApi";
+import CalibrationDiagnosticModal from "./CalibrationDiagnosticModal";
 
 function getStatusClass(status) {
   switch ((status || "").toLowerCase()) {
@@ -25,6 +26,8 @@ function VideoUploadPage({ onNavigateToRun }) {
   const [messageType, setMessageType] = useState("info");
   const [fileInputKey, setFileInputKey] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [enableSiteCalibration, setEnableSiteCalibration] = useState(false);
+  const [activeCalibVideo, setActiveCalibVideo] = useState(null);
 
   const fetchVideos = async () => {
     try {
@@ -80,7 +83,7 @@ function VideoUploadPage({ onNavigateToRun }) {
       setIsUploading(true);
       setMessageType("info");
       setMessage("Uploading and starting processing...");
-      await uploadVideos(selectedFiles);
+      await uploadVideos(selectedFiles, enableSiteCalibration);
       setMessageType("success");
       setMessage("Video upload completed successfully.");
       setSelectedFiles([]);
@@ -96,6 +99,13 @@ function VideoUploadPage({ onNavigateToRun }) {
 
   return (
     <div className="videos-layout">
+      {activeCalibVideo && (
+        <CalibrationDiagnosticModal
+          video={activeCalibVideo}
+          onClose={() => setActiveCalibVideo(null)}
+        />
+      )}
+
       <div className="videos-card">
         <h2>Upload Security Videos</h2>
 
@@ -130,6 +140,25 @@ function VideoUploadPage({ onNavigateToRun }) {
                 </span>
               </label>
             </div>
+          </div>
+
+          <div className="site-calibration-toggle-card">
+            <label className="checkbox-container">
+              <input
+                type="checkbox"
+                checked={enableSiteCalibration}
+                onChange={(e) => setEnableSiteCalibration(e.target.checked)}
+                disabled={isProcessingBatch}
+              />
+              <div className="checkbox-text">
+                <span className="checkbox-title">
+                  Optimize Precision for New Camera Location (Site Auto-Calibration)
+                </span>
+                <span className="checkbox-desc">
+                  First time uploading video from a new camera angle? Enable Site Auto-Calibration for maximum precision and visual perspective analysis.
+                </span>
+              </div>
+            </label>
           </div>
 
           <button
@@ -258,7 +287,7 @@ function VideoUploadPage({ onNavigateToRun }) {
                         <span>Processing Finished — Post-Run Actions</span>
                       </div>
 
-                      <div className="action-buttons-group">
+                      <div className="action-buttons-group" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                         <button
                           type="button"
                           className="action-btn details-btn"
@@ -297,6 +326,18 @@ function VideoUploadPage({ onNavigateToRun }) {
                           <ShieldAlert size={14} />
                           <span>Security Alerts</span>
                         </button>
+
+                        {(video.calibration_diagnostic_url || video.site_calibration) && (
+                          <button
+                            type="button"
+                            className="calib-map-btn"
+                            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+                            onClick={() => setActiveCalibVideo(video)}
+                          >
+                            <Compass size={14} />
+                            <span>View Site Calibration Map</span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}

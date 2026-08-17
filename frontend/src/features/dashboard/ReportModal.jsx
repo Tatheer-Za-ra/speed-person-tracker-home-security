@@ -1,6 +1,5 @@
-// frontend/src/features/dashboard/ReportModal.jsx
-
 import React, { useState, useEffect } from "react";
+import { FileSpreadsheet, FileText, Download, Loader2, X } from "lucide-react";
 import { downloadPdfReport, downloadCsvReport } from "../../api/reportsApi";
 import "./ReportModal.css";
 
@@ -66,12 +65,12 @@ function ReportModal({ isOpen, onClose, defaultVideoId = null, videoFilename = n
       <div className="report-modal-card" onClick={(e) => e.stopPropagation()}>
         <div className="report-modal-header">
           <div className="report-modal-title">
-            <span className="report-modal-icon">📄</span>
+            <FileSpreadsheet size={22} style={{ color: "#059669" }} />
             <span>Security Audit Report Export</span>
           </div>
 
-          <button type="button" className="report-modal-close" onClick={onClose}>
-            &times;
+          <button type="button" className="report-modal-close" onClick={onClose} title="Close">
+            <X size={20} />
           </button>
         </div>
 
@@ -88,7 +87,9 @@ function ReportModal({ isOpen, onClose, defaultVideoId = null, videoFilename = n
             className={`format-card ${reportFormat === "PDF" ? "selected" : ""}`}
             onClick={() => setReportFormat("PDF")}
           >
-            <div className="format-icon">📄</div>
+            <div className="format-icon">
+              <FileText size={24} style={{ color: "#dc2626" }} />
+            </div>
             <div className="format-title">PDF Audit Report</div>
             <div className="format-subtext">Formatted executive summary, telemetry metrics grid & styled table</div>
           </div>
@@ -97,7 +98,9 @@ function ReportModal({ isOpen, onClose, defaultVideoId = null, videoFilename = n
             className={`format-card ${reportFormat === "CSV" ? "selected" : ""}`}
             onClick={() => setReportFormat("CSV")}
           >
-            <div className="format-icon">📊</div>
+            <div className="format-icon">
+              <FileSpreadsheet size={24} style={{ color: "#059669" }} />
+            </div>
             <div className="format-title">CSV Log Spreadsheet</div>
             <div className="format-subtext">Raw data telemetry export for Excel, pandas & external audit systems</div>
           </div>
@@ -144,10 +147,19 @@ function ReportModal({ isOpen, onClose, defaultVideoId = null, videoFilename = n
             className="report-btn-primary"
             onClick={handleDownload}
             disabled={isGenerating}
+            style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}
           >
-            {isGenerating
-              ? "Compiling Report..."
-              : `Download ${reportFormat === "PDF" ? "PDF Report" : "CSV Export"}`}
+            {isGenerating ? (
+              <>
+                <Loader2 size={16} className="spin-icon" style={{ animation: "spin 1.2s linear infinite" }} />
+                <span>Compiling Report...</span>
+              </>
+            ) : (
+              <>
+                <Download size={16} />
+                <span>Download {reportFormat === "PDF" ? "PDF Report" : "CSV Export"}</span>
+              </>
+            )}
           </button>
         </div>
       </div>

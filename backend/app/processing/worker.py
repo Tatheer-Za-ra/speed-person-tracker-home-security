@@ -59,6 +59,40 @@ class ProcessingWorker:
                 from app.config_routes import get_camera_calibration_config
                 camera_params = get_camera_calibration_config(db, user_id=user_id)
 
+                # Check if Site Auto-Calibration was requested for this video
+                if "site calibration" in (queued_log.message or "").lower():
+                    try:
+                        queued_log.message = "Running site perspective calibration & vanishing point extraction..."
+                        db.commit()
+
+                        import os
+                        from tools.site_calibration_trainer import SiteCalibrationTrainer
+
+                        trainer = SiteCalibrationTrainer(queued_video.stored_path)
+                        diag_filename = f"calib_diag_video_{queued_video.id}.jpg"
+                        snapshots_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "storage", "snapshots"))
+                        os.makedirs(snapshots_dir, exist_ok=True)
+                        diag_path = os.path.join(snapshots_dir, diag_filename)
+
+                        calib_profile = trainer.train_and_calibrate(
+                            save_to_db=False,
+                            user_id=user_id,
+                            output_diag=diag_path
+                        )
+
+                        queued_video.site_calibration_json = json.dumps(calib_profile)
+                        queued_video.calibration_diagnostic_path = diag_path
+                        db.commit()
+
+                        camera_params = calib_profile
+                    except Exception as calib_err:
+                        print(f"[!] Warning: Auto site calibration failed: {calib_err}")
+                elif queued_video.site_calibration_json:
+                    try:
+                        camera_params = json.loads(queued_video.site_calibration_json)
+                    except Exception:
+                        pass
+
                 def on_progress(pct, current_f, total_f):
                     try:
                         queued_log.message = f"Processing video... {pct}% ({current_f}/{total_f} frames)"

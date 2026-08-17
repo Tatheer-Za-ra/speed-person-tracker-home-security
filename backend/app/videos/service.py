@@ -17,7 +17,7 @@ class VideoService:
         self.allowed_extensions = Config.ALLOWED_VIDEO_EXTENSIONS
         self.upload_dir = Config.UPLOAD_DIR
 
-    def process_uploaded_videos(self, user_id: int, files):
+    def process_uploaded_videos(self, user_id: int, files, enable_site_calibration: bool = False):
         db = get_db_session()
         try:
             batch_repo = UploadBatchRepository(db)
@@ -26,7 +26,7 @@ class VideoService:
             results = []
 
             for file in files:
-                result = self._process_single_file(db, batch.id, file)
+                result = self._process_single_file(db, batch.id, file, enable_site_calibration=enable_site_calibration)
                 results.append(result)
 
             return {
@@ -36,7 +36,7 @@ class VideoService:
         finally:
             db.close()
 
-    def _process_single_file(self, db, batch_id, file):
+    def _process_single_file(self, db, batch_id, file, enable_site_calibration: bool = False):
         if not file:
             return {
                 "success": False,
@@ -71,10 +71,14 @@ class VideoService:
                 stored_path=saved_path,
             )
 
+            msg = "Video uploaded and queued for processing"
+            if enable_site_calibration:
+                msg = "Video uploaded and queued for site calibration & processing"
+
             log_repo.create_log(
                 video_id=video.id,
                 status="queued",
-                message="Video uploaded and queued for processing",
+                message=msg,
             )
 
             return {

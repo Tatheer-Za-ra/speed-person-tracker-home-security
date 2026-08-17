@@ -235,18 +235,40 @@ class VideoRepository:
     def __init__(self, db_session=None):
         self.db = db_session or SessionLocal()
 
-    def create_video(self, batch_id: int, original_filename: str, stored_path: str):
+    def create_video(
+        self,
+        batch_id: int,
+        original_filename: str,
+        stored_path: str,
+        site_calibration_json: str | None = None,
+        calibration_diagnostic_path: str | None = None
+    ):
         video = Video(
-        batch_id=batch_id,
-        original_filename=original_filename,
-        stored_path=stored_path,
+            batch_id=batch_id,
+            original_filename=original_filename,
+            stored_path=stored_path,
+            site_calibration_json=site_calibration_json,
+            calibration_diagnostic_path=calibration_diagnostic_path,
         )
         self.db.add(video)
         self.db.commit()
         self.db.refresh(video)
         return video
 
-    
+    def update_video_calibration(
+        self,
+        video_id: int,
+        site_calibration_json: str,
+        calibration_diagnostic_path: str | None = None
+    ):
+        v = self.db.query(Video).filter(Video.id == video_id).first()
+        if v:
+            v.site_calibration_json = site_calibration_json
+            if calibration_diagnostic_path:
+                v.calibration_diagnostic_path = calibration_diagnostic_path
+            self.db.commit()
+            self.db.refresh(v)
+        return v
 
     def get_all_videos(self, user_id: int | None = None):
         query = self.db.query(Video)
@@ -281,6 +303,19 @@ class VideoRepository:
             query = query.join(UploadBatch, Video.batch_id == UploadBatch.id).filter(UploadBatch.user_id == user_id)
         videos = query.order_by(Video.id.desc()).all()
 
+        # Map each batch_id to user-specific sequential batch number (1, 2, 3...)
+        user_batch_maps = {}  # user_id -> { global_batch_id: sequential_number }
+        batch_query = self.db.query(UploadBatch)
+        if user_id is not None:
+            batch_query = batch_query.filter(UploadBatch.user_id == user_id)
+        all_batches = batch_query.order_by(UploadBatch.id.asc()).all()
+
+        for b in all_batches:
+            if b.user_id not in user_batch_maps:
+                user_batch_maps[b.user_id] = {}
+            seq_num = len(user_batch_maps[b.user_id]) + 1
+            user_batch_maps[b.user_id][b.id] = seq_num
+
         result = []
         for v in videos:
             log = self.db.query(ProcessingLog).filter(ProcessingLog.video_id == v.id).first()
@@ -311,9 +346,22 @@ class VideoRepository:
                     except Exception:
                         pass
 
+            user_seq_batch_num = v.batch_id
+            if batch and batch.user_id in user_batch_maps and v.batch_id in user_batch_maps[batch.user_id]:
+                user_seq_batch_num = user_batch_maps[batch.user_id][v.batch_id]
+
+            site_calib = None
+            if v.site_calibration_json:
+                try:
+                    site_calib = json.loads(v.site_calibration_json)
+                except Exception:
+                    pass
+            diag_url = f"/api/videos/{v.id}/calibration-diagnostic" if v.calibration_diagnostic_path else None
+
             result.append({
                 "video_id": v.id,
                 "batch_id": v.batch_id,
+                "batch_number": user_seq_batch_num,
                 "original_filename": v.original_filename,
                 "stored_path": v.stored_path,
                 "uploaded_at": v.uploaded_at.isoformat() if v.uploaded_at else None,
@@ -323,6 +371,8 @@ class VideoRepository:
                 "total_events": total_events,
                 "alert_count": alert_count,
                 "run_thresholds": run_thresholds,
+                "site_calibration": site_calib,
+                "calibration_diagnostic_url": diag_url,
             })
         return result
 

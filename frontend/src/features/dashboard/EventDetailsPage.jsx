@@ -110,6 +110,32 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
 
   return (
     <div className="dashboard-container">
+      {/* Top Left Clean Back Link */}
+      <div style={{ display: "flex", justifyContent: "flex-start", width: "100%", marginBottom: "-12px" }}>
+        <button
+          type="button"
+          onClick={onBackToVideos}
+          style={{
+            background: "none",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            color: "#475569",
+            fontSize: "0.875rem",
+            fontWeight: "600",
+            transition: "color 0.2s ease"
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#0066cc")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#475569")}
+        >
+          <ArrowLeft size={16} />
+          <span>Back</span>
+        </button>
+      </div>
+
       {/* Unified Control & Speed Thresholds Top Bar */}
       <div className="speed-limits-run-bar" style={{
         display: "flex",
@@ -157,11 +183,6 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
           >
             <FileSpreadsheet size={16} />
             <span>Generate Security Audit Report</span>
-          </button>
-
-          <button type="button" className="reset-run-btn" onClick={onBackToVideos} style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "8px 14px", fontSize: "0.875rem" }}>
-            <ArrowLeft size={14} />
-            <span>Back to Videos</span>
           </button>
         </div>
       </div>

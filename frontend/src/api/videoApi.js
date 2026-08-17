@@ -1,10 +1,13 @@
 const API_BASE = "http://localhost:5000";
 
-export async function uploadVideos(files) {
+export async function uploadVideos(files, enableSiteCalibration = false) {
   const formData = new FormData();
 
   for (const file of files) {
     formData.append("videos", file);
+  }
+  if (enableSiteCalibration) {
+    formData.append("enable_site_calibration", "true");
   }
 
   const response = await fetch(`${API_BASE}/api/videos/upload`, {

@@ -17,6 +17,7 @@ videos_bp = Blueprint("videos", __name__, url_prefix="/api/videos")
 def upload_videos():
     files = request.files.getlist("videos")
     user_id = session.get("user_id")
+    enable_site_calibration = request.form.get("enable_site_calibration", "false").lower() in ("true", "1", "yes")
 
     if not files:
         return jsonify({"error": "No video files provided"}), 400
@@ -25,7 +26,11 @@ def upload_videos():
         return jsonify({"error": "Authentication required"}), 401
 
     video_service = VideoService()
-    upload_result = video_service.process_uploaded_videos(user_id=user_id, files=files)
+    upload_result = video_service.process_uploaded_videos(
+        user_id=user_id,
+        files=files,
+        enable_site_calibration=enable_site_calibration
+    )
 
     results = upload_result["results"]
     batch_id = upload_result["batch_id"]
@@ -160,5 +165,26 @@ def delete_video_log(video_id):
         if not success:
             return jsonify({"status": "error", "message": f"Video run #{video_id} not found."}), 404
         return jsonify({"status": "success", "message": f"Video run #{video_id} deleted successfully."}), 200
+    finally:
+        db.close()
+
+
+@videos_bp.route("/<int:video_id>/calibration-diagnostic", methods=["GET"])
+@login_required
+def get_calibration_diagnostic_image(video_id):
+    user_id = session.get("user_id")
+    db = get_db_session()
+    try:
+        video_repo = VideoRepository(db)
+        video = video_repo.get_video_by_id(video_id, user_id=user_id)
+        if not video or not video.calibration_diagnostic_path:
+            return jsonify({"error": "Diagnostic image not found"}), 404
+
+        import os
+        from flask import send_file
+        abs_path = os.path.abspath(video.calibration_diagnostic_path)
+        if not os.path.exists(abs_path):
+            return jsonify({"error": "Diagnostic file missing on disk"}), 404
+        return send_file(abs_path, mimetype="image/jpeg")
     finally:
         db.close()
