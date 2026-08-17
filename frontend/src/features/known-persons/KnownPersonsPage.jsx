@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Upload } from "lucide-react";
 import "./KnownPersonsPage.css";
 import {
   createKnownPerson,
@@ -214,17 +215,22 @@ function KnownPersonsPage() {
 
         <form onSubmit={handleSubmit}>
           <div className="known-person-field">
-            <label>Name</label>
+            <label className="known-person-label">
+              Name <span className="required-asterisk">*</span>
+            </label>
             <input
               type="text"
               name="name"
               value={form.name}
               onChange={handleChange}
+              placeholder="e.g. John Doe"
             />
           </div>
 
           <div className="known-person-field">
-            <label>Category</label>
+            <label className="known-person-label">
+              Category <span className="optional-tag">(optional)</span>
+            </label>
             <input
               type="text"
               name="category"
@@ -235,15 +241,30 @@ function KnownPersonsPage() {
           </div>
 
           <div className="known-person-field">
-            <label>
-              {selectedPerson ? "Replace Image (optional)" : "Image"}
+            <label className="known-person-label">
+              {selectedPerson ? (
+                <>Replace Image <span className="optional-tag">(optional)</span></>
+              ) : (
+                <>Image <span className="required-asterisk">*</span></>
+              )}
             </label>
-            <input
-              key={fileInputKey}
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-            />
+
+            <div className="custom-file-upload-wrapper">
+              <input
+                key={fileInputKey}
+                id="kp-image-file-input"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden-file-input"
+              />
+              <label htmlFor="kp-image-file-input" className="custom-file-upload-btn">
+                <Upload size={16} className="upload-icon" />
+                <span className="file-upload-text">
+                  {form.image ? form.image.name : selectedPerson ? "Choose replacement image file" : "Choose image file"}
+                </span>
+              </label>
+            </div>
           </div>
 
           <div className="image-preview-box">

@@ -134,12 +134,13 @@ def get_video_status(video_id):
 @login_required
 def list_all_video_logs():
     """
-    Day 5: Return complete list of historical video processing logs with telemetry stats.
+    Day 5: Return complete list of historical video processing logs with telemetry stats for active user.
     """
+    user_id = session.get("user_id")
     db = get_db_session()
     try:
         video_repo = VideoRepository(db)
-        logs_data = video_repo.get_all_videos_with_stats()
+        logs_data = video_repo.get_all_videos_with_stats(user_id=user_id)
         return jsonify({"status": "success", "logs": logs_data}), 200
     finally:
         db.close()
@@ -149,12 +150,13 @@ def list_all_video_logs():
 @login_required
 def delete_video_log(video_id):
     """
-    Day 5: Permanently delete a video processing run, cascading deletion to events, snapshots, and disk files.
+    Day 5: Permanently delete a video processing run belonging to user, cascading deletion.
     """
+    user_id = session.get("user_id")
     db = get_db_session()
     try:
         video_repo = VideoRepository(db)
-        success = video_repo.delete_video_cascade(video_id)
+        success = video_repo.delete_video_cascade(video_id, user_id=user_id)
         if not success:
             return jsonify({"status": "error", "message": f"Video run #{video_id} not found."}), 404
         return jsonify({"status": "success", "message": f"Video run #{video_id} deleted successfully."}), 200

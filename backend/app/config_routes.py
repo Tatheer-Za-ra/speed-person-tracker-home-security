@@ -70,13 +70,16 @@ def update_speed_thresholds():
     }), 200
 
 
-def get_camera_calibration_config(db):
+def get_camera_calibration_config(db, user_id=None):
     """Retrieves camera position calibration from DB or default configuration."""
     from app.models import Config
     from app.ai_pipeline.speed_calculator import DEFAULT_CAMERA_CALIBRATION
     import json
 
-    row = db.query(Config).filter(Config.key == "camera_calibration").first()
+    key = f"camera_calibration_user_{user_id}" if user_id else "camera_calibration"
+    row = db.query(Config).filter(Config.key == key).first()
+    if not row and user_id:
+        row = db.query(Config).filter(Config.key == "camera_calibration").first()
     if not row or not row.value:
         return DEFAULT_CAMERA_CALIBRATION
     try:
@@ -86,16 +89,17 @@ def get_camera_calibration_config(db):
         return DEFAULT_CAMERA_CALIBRATION
 
 
-def set_camera_calibration_config(db, data: dict):
+def set_camera_calibration_config(db, data: dict, user_id=None):
     """Updates camera position calibration settings in DB."""
     from app.models import Config
     from app.ai_pipeline.speed_calculator import DEFAULT_CAMERA_CALIBRATION
     import json
 
-    row = db.query(Config).filter(Config.key == "camera_calibration").first()
+    key = f"camera_calibration_user_{user_id}" if user_id else "camera_calibration"
+    row = db.query(Config).filter(Config.key == key).first()
     merged = {**DEFAULT_CAMERA_CALIBRATION, **data}
     if not row:
-        row = Config(key="camera_calibration", value=json.dumps(merged))
+        row = Config(key=key, value=json.dumps(merged))
         db.add(row)
     else:
         row.value = json.dumps(merged)
@@ -103,18 +107,24 @@ def set_camera_calibration_config(db, data: dict):
     return merged
 
 
-def recalculate_all_event_speeds(db):
-    """Re-runs speed calculation across all vehicle events using active camera calibration."""
-    from app.models import Event
+def recalculate_all_event_speeds(db, user_id=None):
+    """Re-runs speed calculation across vehicle events using active camera calibration."""
+    from app.models import Event, Video, UploadBatch
     from app.ai_pipeline.speed_calculator import calculate_track_speed
     from app.repositories import SpeedThresholdRepository
     import json
 
-    camera_params = get_camera_calibration_config(db)
+    camera_params = get_camera_calibration_config(db, user_id=user_id)
     speed_repo = SpeedThresholdRepository(db)
-    speed_limits = speed_repo.get_threshold_map(1)
 
-    events = db.query(Event).filter(Event.label.in_(["car", "motorcycle", "truck"])).all()
+    query = db.query(Event).filter(Event.label.in_(["car", "motorcycle", "truck"]))
+    if user_id is not None:
+        query = query.join(Video, Event.video_id == Video.id).join(UploadBatch, Video.batch_id == UploadBatch.id).filter(UploadBatch.user_id == user_id)
+        speed_limits = speed_repo.get_threshold_map(user_id)
+    else:
+        speed_limits = speed_repo.get_threshold_map(1)
+
+    events = query.all()
     recalculated_count = 0
 
     for ev in events:
@@ -149,9 +159,10 @@ def recalculate_all_event_speeds(db):
 @login_required
 def get_camera_calibration():
     """Retrieve camera position calibration geometry settings."""
+    user_id = session.get("user_id")
     db = get_db_session()
     try:
-        calibration = get_camera_calibration_config(db)
+        calibration = get_camera_calibration_config(db, user_id=user_id)
         return jsonify({
             "status": "success",
             "calibration": calibration
@@ -164,14 +175,15 @@ def get_camera_calibration():
 @login_required
 def update_camera_calibration():
     """Update camera position calibration parameters (height, tilt angle, FOV, scale correction)."""
+    user_id = session.get("user_id")
     data = request.get_json() or {}
     if not isinstance(data, dict):
         return jsonify({"status": "error", "message": "Invalid configuration payload"}), 400
 
     db = get_db_session()
     try:
-        updated = set_camera_calibration_config(db, data)
-        recalculated_count = recalculate_all_event_speeds(db)
+        updated = set_camera_calibration_config(db, data, user_id=user_id)
+        recalculated_count = recalculate_all_event_speeds(db, user_id=user_id)
         return jsonify({
             "status": "success",
             "message": f"Camera calibration saved. Recalculated speed for {recalculated_count} recorded events.",
@@ -188,11 +200,12 @@ def update_camera_calibration():
 @login_required
 def get_retention_config():
     """
-    Day 6: Retrieve retention policy configuration & storage stats.
+    Day 6: Retrieve retention policy configuration & storage stats for user.
     """
+    user_id = session.get("user_id")
     db = get_db_session()
     try:
-        settings = get_retention_settings(db)
+        settings = get_retention_settings(db, user_id=user_id)
         return jsonify({"status": "success", "retention": settings}), 200
     finally:
         db.close()
@@ -205,6 +218,7 @@ def update_retention_config():
     Day 6: Update retention days threshold (0 = disabled, 7, 14, 30, 90).
     Expects JSON: { "retention_days": 14 }
     """
+    user_id = session.get("user_id")
     data = request.get_json() or {}
     retention_days = data.get("retention_days")
 
@@ -221,7 +235,7 @@ def update_retention_config():
 
     db = get_db_session()
     try:
-        updated = update_retention_settings(db, days_val)
+        updated = update_retention_settings(db, days_val, user_id=user_id)
         return jsonify({
             "status": "success",
             "message": "Retention policy updated successfully.",
@@ -235,11 +249,12 @@ def update_retention_config():
 @login_required
 def trigger_retention_cleanup_now():
     """
-    Day 6: Trigger an immediate manual storage retention cleanup.
+    Day 6: Trigger an immediate manual storage retention cleanup for active user.
     """
+    user_id = session.get("user_id")
     db = get_db_session()
     try:
-        result = run_retention_cleanup(db)
+        result = run_retention_cleanup(db, user_id=user_id)
         return jsonify({
             "status": "success",
             "message": result["message"],

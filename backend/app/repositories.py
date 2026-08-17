@@ -111,23 +111,24 @@ class EventRepository:
         self.db.refresh(event)
         return event
 
-    def get_events_by_video_id(self, video_id: int):
+    def get_events_by_video_id(self, video_id: int, user_id: int | None = None):
+        query = self.db.query(Event).filter(Event.video_id == video_id)
+        if user_id is not None:
+            query = query.join(Video, Event.video_id == Video.id).join(UploadBatch, Video.batch_id == UploadBatch.id).filter(UploadBatch.user_id == user_id)
         return (
-            self.db.query(Event)
-            .filter(Event.video_id == video_id)
-            .order_by(Event.timestamp_seconds.asc())
+            query.order_by(Event.timestamp_seconds.asc())
             .all()
         )
 
-    def get_event_by_id(self, event_id: int):
-        return (
-            self.db.query(Event)
-            .filter(Event.id == event_id)
-            .first()
-        )
+    def get_event_by_id(self, event_id: int, user_id: int | None = None):
+        query = self.db.query(Event).filter(Event.id == event_id)
+        if user_id is not None:
+            query = query.join(Video, Event.video_id == Video.id).join(UploadBatch, Video.batch_id == UploadBatch.id).filter(UploadBatch.user_id == user_id)
+        return query.first()
 
     def get_filtered_events(
         self,
+        user_id: int | None = None,
         video_id: int | None = None,
         event_type: str | None = None,
         label: str | None = None,
@@ -136,6 +137,9 @@ class EventRepository:
         offset: int = 0,
     ):
         query = self.db.query(Event)
+
+        if user_id is not None:
+            query = query.join(Video, Event.video_id == Video.id).join(UploadBatch, Video.batch_id == UploadBatch.id).filter(UploadBatch.user_id == user_id)
 
         if video_id is not None:
             query = query.filter(Event.video_id == video_id)
@@ -148,29 +152,37 @@ class EventRepository:
 
         return query.order_by(Event.timestamp_seconds.asc(), Event.id.asc()).offset(offset).limit(limit).all()
 
-    def get_alert_events(self, limit: int = 50):
+    def get_alert_events(self, user_id: int | None = None, limit: int = 50):
+        query = self.db.query(Event).filter(Event.is_alert == True)
+        if user_id is not None:
+            query = query.join(Video, Event.video_id == Video.id).join(UploadBatch, Video.batch_id == UploadBatch.id).filter(UploadBatch.user_id == user_id)
         return (
-            self.db.query(Event)
-            .filter(Event.is_alert == True)
-            .order_by(Event.id.desc())
+            query.order_by(Event.id.desc())
             .limit(limit)
             .all()
         )
 
-    def get_summary_stats(self):
-        total_events = self.db.query(func.count(Event.id)).scalar() or 0
-        total_alerts = self.db.query(func.count(Event.id)).filter(Event.is_alert == True).scalar() or 0
-        total_videos = self.db.query(func.count(Video.id)).scalar() or 0
+    def get_summary_stats(self, user_id: int | None = None):
+        events_query = self.db.query(Event)
+        videos_query = self.db.query(Video)
+
+        if user_id is not None:
+            events_query = events_query.join(Video, Event.video_id == Video.id).join(UploadBatch, Video.batch_id == UploadBatch.id).filter(UploadBatch.user_id == user_id)
+            videos_query = videos_query.join(UploadBatch, Video.batch_id == UploadBatch.id).filter(UploadBatch.user_id == user_id)
+
+        total_events = events_query.with_entities(func.count(Event.id)).scalar() or 0
+        total_alerts = events_query.filter(Event.is_alert == True).with_entities(func.count(Event.id)).scalar() or 0
+        total_videos = videos_query.with_entities(func.count(Video.id)).scalar() or 0
 
         type_counts = dict(
-            self.db.query(Event.event_type, func.count(Event.id))
+            events_query.with_entities(Event.event_type, func.count(Event.id))
             .group_by(Event.event_type)
             .all()
         )
 
         label_counts = dict(
-            self.db.query(Event.label, func.count(Event.id))
-            .filter(Event.label.isnot(None))
+            events_query.filter(Event.label.isnot(None))
+            .with_entities(Event.label, func.count(Event.id))
             .group_by(Event.label)
             .all()
         )
@@ -236,19 +248,21 @@ class VideoRepository:
 
     
 
-    def get_all_videos(self):
+    def get_all_videos(self, user_id: int | None = None):
+        query = self.db.query(Video)
+        if user_id is not None:
+            query = query.join(UploadBatch, Video.batch_id == UploadBatch.id).filter(UploadBatch.user_id == user_id)
         return (
-            self.db.query(Video)
-            .order_by(Video.id.asc())
+            query.order_by(Video.id.asc())
             .all()
         )
 
-    def get_video_by_id(self, video_id: int):
-        return (
-            self.db.query(Video)
-            .filter(Video.id == video_id)
-            .first()
-        )
+    def get_video_by_id(self, video_id: int, user_id: int | None = None):
+        query = self.db.query(Video).filter(Video.id == video_id)
+        if user_id is not None:
+            query = query.join(UploadBatch, Video.batch_id == UploadBatch.id).filter(UploadBatch.user_id == user_id)
+        return query.first()
+
     def get_videos_by_batch_id(self, batch_id: int):
         return (
             self.db.query(Video)
@@ -257,11 +271,16 @@ class VideoRepository:
             .all()
         )
 
-    def get_all_videos_with_stats(self):
+    def get_all_videos_with_stats(self, user_id: int | None = None):
         """
         Returns all videos joined with processing status, total event count, and alert count.
+        Optionally filtered by user_id.
         """
-        videos = self.db.query(Video).order_by(Video.id.desc()).all()
+        query = self.db.query(Video)
+        if user_id is not None:
+            query = query.join(UploadBatch, Video.batch_id == UploadBatch.id).filter(UploadBatch.user_id == user_id)
+        videos = query.order_by(Video.id.desc()).all()
+
         result = []
         for v in videos:
             log = self.db.query(ProcessingLog).filter(ProcessingLog.video_id == v.id).first()
@@ -277,6 +296,12 @@ class VideoRepository:
             )
 
             run_thresholds = {"car": 30.0, "motorcycle": 40.0, "truck": 25.0}
+            batch = self.db.query(UploadBatch).filter(UploadBatch.id == v.batch_id).first()
+            if batch:
+                st_records = self.db.query(SpeedThreshold).filter(SpeedThreshold.user_id == batch.user_id).all()
+                for rec in st_records:
+                    run_thresholds[rec.vehicle_category] = float(rec.limit_kmh)
+
             for e in events:
                 if e.metadata_json and e.label in run_thresholds:
                     try:
@@ -301,11 +326,11 @@ class VideoRepository:
             })
         return result
 
-    def delete_video_cascade(self, video_id: int) -> bool:
+    def delete_video_cascade(self, video_id: int, user_id: int | None = None) -> bool:
         """
         Deletes a video record and permanently unlinks all snapshot images and related DB rows.
         """
-        v = self.get_video_by_id(video_id)
+        v = self.get_video_by_id(video_id, user_id=user_id)
         if not v:
             return False
 

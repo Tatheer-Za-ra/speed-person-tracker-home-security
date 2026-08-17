@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from app.auth.service import login_required
 from app.db import get_db_session
 from app.repositories import EventRepository, SnapshotRepository, VideoRepository
@@ -56,6 +56,7 @@ def list_events():
     """
     UC-09 / SF-09 / SF-10: List timeline events with dynamic filter parameters.
     """
+    user_id = session.get("user_id")
     video_id_param = request.args.get("video_id", type=int)
     event_type = request.args.get("event_type", type=str)
     label = request.args.get("label", type=str)
@@ -74,6 +75,7 @@ def list_events():
     video_repo = VideoRepository(db)
 
     events = event_repo.get_filtered_events(
+        user_id=user_id,
         video_id=video_id_param,
         event_type=event_type,
         label=label,
@@ -97,6 +99,7 @@ def list_alerts():
     """
     UC-10 / SF-11: Priority security alerts feed.
     """
+    user_id = session.get("user_id")
     limit = request.args.get("limit", default=50, type=int)
 
     db = get_db_session()
@@ -104,7 +107,7 @@ def list_alerts():
     snapshot_repo = SnapshotRepository(db)
     video_repo = VideoRepository(db)
 
-    alerts = event_repo.get_alert_events(limit=limit)
+    alerts = event_repo.get_alert_events(user_id=user_id, limit=limit)
     formatted = [_format_event(ev, snapshot_repo, video_repo) for ev in alerts]
 
     return jsonify({
@@ -120,14 +123,15 @@ def event_summary():
     """
     UC-11 / SF-12: Aggregated security statistics overview.
     """
+    user_id = session.get("user_id")
     db = get_db_session()
     event_repo = EventRepository(db)
     snapshot_repo = SnapshotRepository(db)
 
-    stats = event_repo.get_summary_stats()
+    stats = event_repo.get_summary_stats(user_id=user_id)
 
     # Fetch top 5 recent alerts for quick dashboard highlight
-    recent_alerts = event_repo.get_alert_events(limit=5)
+    recent_alerts = event_repo.get_alert_events(user_id=user_id, limit=5)
     stats["recent_alerts"] = [_format_event(ev, snapshot_repo) for ev in recent_alerts]
 
     return jsonify({

@@ -2,7 +2,15 @@ from datetime import datetime
 import json
 
 from app.db import get_db_session
-from app.repositories import ProcessingLogRepository, VideoRepository, EventRepository, SnapshotRepository, SpeedThresholdRepository, UploadBatchRepository
+from app.repositories import (
+    ProcessingLogRepository,
+    VideoRepository,
+    EventRepository,
+    SnapshotRepository,
+    SpeedThresholdRepository,
+    UploadBatchRepository,
+    FaceTemplateRepository,
+)
 from app.ai_pipeline.pipeline_service import analyze_video_frames
 import cv2
 from app.ai_pipeline.event_snapshot import save_event_snapshot
@@ -39,13 +47,17 @@ class ProcessingWorker:
                 queued_log.started_at = datetime.now()
                 db.commit()
 
-                # Determine user_id from batch for speed limits
-                batch = batch_repo.get_latest_batch_for_user(1) if hasattr(batch_repo, 'get_latest_batch_for_user') else None
+                # Determine user_id from batch for speed limits and face templates
+                from app.models import UploadBatch
+                batch = db.query(UploadBatch).filter(UploadBatch.id == queued_video.batch_id).first()
                 user_id = batch.user_id if batch else 1
                 speed_limits = speed_repo.get_threshold_map(user_id)
 
+                template_repo = FaceTemplateRepository(db)
+                face_templates = template_repo.get_templates_for_user(user_id)
+
                 from app.config_routes import get_camera_calibration_config
-                camera_params = get_camera_calibration_config(db)
+                camera_params = get_camera_calibration_config(db, user_id=user_id)
 
                 def on_progress(pct, current_f, total_f):
                     try:
@@ -58,6 +70,7 @@ class ProcessingWorker:
                     queued_video.stored_path,
                     speed_limits=speed_limits,
                     camera_params=camera_params,
+                    face_templates=face_templates,
                     progress_callback=on_progress,
                 )
 

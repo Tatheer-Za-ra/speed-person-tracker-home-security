@@ -10,6 +10,11 @@ import "./ConfigurationPage.css";
 
 function ConfigurationPage({ initialTab = "persons" }) {
   const [activeTab, setActiveTab] = useState(initialTab); // "persons" | "speed" | "retention"
+
+  React.useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
   const [speedThresholds, setSpeedThresholds] = useState({
     car: 30.0,
     motorcycle: 40.0,
@@ -33,33 +38,6 @@ function ConfigurationPage({ initialTab = "persons" }) {
 
   return (
     <div className="config-page-container">
-      {/* Sub-Tab Navigation Bar */}
-      <div className="config-tab-bar">
-        <button
-          type="button"
-          className={`config-tab-btn ${activeTab === "persons" ? "active" : ""}`}
-          onClick={() => setActiveTab("persons")}
-        >
-          👤 Known Person Configuration
-        </button>
-
-        <button
-          type="button"
-          className={`config-tab-btn ${activeTab === "speed" ? "active" : ""}`}
-          onClick={() => setActiveTab("speed")}
-        >
-          ⚡ Speed Configuration
-        </button>
-
-        <button
-          type="button"
-          className={`config-tab-btn ${activeTab === "retention" ? "active" : ""}`}
-          onClick={() => setActiveTab("retention")}
-        >
-          🧹 Data Retention & Storage
-        </button>
-      </div>
-
       {/* Sub-Tab Content Rendering */}
       {activeTab === "persons" ? (
         <div className="config-tab-content">
