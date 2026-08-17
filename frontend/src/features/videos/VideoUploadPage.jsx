@@ -1,7 +1,5 @@
-// frontend/src/features/videos/VideoUploadPage.jsx
-
 import React, { useEffect, useState } from "react";
-import { Zap, Eye, BarChart2, ShieldAlert, Loader2 } from "lucide-react";
+import { Zap, Eye, BarChart2, ShieldAlert, Loader2, Upload } from "lucide-react";
 import "./VideoUploadPage.css";
 import { listVideos, uploadVideos } from "../../api/videoApi";
 
@@ -26,6 +24,7 @@ function VideoUploadPage({ onNavigateToRun }) {
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("info");
   const [fileInputKey, setFileInputKey] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
 
   const fetchVideos = async () => {
     try {
@@ -53,6 +52,11 @@ function VideoUploadPage({ onNavigateToRun }) {
     setSelectedFiles(files);
   };
 
+  const isProcessingBatch = isUploading || videos.some((v) => {
+    const st = (v.status || "").toLowerCase();
+    return st === "processing" || st === "queued";
+  });
+
   const handleUpload = async (e) => {
     e.preventDefault();
 
@@ -62,18 +66,25 @@ function VideoUploadPage({ onNavigateToRun }) {
       return;
     }
 
+    if (isProcessingBatch) {
+      return;
+    }
+
     try {
+      setIsUploading(true);
       setMessageType("info");
       setMessage("Uploading and starting processing...");
       await uploadVideos(selectedFiles);
       setMessageType("success");
-      setMessage("Video upload completed");
+      setMessage("Video upload completed successfully.");
       setSelectedFiles([]);
       setFileInputKey((prev) => prev + 1);
       fetchVideos();
     } catch {
       setMessageType("error");
       setMessage("Could not connect to backend");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -86,18 +97,53 @@ function VideoUploadPage({ onNavigateToRun }) {
 
         <form onSubmit={handleUpload}>
           <div className="videos-field">
-            <label>Select one or more CCTV videos (.mp4, .avi, .mov, .mkv)</label>
-            <input
-              key={fileInputKey}
-              type="file"
-              accept=".mp4,.avi,.mov,.mkv"
-              multiple
-              onChange={handleFileChange}
-            />
+            <label className="videos-label">
+              Select one or more CCTV videos (.mp4, .avi, .mov, .mkv) <span className="required-asterisk">*</span>
+            </label>
+
+            <div className="custom-file-upload-wrapper">
+              <input
+                key={fileInputKey}
+                id="cctv-video-file-input"
+                type="file"
+                accept=".mp4,.avi,.mov,.mkv"
+                multiple
+                disabled={isProcessingBatch}
+                onChange={handleFileChange}
+                className="hidden-file-input"
+              />
+              <label
+                htmlFor="cctv-video-file-input"
+                className={`custom-file-upload-btn ${isProcessingBatch ? "disabled" : ""}`}
+              >
+                <Upload size={16} className="upload-icon" />
+                <span className="file-upload-text">
+                  {selectedFiles.length > 0
+                    ? `${selectedFiles.length} video file(s) selected`
+                    : "Choose CCTV video files"}
+                </span>
+              </label>
+            </div>
           </div>
 
-          <button type="submit" className="primary-button">
-            Upload & Start Processing
+          <button
+            type="submit"
+            className="primary-button upload-submit-btn"
+            disabled={isProcessingBatch}
+          >
+            {isUploading ? (
+              <>
+                <Loader2 size={16} className="spin-icon" />
+                <span>Uploading Batch...</span>
+              </>
+            ) : isProcessingBatch ? (
+              <>
+                <Loader2 size={16} className="spin-icon" />
+                <span>Processing in Progress...</span>
+              </>
+            ) : (
+              "Upload & Start Processing"
+            )}
           </button>
         </form>
 
