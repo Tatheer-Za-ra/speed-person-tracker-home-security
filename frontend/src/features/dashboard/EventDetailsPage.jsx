@@ -1,12 +1,11 @@
-// frontend/src/features/dashboard/EventDetailsPage.jsx
-
 import React, { useState, useEffect, useMemo } from "react";
-import { Zap, Car, Bike, Truck, FileSpreadsheet, ArrowLeft } from "lucide-react";
+import { Zap, Car, Bike, Truck, FileSpreadsheet, ArrowLeft, Compass } from "lucide-react";
 import { fetchEvents } from "../../api/eventsApi";
 import FilterBar, { normalizeCategory } from "./FilterBar";
 import BatchEventTimeline from "./BatchEventTimeline";
 import SnapshotModal from "./SnapshotModal";
 import ReportModal from "./ReportModal";
+import CalibrationDiagnosticModal from "../videos/CalibrationDiagnosticModal";
 import "./DashboardPage.css";
 
 function EventDetailsPage({ runFilter, onBackToVideos }) {
@@ -20,6 +19,7 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
   const [vehicleFilter, setVehicleFilter] = useState("ALL");
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isCalibModalOpen, setIsCalibModalOpen] = useState(false);
 
   const videoId = runFilter?.videoId || null;
   const filename = runFilter?.filename || null;
@@ -175,6 +175,15 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
 
         {/* Action Buttons */}
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <button
+            type="button"
+            className="secondary-button"
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "#f0f9ff", border: "1px solid #0284c7", color: "#0284c7", padding: "8px 14px", fontSize: "0.875rem", fontWeight: "600", borderRadius: "8px" }}
+            onClick={() => setIsCalibModalOpen(true)}
+          >
+            <Compass size={16} />
+            <span>View Site Calibration Map</span>
+          </button>
           <button
             type="button"
             className="primary-button"

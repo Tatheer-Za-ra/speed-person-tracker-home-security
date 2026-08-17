@@ -59,8 +59,8 @@ class ProcessingWorker:
                 from app.config_routes import get_camera_calibration_config
                 camera_params = get_camera_calibration_config(db, user_id=user_id)
 
-                # Check if Site Auto-Calibration was requested for this video
-                if "site calibration" in (queued_log.message or "").lower():
+                # Automatically run Site Auto-Calibration & Vanishing Point Map Extraction for video
+                if queued_video.site_calibration_json is None:
                     try:
                         queued_log.message = "Running site perspective calibration & vanishing point extraction..."
                         db.commit()

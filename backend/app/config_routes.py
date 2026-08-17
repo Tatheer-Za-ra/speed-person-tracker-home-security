@@ -89,6 +89,34 @@ def get_camera_calibration_config(db, user_id=None):
         return DEFAULT_CAMERA_CALIBRATION
 
 
+@config_bp.route("/camera-calibration/apply-video/<int:video_id>", methods=["PUT"])
+@login_required
+def apply_video_site_calibration(video_id):
+    user_id = session.get("user_id") or 1
+    db = get_db_session()
+    try:
+        from app.repositories import VideoRepository
+        video_repo = VideoRepository(db)
+        video = video_repo.get_video_by_id(video_id, user_id=user_id)
+        if not video or not video.site_calibration_json:
+            return jsonify({"status": "error", "message": "Site calibration profile not found for this video."}), 404
+
+        import json
+        calib_data = json.loads(video.site_calibration_json)
+        calib_data["active_video_id"] = video_id
+        calib_data["active_filename"] = video.original_filename
+        set_camera_calibration_config(db, calib_data, user_id=user_id)
+        recalculate_all_event_speeds(db, user_id=user_id)
+
+        return jsonify({
+            "status": "success",
+            "message": f"Activated site calibration profile from '{video.original_filename}' for your account!",
+            "active_calibration": calib_data
+        }), 200
+    finally:
+        db.close()
+
+
 def set_camera_calibration_config(db, data: dict, user_id=None):
     """Updates camera position calibration settings in DB."""
     from app.models import Config

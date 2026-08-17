@@ -37,3 +37,12 @@ export async function getVideoStatus(videoId) {
   const data = await response.json();
   return { response, data };
 }
+
+export async function listAllVideoLogs() {
+  const response = await fetch(`${API_BASE}/api/videos/logs`, {
+    credentials: "include",
+  });
+
+  const data = await response.json();
+  return { response, data };
+}

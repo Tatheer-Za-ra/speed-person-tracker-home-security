@@ -106,3 +106,18 @@ export async function updateCameraCalibration(calibration) {
   return { response, data };
 }
 
+/**
+ * PUT /api/config/camera-calibration/apply-video/<video_id>
+ */
+export async function applyVideoSiteCalibration(videoId) {
+  const response = await fetch(`${API_BASE}/camera-calibration/apply-video/${videoId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+  const data = await response.json();
+  return { response, data };
+}
+

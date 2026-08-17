@@ -1,25 +1,80 @@
 // frontend/src/features/config/CameraCalibrationPanel.jsx
 
-import React, { useState } from "react";
-import { updateCameraCalibration } from "../../api/configApi";
+import React, { useEffect, useState } from "react";
+import { updateCameraCalibration, fetchCameraCalibration, applyVideoSiteCalibration } from "../../api/configApi";
+import { listAllVideoLogs } from "../../api/videoApi";
+import { Compass, ShieldCheck, Film, Info, CheckCircle2, Zap } from "lucide-react";
+import CalibrationDiagnosticModal from "../videos/CalibrationDiagnosticModal";
 import "./CameraCalibrationPanel.css";
 
 function CameraCalibrationPanel() {
   const [recalculating, setRecalculating] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [activeCalibConfig, setActiveCalibConfig] = useState(null);
+  const [calibratedVideos, setCalibratedVideos] = useState([]);
+  const [activeCalibVideo, setActiveCalibVideo] = useState(null);
 
-  const [selectedPreset, setSelectedPreset] = useState("auto");
+  const fetchActiveConfig = async () => {
+    try {
+      const { response, data } = await fetchCameraCalibration();
+      if (response.ok && data && data.calibration) {
+        setActiveCalibConfig(data.calibration);
+      }
+    } catch (err) {
+      console.error("Could not fetch active calibration config:", err);
+    }
+  };
 
-  const handleTriggerRecalculation = async (presetMode = selectedPreset) => {
+  const fetchCalibratedVideos = async () => {
+    try {
+      const { response, data } = await listAllVideoLogs();
+      if (response.ok && data) {
+        const list = data.logs || (Array.isArray(data) ? data : []);
+        const calibrated = list.filter((v) => v.calibration_diagnostic_url || v.site_calibration);
+        setCalibratedVideos(calibrated);
+      }
+    } catch (err) {
+      console.error("Could not fetch calibrated videos:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchActiveConfig();
+    fetchCalibratedVideos();
+  }, []);
+
+  const handleApplyVideoSiteProfile = async (videoId, filename) => {
     setRecalculating(true);
     setSuccessMessage("");
     setErrorMessage("");
 
     try {
-      const { response, data } = await updateCameraCalibration({ mode: "ai_self_calibrated", preset: presetMode });
+      const { response, data } = await applyVideoSiteCalibration(videoId);
       if (response.ok && data.status === "success") {
-        setSuccessMessage(`AI Calibration updated to "${presetMode.toUpperCase()}"! ${data.message || "Recalculated event telemetry."}`);
+        setSuccessMessage(data.message || `Activated site calibration from '${filename}' for future video runs!`);
+        fetchActiveConfig();
+      } else {
+        setErrorMessage(data.message || "Failed to apply site calibration profile.");
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMessage("Could not connect to backend server.");
+    } finally {
+      setRecalculating(false);
+    }
+  };
+
+  const handleRecalculateAll = async () => {
+    setRecalculating(true);
+    setSuccessMessage("");
+    setErrorMessage("");
+
+    try {
+      const { response, data } = await updateCameraCalibration({ mode: "ai_self_calibrated" });
+      if (response.ok && data.status === "success") {
+        setSuccessMessage(data.message || "Recalculated speed telemetry for all recorded events.");
+        fetchActiveConfig();
       } else {
         setErrorMessage(data.message || "Failed to trigger speed recalculation.");
       }
@@ -31,117 +86,157 @@ function CameraCalibrationPanel() {
     }
   };
 
-  const handleSelectPreset = (presetKey) => {
-    setSelectedPreset(presetKey);
-    handleTriggerRecalculation(presetKey);
-  };
-
   return (
     <div className="camera-calibration-card">
+      {activeCalibVideo && (
+        <CalibrationDiagnosticModal
+          video={activeCalibVideo}
+          onClose={() => setActiveCalibVideo(null)}
+        />
+      )}
+
       <div className="calibration-header">
         <div className="header-status-badge">
-          <span className="status-dot green"></span>
-          <span>AUTOMATED AI SCENE PROFILING ENGINE</span>
+          <ShieldCheck size={14} />
+          <span>AUTOMATED AI CAMERA CALIBRATION ENGINE</span>
         </div>
-        <h2>🤖 AI Camera Scene Profiler & Calibration</h2>
+        <h2>Saved Site Calibration Maps & Active Account Profile</h2>
         <p className="calibration-desc">
-          Vehicle velocity calculation is <strong>100% automated</strong> with dynamic camera scene profiling. The AI engine automatically distinguishes between long-range <strong>highway telephoto bridges</strong> (e.g. 111–122 km/h) and steep <strong>urban overpasses</strong> (e.g. 50–60 km/h) by inspecting vehicle box geometry and road perspective vectors.
+          Every uploaded CCTV video runs AI perspective profiling. Below are all saved site calibration maps for your camera locations. Select any profile to set it as the <strong>active default</strong> for future video runs.
         </p>
       </div>
 
       {errorMessage && <div className="calibration-alert error">{errorMessage}</div>}
       {successMessage && <div className="calibration-alert success">{successMessage}</div>}
 
-      {/* Camera Scene Preset Selection Grid */}
-      <div className="iso-dimensions-section">
-        <label className="section-label">🎯 Camera Mounting Scene Presets</label>
-        <div className="dimensions-grid">
-          <div
-            className={`dim-card clickable ${selectedPreset === "auto" ? "active" : ""}`}
-            onClick={() => handleSelectPreset("auto")}
-          >
-            <div className="dim-icon">🤖</div>
-            <div className="dim-name">Auto-Detect (Recommended)</div>
-            <div className="dim-specs">
-              <span>Profiling: <strong>Automatic AI Fit</strong></span>
-              <span>Range: <strong>0 – 180 km/h</strong></span>
-            </div>
-            <span className="dim-badge">100% Zero-Setup</span>
-          </div>
+      {/* Saved Site Calibration Diagnostic Maps Section */}
+      <div className="iso-dimensions-section" style={{ marginTop: "16px" }}>
+        <label className="section-label" style={{ fontSize: "1rem", fontWeight: "700", display: "flex", alignItems: "center", gap: "8px" }}>
+          <Compass size={18} style={{ color: "#0284c7" }} /> All Saved Camera Location Maps ({calibratedVideos.length})
+        </label>
 
-          <div
-            className={`dim-card clickable ${selectedPreset === "highway_telephoto" ? "active" : ""}`}
-            onClick={() => handleSelectPreset("highway_telephoto")}
-          >
-            <div className="dim-icon">🛣️</div>
-            <div className="dim-name">Highway Telephoto</div>
-            <div className="dim-specs">
-              <span>Mount: <strong>High Bridge Gantry</strong></span>
-              <span>Speeds: <strong>90 – 140 km/h</strong></span>
+        {calibratedVideos.length === 0 ? (
+          <div className="no-calib-banner" style={{ background: "#f8fafc", border: "1px solid #e2e8f0", padding: "16px", borderRadius: "12px", display: "flex", alignItems: "flex-start", gap: "12px", marginTop: "10px" }}>
+            <Info size={20} style={{ color: "#0284c7", flexShrink: 0, marginTop: "2px" }} />
+            <div style={{ fontSize: "0.875rem", color: "#475569", lineHeight: "1.5" }}>
+              <strong style={{ color: "#0f172a" }}>No Site Perspective Maps Recorded Yet</strong>
+              <br />
+              When you upload a video with <strong>"[x] Optimize Precision for New Camera Location"</strong> enabled, its vanishing point crosshair, horizon line, and depth grid diagnostic map will automatically be saved and displayed here.
             </div>
-            <span className="dim-badge">Long Distance Highway</span>
           </div>
+        ) : (
+          <div className="calibrated-videos-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "16px", marginTop: "12px" }}>
+            {calibratedVideos.map((vid) => {
+              const calib = vid.site_calibration || {};
+              const vidId = vid.video_id || vid.id;
+              const isActive = activeCalibConfig && activeCalibConfig.active_video_id === vidId;
 
-          <div
-            className={`dim-card clickable ${selectedPreset === "urban_overpass" ? "active" : ""}`}
-            onClick={() => handleSelectPreset("urban_overpass")}
-          >
-            <div className="dim-icon">🌉</div>
-            <div className="dim-name">Urban Overpass / City Road</div>
-            <div className="dim-specs">
-              <span>Mount: <strong>Steep Overpass</strong></span>
-              <span>Speeds: <strong>40 – 80 km/h</strong></span>
-            </div>
-            <span className="dim-badge">City Highway View</span>
+              return (
+                <div
+                  key={vidId}
+                  className="dim-card"
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: "14px",
+                    padding: "18px",
+                    borderRadius: "12px",
+                    background: isActive ? "#f0fdf4" : "#ffffff",
+                    border: isActive ? "2px solid #10b981" : "1px solid #e2e8f0",
+                    boxShadow: isActive ? "0 4px 12px rgba(16, 185, 129, 0.15)" : "0 1px 3px rgba(0,0,0,0.05)"
+                  }}
+                >
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px" }}>
+                      <div className="dim-name" style={{ fontSize: "0.95rem", fontWeight: "700", display: "flex", alignItems: "center", gap: "8px", color: "#0f172a" }}>
+                        <Film size={18} style={{ color: "#0284c7" }} />
+                        <span>{vid.original_filename}</span>
+                      </div>
+                      {isActive && (
+                        <span style={{ background: "#10b981", color: "#ffffff", fontSize: "0.725rem", fontWeight: "700", padding: "3px 10px", borderRadius: "14px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                          <CheckCircle2 size={13} /> Active Profile
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="dim-specs" style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "6px", fontSize: "0.85rem", color: "#334155" }}>
+                      <span>Batch: <strong>Batch #{vid.batch_number ?? vid.batch_id}</strong></span>
+                      <span>Camera Height: <strong>{calib.camera_height_m ?? "3.5"}m</strong></span>
+                      <span>Tilt Angle: <strong>{calib.camera_tilt_deg ?? "30"}°</strong></span>
+                      <span>Vertical FOV: <strong>{calib.fov_deg ?? "55"}°</strong></span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
+                    <button
+                      type="button"
+                      className="calib-map-btn"
+                      style={{
+                        width: "100%",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px",
+                        padding: "9px 12px",
+                        borderRadius: "8px",
+                        fontSize: "0.825rem",
+                        fontWeight: "600",
+                        background: "#0284c7",
+                        color: "#ffffff",
+                        border: "none",
+                        cursor: "pointer"
+                      }}
+                      onClick={() => setActiveCalibVideo({
+                        ...vid,
+                        id: vidId,
+                      })}
+                    >
+                      <Compass size={15} />
+                      <span>🎯 View Site Calibration Map</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      style={{
+                        width: "100%",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px",
+                        padding: "9px 12px",
+                        borderRadius: "8px",
+                        fontSize: "0.825rem",
+                        fontWeight: "600",
+                        cursor: (recalculating || isActive) ? "not-allowed" : "pointer",
+                        background: isActive ? "#e2e8f0" : "#10b981",
+                        color: isActive ? "#64748b" : "#ffffff",
+                        border: isActive ? "1px solid #cbd5e1" : "none",
+                        transition: "all 0.2s ease"
+                      }}
+                      onClick={() => !isActive && handleApplyVideoSiteProfile(vidId, vid.original_filename)}
+                      disabled={recalculating || isActive}
+                    >
+                      <Zap size={15} />
+                      <span>{isActive ? "✓ Active Profile Applied" : "⚡ Apply for Future Runs"}</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
+        )}
       </div>
 
-      {/* ISO Reference Dimensions Display Grid */}
-      <div className="iso-dimensions-section">
-        <label className="section-label">📐 Active ISO Vehicle Physical Reference Standards</label>
-        <div className="dimensions-grid">
-          <div className="dim-card">
-            <div className="dim-icon">🚗</div>
-            <div className="dim-name">Passenger Cars</div>
-            <div className="dim-specs">
-              <span>Width: <strong>1.85 m</strong></span>
-              <span>Length: <strong>4.50 m</strong></span>
-            </div>
-            <span className="dim-badge">Standard SUV / Sedan</span>
-          </div>
-
-          <div className="dim-card">
-            <div className="dim-icon">🚚</div>
-            <div className="dim-name">Trucks & Commercial</div>
-            <div className="dim-specs">
-              <span>Width: <strong>2.45 m</strong></span>
-              <span>Length: <strong>6.50 m</strong></span>
-            </div>
-            <span className="dim-badge">Heavy Duty Vehicles</span>
-          </div>
-
-          <div className="dim-card">
-            <div className="dim-icon">🏍️</div>
-            <div className="dim-name">Motorcycles & Bikes</div>
-            <div className="dim-specs">
-              <span>Width: <strong>0.85 m</strong></span>
-              <span>Length: <strong>2.10 m</strong></span>
-            </div>
-            <span className="dim-badge">Two-Wheel Transport</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="calibration-footer-ai">
+      <div className="calibration-footer-ai" style={{ marginTop: "24px" }}>
         <div className="ai-footer-info">
-          <span>✨ <strong>Zero Setup Required:</strong> Every uploaded CCTV video will automatically use AI self-calibrated velocity telemetry.</span>
+          <span>✨ <strong>Zero Setup Required:</strong> Every uploaded CCTV video automatically uses AI self-calibrated velocity telemetry.</span>
         </div>
 
         <button
           type="button"
           className="primary-button recalculate-events-btn"
-          onClick={handleTriggerRecalculation}
+          onClick={handleRecalculateAll}
           disabled={recalculating}
         >
           {recalculating ? "Recalculating DB Events..." : "⚡ Recalculate Recorded Event Speeds"}
