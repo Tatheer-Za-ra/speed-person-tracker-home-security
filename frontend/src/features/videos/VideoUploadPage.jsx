@@ -150,7 +150,7 @@ function VideoUploadPage({ onNavigateToRun }) {
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
                           <span style={{ fontSize: "0.8125rem", fontWeight: "600", color: "#0284c7", display: "inline-flex", alignItems: "center", gap: "6px" }}>
                             <Loader2 size={14} style={{ animation: "spin 1.2s linear infinite" }} />
-                            <span>AI Frame Processing & Tracking...</span>
+                            <span>{video.message || "AI Frame Processing & Tracking..."}</span>
                           </span>
                           <span style={{ fontSize: "0.8125rem", fontWeight: "700", color: "#0369a1" }}>
                             {progressPct}%

@@ -296,10 +296,11 @@ def analyze_video_frames(
         for processed_frame in iter_processed_frames(video_path):
             processed_frames_count += 1
 
-            if progress_callback and (processed_frames_count % 2 == 0 or processed_frames_count == total_frames):
-                pct = min(99, int((processed_frames_count / max(1, total_frames)) * 100))
+            if progress_callback:
+                current_raw_frame = min(total_frames, processed_frame.raw_frame_index + 1)
+                pct = min(99, int((current_raw_frame / max(1, total_frames)) * 100))
                 try:
-                    progress_callback(pct, processed_frames_count, total_frames)
+                    progress_callback(pct, current_raw_frame, total_frames)
                 except Exception:
                     pass
 
