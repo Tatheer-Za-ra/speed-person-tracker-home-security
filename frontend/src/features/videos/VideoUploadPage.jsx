@@ -140,9 +140,11 @@ function VideoUploadPage({ onNavigateToRun }) {
                       </span>
                     </p>
 
-                    <p className="video-meta" style={{ fontSize: "0.8125rem" }}>
-                      {video.message || "No message"}
-                    </p>
+                    {!isProcessing && video.message && (
+                      <p className="video-meta" style={{ fontSize: "0.8125rem" }}>
+                        {video.message}
+                      </p>
+                    )}
 
                     {/* Dynamic Real-Time Frame Processing Progress Bar */}
                     {isProcessing && (
