@@ -296,11 +296,12 @@ class VideoRepository:
     def get_all_videos_with_stats(self, user_id: int | None = None):
         """
         Returns all videos joined with processing status, total event count, and alert count.
-        Optionally filtered by user_id.
+        Filtered strictly by user_id.
         """
-        query = self.db.query(Video)
-        if user_id is not None:
-            query = query.join(UploadBatch, Video.batch_id == UploadBatch.id).filter(UploadBatch.user_id == user_id)
+        if user_id is None:
+            return []
+
+        query = self.db.query(Video).join(UploadBatch, Video.batch_id == UploadBatch.id).filter(UploadBatch.user_id == user_id)
         videos = query.order_by(Video.id.desc()).all()
 
         # Map each batch_id to user-specific sequential batch number (1, 2, 3...)

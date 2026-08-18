@@ -236,19 +236,10 @@ function CameraCalibrationPanel() {
         )}
       </div>
 
-      <div className="calibration-footer-ai" style={{ marginTop: "24px" }}>
-        <div className="ai-footer-info">
+      <div className="calibration-footer-ai" style={{ marginTop: "24px", justifyContent: "center", textAlign: "center" }}>
+        <div className="ai-footer-info" style={{ textAlign: "center", width: "100%" }}>
           <span><strong>Zero Setup Required:</strong> Every uploaded CCTV video automatically uses AI self-calibrated velocity telemetry.</span>
         </div>
-
-        <button
-          type="button"
-          className="primary-button recalculate-events-btn"
-          onClick={handleRecalculateAll}
-          disabled={recalculating}
-        >
-          {recalculating ? "Recalculating DB Events..." : "Recalculate Recorded Event Speeds"}
-        </button>
       </div>
     </div>
   );

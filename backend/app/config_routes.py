@@ -12,7 +12,9 @@ config_bp = Blueprint("config_bp", __name__, url_prefix="/api/config")
 @config_bp.route("/speed-thresholds", methods=["GET"])
 @login_required
 def get_speed_thresholds():
-    user_id = session.get("user_id") or 1
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"status": "error", "message": "Authentication required"}), 401
     db = get_db_session()
     repo = SpeedThresholdRepository(db)
 
@@ -30,7 +32,9 @@ def update_speed_thresholds():
     SF-02: Validate Speed Threshold Input.
     Expects JSON body: { "car": 30.0, "motorcycle": 40.0, "truck": 25.0 }
     """
-    user_id = session.get("user_id") or 1
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"status": "error", "message": "Authentication required"}), 401
     data = request.get_json() or {}
 
     if not data or not isinstance(data, dict):
@@ -71,15 +75,13 @@ def update_speed_thresholds():
 
 
 def get_camera_calibration_config(db, user_id=None):
-    """Retrieves camera position calibration from DB or default configuration."""
+    """Retrieves camera position calibration from DB for specific user or default configuration."""
     from app.models import Config
     from app.ai_pipeline.speed_calculator import DEFAULT_CAMERA_CALIBRATION
     import json
 
     key = f"camera_calibration_user_{user_id}" if user_id else "camera_calibration"
     row = db.query(Config).filter(Config.key == key).first()
-    if not row and user_id:
-        row = db.query(Config).filter(Config.key == "camera_calibration").first()
     if not row or not row.value:
         return DEFAULT_CAMERA_CALIBRATION
     try:
@@ -92,7 +94,9 @@ def get_camera_calibration_config(db, user_id=None):
 @config_bp.route("/camera-calibration/apply-video/<int:video_id>", methods=["PUT"])
 @login_required
 def apply_video_site_calibration(video_id):
-    user_id = session.get("user_id") or 1
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"status": "error", "message": "Authentication required"}), 401
     db = get_db_session()
     try:
         from app.repositories import VideoRepository
