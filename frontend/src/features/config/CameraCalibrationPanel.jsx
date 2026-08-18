@@ -151,15 +151,18 @@ function CameraCalibrationPanel() {
                   }}
                 >
                   <div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px" }}>
-                      <div className="dim-name" style={{ fontSize: "0.95rem", fontWeight: "700", display: "flex", alignItems: "center", gap: "8px", color: "#0f172a" }}>
-                        <Film size={18} style={{ color: "#0284c7" }} />
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      <div className="dim-name" style={{ fontSize: "0.95rem", fontWeight: "700", display: "flex", alignItems: "center", gap: "8px", color: "#0f172a", wordBreak: "break-word" }}>
+                        <Film size={18} style={{ color: "#0284c7", flexShrink: 0 }} />
                         <span>{vid.original_filename}</span>
                       </div>
+
                       {isActive && (
-                        <span style={{ background: "#10b981", color: "#ffffff", fontSize: "0.725rem", fontWeight: "700", padding: "3px 10px", borderRadius: "14px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                          <CheckCircle2 size={13} /> Active Profile
-                        </span>
+                        <div>
+                          <span style={{ background: "#10b981", color: "#ffffff", fontSize: "0.725rem", fontWeight: "700", padding: "4px 10px", borderRadius: "14px", display: "inline-flex", alignItems: "center", gap: "4px", whiteSpace: "nowrap" }}>
+                            <CheckCircle2 size={13} /> Active Profile
+                          </span>
+                        </div>
                       )}
                     </div>
 
@@ -195,34 +198,36 @@ function CameraCalibrationPanel() {
                         id: vidId,
                       })}
                     >
-                      <Compass size={15} />
-                      <span>🎯 View Site Calibration Map</span>
+                      <Compass size={16} />
+                      <span>View Site Calibration Map</span>
                     </button>
 
-                    <button
-                      type="button"
-                      style={{
-                        width: "100%",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: "6px",
-                        padding: "9px 12px",
-                        borderRadius: "8px",
-                        fontSize: "0.825rem",
-                        fontWeight: "600",
-                        cursor: (recalculating || isActive) ? "not-allowed" : "pointer",
-                        background: isActive ? "#e2e8f0" : "#10b981",
-                        color: isActive ? "#64748b" : "#ffffff",
-                        border: isActive ? "1px solid #cbd5e1" : "none",
-                        transition: "all 0.2s ease"
-                      }}
-                      onClick={() => !isActive && handleApplyVideoSiteProfile(vidId, vid.original_filename)}
-                      disabled={recalculating || isActive}
-                    >
-                      <Zap size={15} />
-                      <span>{isActive ? "✓ Active Profile Applied" : "⚡ Apply for Future Runs"}</span>
-                    </button>
+                    {!isActive && (
+                      <button
+                        type="button"
+                        style={{
+                          width: "100%",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "6px",
+                          padding: "9px 12px",
+                          borderRadius: "8px",
+                          fontSize: "0.825rem",
+                          fontWeight: "600",
+                          cursor: recalculating ? "not-allowed" : "pointer",
+                          background: "#10b981",
+                          color: "#ffffff",
+                          border: "none",
+                          transition: "all 0.2s ease"
+                        }}
+                        onClick={() => handleApplyVideoSiteProfile(vidId, vid.original_filename)}
+                        disabled={recalculating}
+                      >
+                        <Zap size={15} />
+                        <span>Apply for Future Runs</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -233,7 +238,7 @@ function CameraCalibrationPanel() {
 
       <div className="calibration-footer-ai" style={{ marginTop: "24px" }}>
         <div className="ai-footer-info">
-          <span>✨ <strong>Zero Setup Required:</strong> Every uploaded CCTV video automatically uses AI self-calibrated velocity telemetry.</span>
+          <span><strong>Zero Setup Required:</strong> Every uploaded CCTV video automatically uses AI self-calibrated velocity telemetry.</span>
         </div>
 
         <button
@@ -242,7 +247,7 @@ function CameraCalibrationPanel() {
           onClick={handleRecalculateAll}
           disabled={recalculating}
         >
-          {recalculating ? "Recalculating DB Events..." : "⚡ Recalculate Recorded Event Speeds"}
+          {recalculating ? "Recalculating DB Events..." : "Recalculate Recorded Event Speeds"}
         </button>
       </div>
     </div>

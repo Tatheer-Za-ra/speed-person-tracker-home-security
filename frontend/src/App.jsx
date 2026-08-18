@@ -17,16 +17,24 @@ function App() {
   const [currentPage, setCurrentPage] = useState(() => {
     return localStorage.getItem("currentPage") || "dashboard";
   });
-  const [configTab, setConfigTab] = useState("persons");
+  const [configTab, setConfigTab] = useState(() => {
+    return localStorage.getItem("configTab") || "persons";
+  });
   const [authLoading, setAuthLoading] = useState(true);
 
   // Isolated Run Filter state: { videoId: int|null, mode: 'events'|'summary'|'alerts', filename: string }
   const [currentRunFilter, setCurrentRunFilter] = useState(null);
 
-  const handleNavigateToConfig = (tab = "persons") => {
-    setConfigTab(tab);
+  const handleNavigateToConfig = (tab) => {
+    const targetTab = tab || configTab || "persons";
+    setConfigTab(targetTab);
+    localStorage.setItem("configTab", targetTab);
     setCurrentPage("config");
   };
+
+  useEffect(() => {
+    localStorage.setItem("configTab", configTab);
+  }, [configTab]);
 
   useEffect(() => {
     localStorage.setItem("currentPage", currentPage);

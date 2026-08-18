@@ -35,7 +35,7 @@ function Header({ currentPage, setCurrentPage, onNavigateToConfig, currentRunFil
             <button
               type="button"
               className={`nav-link ${currentPage === "config" ? "active" : ""}`}
-              onClick={() => handleSelectConfigOption("persons")}
+              onClick={() => handleSelectConfigOption(null)}
             >
               <span>Configuration</span>
               <ChevronDown size={14} className={`dropdown-caret ${isConfigDropdownOpen ? "open" : ""}`} />

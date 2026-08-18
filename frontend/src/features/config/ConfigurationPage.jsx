@@ -8,11 +8,16 @@ import CameraCalibrationPanel from "./CameraCalibrationPanel";
 import { fetchSpeedThresholds } from "../../api/configApi";
 import "./ConfigurationPage.css";
 
-function ConfigurationPage({ initialTab = "persons" }) {
-  const [activeTab, setActiveTab] = useState(initialTab); // "persons" | "speed" | "retention"
+function ConfigurationPage({ initialTab }) {
+  const [activeTab, setActiveTab] = useState(() => {
+    return initialTab || localStorage.getItem("configTab") || "persons";
+  });
 
   React.useEffect(() => {
-    setActiveTab(initialTab);
+    if (initialTab) {
+      setActiveTab(initialTab);
+      localStorage.setItem("configTab", initialTab);
+    }
   }, [initialTab]);
 
   const [speedThresholds, setSpeedThresholds] = useState({
