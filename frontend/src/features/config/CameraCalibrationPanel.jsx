@@ -126,10 +126,13 @@ function CameraCalibrationPanel() {
           </div>
         ) : (
           <div className="calibrated-videos-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "16px", marginTop: "12px" }}>
-            {calibratedVideos.map((vid) => {
+            {calibratedVideos.map((vid, idx) => {
               const calib = vid.site_calibration || {};
               const vidId = vid.video_id || vid.id;
-              const isActive = activeCalibConfig && activeCalibConfig.active_video_id === vidId;
+              const isActive = activeCalibConfig && (
+                activeCalibConfig.active_video_id === vidId ||
+                (!activeCalibConfig.active_video_id && idx === 0)
+              );
 
               return (
                 <div
