@@ -6,9 +6,7 @@ import { fetchEventSummary, fetchEvents } from "../../api/eventsApi";
 
 // ... existing imports stay same
 import { fetchSpeedThresholds } from "../../api/configApi";
-import FilterBar, { normalizeCategory } from "./FilterBar";
 import SpeedConfigModal from "./SpeedConfigModal";
-import BatchEventTimeline from "./BatchEventTimeline";
 import SnapshotModal from "./SnapshotModal";
 import ReportModal from "./ReportModal";
 import LandingHero from "./LandingHero";
@@ -19,9 +17,6 @@ const API_HOST = "http://localhost:5000";
 function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage, onNavigateToConfig }) {
   const [summary, setSummary] = useState(null);
   const [rawEvents, setRawEvents] = useState([]);
-  const [activeQuickMode, setActiveQuickMode] = useState("ALL");
-  const [personFilter, setPersonFilter] = useState("ALL");
-  const [vehicleFilter, setVehicleFilter] = useState("ALL");
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,14 +32,6 @@ function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage, o
 
   const videoId = currentRunFilter?.videoId || null;
   const initialMode = currentRunFilter?.mode || "all";
-
-  useEffect(() => {
-    if (initialMode === "alerts") {
-      setActiveQuickMode("ALERTS");
-    } else {
-      setActiveQuickMode("ALL");
-    }
-  }, [initialMode, videoId]);
 
   // Fetch Speed Limits Configuration
   const loadSpeedThresholds = async () => {
@@ -62,21 +49,9 @@ function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage, o
     setLoading(true);
     setError(null);
     try {
-      // 1. Fetch Executive Summary
       const { data: summaryData } = await fetchEventSummary();
       if (summaryData && summaryData.status === "success") {
         setSummary(summaryData.summary);
-      }
-
-      // 2. Fetch Events Feed (Isolate by videoId if locked to current run)
-      const filterParams = { limit: 200 };
-      if (videoId) {
-        filterParams.video_id = videoId;
-      }
-
-      const { data: eventsData } = await fetchEvents(filterParams);
-      if (eventsData && eventsData.status === "success") {
-        setRawEvents(eventsData.events || []);
       }
     } catch (err) {
       setError("Failed to load telemetry data from backend server.");
@@ -90,43 +65,6 @@ function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage, o
     loadDashboardData();
     loadSpeedThresholds();
   }, [videoId]);
-
-  // Clean Filtering Engine using useMemo
-  const filteredEvents = useMemo(() => {
-    return rawEvents.filter((ev) => {
-      const meta = ev.metadata || {};
-      const normCat = normalizeCategory(ev.label, meta.face_match_status);
-
-      // 1. Quick Mode Filter
-      if (activeQuickMode === "ALERTS") {
-        const isUnknownPerson = ev.label === "person" && meta.face_match_status !== "known";
-        if (!ev.is_alert && !isUnknownPerson) return false;
-      }
-
-      // 2. Person Identity Filter
-      if (personFilter === "KNOWN") {
-        if (normCat !== "Known Person") return false;
-      } else if (personFilter === "UNKNOWN") {
-        if (normCat !== "Unknown Person") return false;
-      }
-
-      // 3. Vehicle Category Filter (Strictly: Car, Bike, Truck, Other)
-      if (vehicleFilter !== "ALL") {
-        if (ev.label === "person") return false;
-        if (normCat !== vehicleFilter) return false;
-      }
-
-      return true;
-    });
-  }, [rawEvents, activeQuickMode, personFilter, vehicleFilter]);
-
-  const alertEventsCount = useMemo(() => {
-    return rawEvents.filter((ev) => {
-      const meta = ev.metadata || {};
-      const isUnknownPerson = ev.label === "person" && meta.face_match_status !== "known";
-      return ev.is_alert || isUnknownPerson;
-    }).length;
-  }, [rawEvents]);
 
   return (
     <div className="dashboard-container">
@@ -146,50 +84,7 @@ function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage, o
         />
       )}
 
-      {/* Top Navigation Hub Bar */}
-      <div className="dashboard-header-actions">
-        <div className="speed-threshold-pills">
-          <span className="threshold-pill" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-            <Car size={14} />
-            <span>Car Limit: <strong>{speedThresholds.car ?? 30} km/h</strong></span>
-          </span>
-          <span className="threshold-pill" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-            <Bike size={14} />
-            <span>Bike Limit: <strong>{speedThresholds.motorcycle ?? 40} km/h</strong></span>
-          </span>
-          <span className="threshold-pill" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-            <Truck size={14} />
-            <span>Truck Limit: <strong>{speedThresholds.truck ?? 25} km/h</strong></span>
-          </span>
-        </div>
 
-        <div style={{ display: "flex", gap: "10px" }}>
-          <button
-            type="button"
-            className="speed-settings-btn"
-            style={{ background: "rgba(5, 150, 105, 0.2)", borderColor: "rgba(52, 211, 153, 0.4)", color: "#34d399" }}
-            onClick={() => setIsReportModalOpen(true)}
-          >
-            📄 Export Audit Report
-          </button>
-
-          <button
-            type="button"
-            className="speed-settings-btn"
-            onClick={() => onNavigateToPage && onNavigateToPage("config")}
-          >
-            ⚙️ Configuration Hub
-          </button>
-
-          <button
-            type="button"
-            className="speed-settings-btn"
-            onClick={() => setIsSpeedModalOpen(true)}
-          >
-            ⚡ Speed Settings
-          </button>
-        </div>
-      </div>
 
       {/* Current Run Isolation Banner */}
       {videoId && (
@@ -206,43 +101,6 @@ function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage, o
           </button>
         </div>
       )}
-
-      {/* Clean Filtering Engine */}
-      <FilterBar
-        personFilter={personFilter}
-        setPersonFilter={setPersonFilter}
-        vehicleFilter={vehicleFilter}
-        setVehicleFilter={setVehicleFilter}
-        activeQuickMode={activeQuickMode}
-        setActiveQuickMode={setActiveQuickMode}
-        totalEventsCount={rawEvents.length}
-        alertEventsCount={alertEventsCount}
-      />
-
-      {/* Events Feed Section with Batch Segregation */}
-      <div className="events-section">
-        <div className="section-header">
-          <div className="section-title">
-            Security Event Feed & Video Segregation
-            <span className="event-count-badge">{filteredEvents.length} matching events</span>
-          </div>
-        </div>
-
-        {loading ? (
-          <div style={{ padding: "40px", textAlign: "center", color: "#94a3b8" }}>
-            Loading telemetry feeds...
-          </div>
-        ) : error ? (
-          <div style={{ padding: "30px", background: "rgba(239,68,68,0.1)", color: "#ef4444", borderRadius: "12px" }}>
-            {error}
-          </div>
-        ) : (
-          <BatchEventTimeline
-            events={filteredEvents}
-            onSelectEvent={(ev) => setSelectedEvent(ev)}
-          />
-        )}
-      </div>
 
       {/* Speed Threshold Settings Modal */}
       <SpeedConfigModal

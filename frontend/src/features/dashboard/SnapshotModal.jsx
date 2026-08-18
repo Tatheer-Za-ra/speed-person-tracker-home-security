@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import { normalizeCategory } from "./FilterBar";
+import { formatTimestamp } from "./BatchEventTimeline";
 
 const API_HOST = "http://localhost:5000";
 
@@ -65,7 +66,7 @@ function SnapshotModal({ event, onClose }) {
               </div>
               <div className="meta-item">
                 <span className="meta-label">Video Timestamp</span>
-                <span className="meta-val">{event.timestamp_seconds}s</span>
+                <span className="meta-val">{formatTimestamp(event.timestamp_seconds)}</span>
               </div>
               <div className="meta-item">
                 <span className="meta-label">Alert Status</span>

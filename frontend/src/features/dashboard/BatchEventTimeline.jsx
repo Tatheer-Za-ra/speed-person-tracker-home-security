@@ -5,6 +5,29 @@ import { normalizeCategory } from "./FilterBar";
 
 const API_HOST = "http://localhost:5000";
 
+export function formatTimestamp(seconds) {
+  if (seconds === undefined || seconds === null) return "00s";
+  const secNum = parseFloat(seconds);
+  if (isNaN(secNum) || secNum < 0) return "00s";
+
+  const hrs = Math.floor(secNum / 3600);
+  const mins = Math.floor((secNum % 3600) / 60);
+  const secs = Math.floor(secNum % 60);
+
+  if (hrs > 0) {
+    const padMins = String(mins).padStart(2, "0");
+    const padSecs = String(secs).padStart(2, "0");
+    return `${hrs}h ${padMins}m ${padSecs}s`;
+  }
+
+  if (mins > 0) {
+    const padSecs = String(secs).padStart(2, "0");
+    return `${mins}m ${padSecs}s`;
+  }
+
+  return `${secNum.toFixed(1)}s`;
+}
+
 /**
  * Batch Event Segregation Timeline Component
  * Groups filtered security events by Video ID / Video Name, rendering distinct video sections.
@@ -98,7 +121,7 @@ function BatchEventTimeline({ events, onSelectEvent }) {
                       <span className="event-type-name">
                         {normCategory.toUpperCase()} #{ev.track_id ?? ev.id}
                       </span>
-                      <span className="event-timestamp">@ {ev.timestamp_seconds}s</span>
+                      <span className="event-timestamp">@ {formatTimestamp(ev.timestamp_seconds)}</span>
                     </div>
 
                     <div className="event-meta-row">
