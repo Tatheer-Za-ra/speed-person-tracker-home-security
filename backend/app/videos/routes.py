@@ -177,14 +177,29 @@ def get_calibration_diagnostic_image(video_id):
     try:
         video_repo = VideoRepository(db)
         video = video_repo.get_video_by_id(video_id, user_id=user_id)
-        if not video or not video.calibration_diagnostic_path:
-            return jsonify({"error": "Diagnostic image not found"}), 404
+        if not video:
+            return jsonify({"error": "Video not found"}), 404
 
         import os
         from flask import send_file
-        abs_path = os.path.abspath(video.calibration_diagnostic_path)
-        if not os.path.exists(abs_path):
-            return jsonify({"error": "Diagnostic file missing on disk"}), 404
-        return send_file(abs_path, mimetype="image/jpeg")
+
+        # 1. Check if video has its own standalone diagnostic image
+        if video.calibration_diagnostic_path:
+            abs_path = os.path.abspath(video.calibration_diagnostic_path)
+            if os.path.exists(abs_path):
+                return send_file(abs_path, mimetype="image/jpeg")
+
+        # 2. Fallback: video was uploaded without auto-calibration; serve active account profile's diagnostic image
+        from app.config_routes import get_camera_calibration_config
+        active_config = get_camera_calibration_config(db, user_id=user_id)
+        active_video_id = active_config.get("active_video_id")
+        if active_video_id and active_video_id != video_id:
+            active_video = video_repo.get_video_by_id(active_video_id, user_id=user_id)
+            if active_video and active_video.calibration_diagnostic_path:
+                abs_path = os.path.abspath(active_video.calibration_diagnostic_path)
+                if os.path.exists(abs_path):
+                    return send_file(abs_path, mimetype="image/jpeg")
+
+        return jsonify({"error": "Diagnostic image not found"}), 404
     finally:
         db.close()

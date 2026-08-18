@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import { Zap, Car, Bike, Truck, FileSpreadsheet, ArrowLeft, Compass } from "lucide-react";
 import { fetchEvents } from "../../api/eventsApi";
+import { listAllVideoLogs } from "../../api/videoApi";
 import FilterBar, { normalizeCategory } from "./FilterBar";
 import BatchEventTimeline from "./BatchEventTimeline";
 import SnapshotModal from "./SnapshotModal";
@@ -12,6 +14,7 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [videoDetails, setVideoDetails] = useState(null);
 
   // Filters & Modals
   const [activeQuickMode, setActiveQuickMode] = useState("ALL");
@@ -37,6 +40,15 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
         } else {
           setError("Could not load event data for this video run.");
         }
+
+        const { response: vResp, data: vData } = await listAllVideoLogs();
+        if (vResp.ok && vData) {
+          const logs = vData.logs || [];
+          const match = logs.find((item) => String(item.video_id || item.id) === String(videoId));
+          if (match) {
+            setVideoDetails(match);
+          }
+        }
       } catch (err) {
         console.error(err);
         setError("Could not connect to backend server.");
@@ -47,6 +59,24 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
 
     loadRunEvents();
   }, [videoId]);
+
+  const handleOpenCalibModal = async () => {
+    if (!videoDetails && videoId) {
+      try {
+        const { response: vResp, data: vData } = await listAllVideoLogs();
+        if (vResp.ok && vData) {
+          const logs = vData.logs || [];
+          const match = logs.find((item) => String(item.video_id || item.id) === String(videoId));
+          if (match) {
+            setVideoDetails(match);
+          }
+        }
+      } catch (err) {
+        console.error("Could not fetch video details for calibration modal:", err);
+      }
+    }
+    setIsCalibModalOpen(true);
+  };
 
   // Clean Filtering Engine
   const filteredEvents = useMemo(() => {
@@ -179,7 +209,7 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
             type="button"
             className="secondary-button"
             style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "#f0f9ff", border: "1px solid #0284c7", color: "#0284c7", padding: "8px 14px", fontSize: "0.875rem", fontWeight: "600", borderRadius: "8px" }}
-            onClick={() => setIsCalibModalOpen(true)}
+            onClick={handleOpenCalibModal}
           >
             <Compass size={16} />
             <span>View Site Calibration Map</span>
@@ -277,6 +307,19 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
       {/* Snapshot Lightbox Inspection Modal */}
       {selectedEvent && (
         <SnapshotModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+      )}
+
+      {/* Site Calibration Map Lightbox Modal */}
+      {isCalibModalOpen && (
+        <CalibrationDiagnosticModal
+          video={videoDetails || {
+            id: videoId,
+            video_id: videoId,
+            original_filename: filename || `Video #${videoId}`,
+            calibration_diagnostic_url: `/api/videos/${videoId}/calibration-diagnostic`
+          }}
+          onClose={() => setIsCalibModalOpen(false)}
+        />
       )}
     </div>
   );

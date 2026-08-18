@@ -43,19 +43,18 @@ coverage/
 Thumbs.db
 
 # -----------------------------
-# Project local storage
+# Project local storage & snapshots
 # -----------------------------
-storage/uploads/videos/*
-storage/event_snapshots/*
-storage/snapshots/*
-storage/known_persons/originals/*
-storage/known_persons/processed/*
-storage/reports/*
-storage/temp/*
-storage/debug_frames/*
-storage/debug_faces/*
+storage/
+backend/storage/
+*.jpg
+*.jpeg
+*.png
+!frontend/public/hero-security.jpg
+calib_diag_*
+*_calibration_diagnostic.jpg
 
-# keep folder structure
+# keep folder structures if needed
 !storage/uploads/videos/.gitkeep
 !storage/event_snapshots/.gitkeep
 !storage/snapshots/.gitkeep

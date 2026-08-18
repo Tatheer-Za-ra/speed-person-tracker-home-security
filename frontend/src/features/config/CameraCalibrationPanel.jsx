@@ -20,6 +20,7 @@ function CameraCalibrationPanel() {
       const { response, data } = await fetchCameraCalibration();
       if (response.ok && data && data.calibration) {
         setActiveCalibConfig(data.calibration);
+        fetchCalibratedVideos(data.calibration);
       }
     } catch (err) {
       console.error("Could not fetch active calibration config:", err);
@@ -31,7 +32,7 @@ function CameraCalibrationPanel() {
       const { response, data } = await listAllVideoLogs();
       if (response.ok && data) {
         const list = data.logs || (Array.isArray(data) ? data : []);
-        const calibrated = list.filter((v) => v.calibration_diagnostic_url || v.site_calibration);
+        const calibrated = list.filter((v) => v.has_standalone_site_calibration);
         setCalibratedVideos(calibrated);
       }
     } catch (err) {
@@ -42,6 +43,13 @@ function CameraCalibrationPanel() {
   useEffect(() => {
     fetchActiveConfig();
     fetchCalibratedVideos();
+
+    const timer = setInterval(() => {
+      fetchActiveConfig();
+      fetchCalibratedVideos();
+    }, 3000);
+
+    return () => clearInterval(timer);
   }, []);
 
   const handleApplyVideoSiteProfile = async (videoId, filename) => {
@@ -111,9 +119,11 @@ function CameraCalibrationPanel() {
 
       {/* Saved Site Calibration Diagnostic Maps Section */}
       <div className="iso-dimensions-section" style={{ marginTop: "16px" }}>
-        <label className="section-label" style={{ fontSize: "1rem", fontWeight: "700", display: "flex", alignItems: "center", gap: "8px" }}>
-          <Compass size={18} style={{ color: "#0284c7" }} /> All Saved Camera Location Maps ({calibratedVideos.length})
-        </label>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", marginBottom: "8px" }}>
+          <label className="section-label" style={{ fontSize: "1rem", fontWeight: "700", display: "flex", alignItems: "center", gap: "8px", margin: 0 }}>
+            <Compass size={18} style={{ color: "#0284c7" }} /> All Saved Camera Location Maps ({calibratedVideos.length})
+          </label>
+        </div>
 
         {calibratedVideos.length === 0 ? (
           <div className="no-calib-banner" style={{ background: "#f8fafc", border: "1px solid #e2e8f0", padding: "16px", borderRadius: "12px", display: "flex", alignItems: "flex-start", gap: "12px", marginTop: "10px" }}>
@@ -129,9 +139,13 @@ function CameraCalibrationPanel() {
             {calibratedVideos.map((vid, idx) => {
               const calib = vid.site_calibration || {};
               const vidId = vid.video_id || vid.id;
-              const isActive = activeCalibConfig && (
-                activeCalibConfig.active_video_id === vidId ||
-                (!activeCalibConfig.active_video_id && idx === 0)
+              const batchNum = vid.user_seq_batch_num || vid.batch_id;
+              const isActive = Boolean(
+                activeCalibConfig && (
+                  (activeCalibConfig.active_video_id && String(activeCalibConfig.active_video_id) === String(vidId)) ||
+                  (activeCalibConfig.active_batch_id && String(activeCalibConfig.active_batch_id) === String(batchNum)) ||
+                  (!activeCalibConfig.active_video_id && !activeCalibConfig.active_batch_id && idx === 0)
+                )
               );
 
               return (

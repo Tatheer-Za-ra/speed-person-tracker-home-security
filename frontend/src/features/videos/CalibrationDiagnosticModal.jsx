@@ -21,7 +21,7 @@ export default function CalibrationDiagnosticModal({ video, onClose }) {
             <div>
               <h3>Site Speed Calibration Map</h3>
               <p className="calib-subtitle">
-                {video.original_filename} • {calib.preset ? calib.preset.toUpperCase() : "CUSTOM SITE"}
+                {video.original_filename} • {video.is_active_profile_fallback ? "ACTIVE PROFILE APPLIED" : (calib.preset ? calib.preset.toUpperCase() : "CUSTOM SITE")}
               </p>
             </div>
           </div>
@@ -76,7 +76,7 @@ export default function CalibrationDiagnosticModal({ video, onClose }) {
               <div className="metric-item">
                 <span className="metric-label">Precision Status</span>
                 <span className="metric-value status-trained">
-                  <CheckCircle2 size={13} /> SITE PERSPECTIVE TRAINED
+                  <CheckCircle2 size={13} /> {video.is_active_profile_fallback ? "ACTIVE ACCOUNT PROFILE APPLIED" : "SITE PERSPECTIVE TRAINED"}
                 </span>
               </div>
             </div>

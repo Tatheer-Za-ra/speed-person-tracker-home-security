@@ -351,13 +351,24 @@ class VideoRepository:
             if batch and batch.user_id in user_batch_maps and v.batch_id in user_batch_maps[batch.user_id]:
                 user_seq_batch_num = user_batch_maps[batch.user_id][v.batch_id]
 
+            has_standalone_site_calibration = bool(v.calibration_diagnostic_path)
+
             site_calib = None
+            is_active_profile_fallback = False
+
             if v.site_calibration_json:
                 try:
                     site_calib = json.loads(v.site_calibration_json)
                 except Exception:
                     pass
-            diag_url = f"/api/videos/{v.id}/calibration-diagnostic" if v.calibration_diagnostic_path else None
+            else:
+                # Video was uploaded without auto-calibration: fallback to active account camera calibration profile
+                from app.config_routes import get_camera_calibration_config
+                active_config = get_camera_calibration_config(self.db, user_id=user_id)
+                site_calib = active_config
+                is_active_profile_fallback = True
+
+            diag_url = f"/api/videos/{v.id}/calibration-diagnostic"
 
             result.append({
                 "video_id": v.id,
@@ -374,6 +385,8 @@ class VideoRepository:
                 "run_thresholds": run_thresholds,
                 "site_calibration": site_calib,
                 "calibration_diagnostic_url": diag_url,
+                "has_standalone_site_calibration": has_standalone_site_calibration,
+                "is_active_profile_fallback": is_active_profile_fallback,
             })
         return result
 

@@ -1,6 +1,7 @@
 // frontend/src/features/config/RetentionConfigPanel.jsx
 
 import React, { useState, useEffect } from "react";
+import { HardDrive, Zap, Save, CheckCircle2, AlertTriangle, Trash2 } from "lucide-react";
 import {
   fetchRetentionConfig,
   updateRetentionConfig,
@@ -114,7 +115,10 @@ function RetentionConfigPanel() {
       <div className="retention-card">
         <div className="retention-header">
           <div>
-            <h2>🧹 Data Retention & Storage Cleanup Policy</h2>
+            <h2 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <HardDrive size={22} style={{ color: "#7c3aed" }} />
+              <span>Data Retention & Storage Cleanup Policy</span>
+            </h2>
             <p className="retention-desc">
               Configure automatic data retention thresholds. Videos, events, and snapshot image files older than your retention limit will be safely purged to free up disk storage.
             </p>
@@ -123,17 +127,21 @@ function RetentionConfigPanel() {
           <button
             type="button"
             className="cleanup-now-btn"
+            style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}
             onClick={handleRunCleanupNow}
             disabled={cleaning}
           >
-            {cleaning ? "Purging Storage..." : "⚡ Run Storage Cleanup Now"}
+            <Zap size={16} />
+            <span>{cleaning ? "Purging Storage..." : "Run Storage Cleanup Now"}</span>
           </button>
         </div>
 
         {/* Toast Alert Notification */}
         {toastMessage && (
           <div className={`retention-alert ${toastMessage.type}`}>
-            <span className="alert-icon">{toastMessage.type === "success" ? "✅" : "⚠️"}</span>
+            <span className="alert-icon">
+              {toastMessage.type === "success" ? <CheckCircle2 size={18} style={{ color: "#10b981" }} /> : <AlertTriangle size={18} style={{ color: "#ef4444" }} />}
+            </span>
             <span>{toastMessage.text}</span>
           </div>
         )}
@@ -195,10 +203,12 @@ function RetentionConfigPanel() {
             <button
               type="button"
               className="primary-button save-retention-btn"
+              style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}
               onClick={handleSavePolicy}
               disabled={saving}
             >
-              {saving ? "Saving Settings..." : "💾 Save Retention Settings"}
+              <Save size={16} />
+              <span>{saving ? "Saving Settings..." : "Save Retention Settings"}</span>
             </button>
           </div>
         </div>
@@ -209,7 +219,9 @@ function RetentionConfigPanel() {
         <div className="retention-modal-overlay" onClick={() => setCleanupReportModal(null)}>
           <div className="retention-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="retention-modal-header">
-              <span className="modal-header-icon">🧹</span>
+              <span className="modal-header-icon">
+                <Trash2 size={20} style={{ color: "#7c3aed" }} />
+              </span>
               <div>
                 <h3>Storage Cleanup Execution Report</h3>
                 <p className="modal-header-sub">Manual storage retention purge results</p>

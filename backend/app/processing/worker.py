@@ -42,6 +42,8 @@ class ProcessingWorker:
                 return {"message": "No queued videos found"}
 
             try:
+                is_site_calib_requested = "site calibration" in (queued_log.message or "").lower()
+
                 queued_log.status = "processing"
                 queued_log.message = "Raw frame processing and tracking started"
                 queued_log.started_at = datetime.now()
@@ -59,13 +61,16 @@ class ProcessingWorker:
                 from app.config_routes import get_camera_calibration_config
                 camera_params = get_camera_calibration_config(db, user_id=user_id)
 
-                # Automatically run Site Auto-Calibration & Vanishing Point Map Extraction for video
-                if queued_video.site_calibration_json is None:
+                # Check if Site Auto-Calibration was explicitly requested for this new camera location
+                if is_site_calib_requested:
                     try:
                         queued_log.message = "Running site perspective calibration & vanishing point extraction..."
                         db.commit()
 
-                        import os
+                        import os, sys
+                        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+                        if project_root not in sys.path:
+                            sys.path.insert(0, project_root)
                         from tools.site_calibration_trainer import SiteCalibrationTrainer
 
                         trainer = SiteCalibrationTrainer(queued_video.stored_path)
@@ -80,9 +85,16 @@ class ProcessingWorker:
                             output_diag=diag_path
                         )
 
+                        calib_profile["active_video_id"] = queued_video.id
+                        calib_profile["active_filename"] = queued_video.original_filename
+
                         queued_video.site_calibration_json = json.dumps(calib_profile)
                         queued_video.calibration_diagnostic_path = diag_path
                         db.commit()
+
+                        # Automatically activate this newly trained site profile for future runs
+                        from app.config_routes import set_camera_calibration_config
+                        set_camera_calibration_config(db, calib_profile, user_id=user_id)
 
                         camera_params = calib_profile
                     except Exception as calib_err:
@@ -92,6 +104,9 @@ class ProcessingWorker:
                         camera_params = json.loads(queued_video.site_calibration_json)
                     except Exception:
                         pass
+                else:
+                    # Auto-Calibration checkbox was NOT checked: Use active account camera calibration profile!
+                    camera_params = get_camera_calibration_config(db, user_id=user_id)
 
                 def on_progress(pct, current_f, total_f):
                     try:
