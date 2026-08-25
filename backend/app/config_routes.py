@@ -172,6 +172,52 @@ def delete_video_site_calibration(video_id):
         db.close()
 
 
+@config_bp.route("/camera-calibration/all", methods=["DELETE"])
+@login_required
+def delete_all_video_site_calibrations():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"status": "error", "message": "Authentication required"}), 401
+    db = get_db_session()
+    try:
+        import os
+        import json
+        from app.repositories import VideoRepository
+        from app.models import Config
+        from app.ai_pipeline.speed_calculator import DEFAULT_CAMERA_CALIBRATION
+
+        video_repo = VideoRepository(db)
+        user_videos = video_repo.get_all_videos(user_id=user_id)
+        count = 0
+
+        for video in user_videos:
+            if video.site_calibration_json or video.calibration_diagnostic_path:
+                if video.calibration_diagnostic_path and os.path.exists(video.calibration_diagnostic_path):
+                    try:
+                        os.remove(video.calibration_diagnostic_path)
+                    except Exception as err:
+                        print(f"Could not remove diagnostic image {video.calibration_diagnostic_path}: {err}")
+
+                video.site_calibration_json = None
+                video.calibration_diagnostic_path = None
+                count += 1
+
+        # Reset active account camera calibration config to default
+        key = f"camera_calibration_user_{user_id}" if user_id else "camera_calibration"
+        cfg_row = db.query(Config).filter(Config.key == key).first()
+        if cfg_row:
+            cfg_row.value = json.dumps(DEFAULT_CAMERA_CALIBRATION)
+
+        db.commit()
+
+        return jsonify({
+            "status": "success",
+            "message": f"Successfully deleted all {count} saved site calibration maps!"
+        }), 200
+    finally:
+        db.close()
+
+
 def set_camera_calibration_config(db, data: dict, user_id=None):
     """Updates camera position calibration settings in DB."""
     from app.models import Config

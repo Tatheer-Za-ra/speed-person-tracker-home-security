@@ -133,3 +133,15 @@ export async function deleteVideoSiteCalibration(videoId) {
   return { response, data };
 }
 
+/**
+ * DELETE /api/config/camera-calibration/all
+ */
+export async function deleteAllSiteCalibrations() {
+  const response = await fetch(`${API_BASE}/camera-calibration/all`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  const data = await response.json();
+  return { response, data };
+}
+

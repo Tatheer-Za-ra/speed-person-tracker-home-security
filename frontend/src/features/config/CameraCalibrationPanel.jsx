@@ -1,7 +1,7 @@
 // frontend/src/features/config/CameraCalibrationPanel.jsx
 
 import React, { useEffect, useState } from "react";
-import { updateCameraCalibration, fetchCameraCalibration, applyVideoSiteCalibration, deleteVideoSiteCalibration } from "../../api/configApi";
+import { updateCameraCalibration, fetchCameraCalibration, applyVideoSiteCalibration, deleteVideoSiteCalibration, deleteAllSiteCalibrations } from "../../api/configApi";
 import { listAllVideoLogs } from "../../api/videoApi";
 import { Compass, ShieldCheck, Film, Info, CheckCircle2, Zap, Trash2 } from "lucide-react";
 import CalibrationDiagnosticModal from "../videos/CalibrationDiagnosticModal";
@@ -99,6 +99,32 @@ function CameraCalibrationPanel() {
     }
   };
 
+  const handleDeleteAllSiteProfiles = async () => {
+    if (!window.confirm("Are you sure you want to permanently delete ALL saved site calibration maps in your gallery?")) {
+      return;
+    }
+
+    setRecalculating(true);
+    setSuccessMessage("");
+    setErrorMessage("");
+
+    try {
+      const { response, data } = await deleteAllSiteCalibrations();
+      if (response.ok && data.status === "success") {
+        setSuccessMessage(data.message || "Successfully deleted all saved site calibration maps!");
+        fetchActiveConfig();
+        fetchCalibratedVideos();
+      } else {
+        setErrorMessage(data.message || "Failed to delete site calibration maps.");
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMessage("Could not connect to backend server.");
+    } finally {
+      setRecalculating(false);
+    }
+  };
+
   const handleRecalculateAll = async () => {
     setRecalculating(true);
     setSuccessMessage("");
@@ -149,6 +175,32 @@ function CameraCalibrationPanel() {
           <label className="section-label" style={{ fontSize: "1rem", fontWeight: "700", display: "flex", alignItems: "center", gap: "8px", margin: 0 }}>
             <Compass size={18} style={{ color: "#0284c7" }} /> All Saved Camera Location Maps ({calibratedVideos.length})
           </label>
+
+          {calibratedVideos.length > 0 && (
+            <button
+              type="button"
+              title="Permanently Delete All Saved Site Calibration Maps"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "6px 12px",
+                borderRadius: "8px",
+                fontSize: "0.8rem",
+                fontWeight: "600",
+                background: "#fff1f2",
+                color: "#e11d48",
+                border: "1px solid #fecdd3",
+                cursor: recalculating ? "not-allowed" : "pointer",
+                transition: "all 0.2s ease"
+              }}
+              onClick={handleDeleteAllSiteProfiles}
+              disabled={recalculating}
+            >
+              <Trash2 size={14} />
+              <span>Delete All Maps</span>
+            </button>
+          )}
         </div>
 
         {calibratedVideos.length === 0 ? (
