@@ -208,11 +208,26 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
           <button
             type="button"
             className="secondary-button"
-            style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "#f0f9ff", border: "1px solid #0284c7", color: "#0284c7", padding: "8px 14px", fontSize: "0.875rem", fontWeight: "600", borderRadius: "8px" }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              background: videoDetails?.has_standalone_site_calibration === false ? "#fff1f2" : "#f0f9ff",
+              border: videoDetails?.has_standalone_site_calibration === false ? "1px solid #fecdd3" : "1px solid #0284c7",
+              color: videoDetails?.has_standalone_site_calibration === false ? "#e11d48" : "#0284c7",
+              padding: "8px 14px",
+              fontSize: "0.875rem",
+              fontWeight: "600",
+              borderRadius: "8px"
+            }}
             onClick={handleOpenCalibModal}
           >
             <Compass size={16} />
-            <span>View Site Calibration Map</span>
+            <span>
+              {videoDetails?.has_standalone_site_calibration === false
+                ? "Site Map Deleted (Default Profile Applied)"
+                : "View Site Calibration Map"}
+            </span>
           </button>
           <button
             type="button"

@@ -1,9 +1,9 @@
 // frontend/src/features/config/CameraCalibrationPanel.jsx
 
 import React, { useEffect, useState } from "react";
-import { updateCameraCalibration, fetchCameraCalibration, applyVideoSiteCalibration } from "../../api/configApi";
+import { updateCameraCalibration, fetchCameraCalibration, applyVideoSiteCalibration, deleteVideoSiteCalibration } from "../../api/configApi";
 import { listAllVideoLogs } from "../../api/videoApi";
-import { Compass, ShieldCheck, Film, Info, CheckCircle2, Zap } from "lucide-react";
+import { Compass, ShieldCheck, Film, Info, CheckCircle2, Zap, Trash2 } from "lucide-react";
 import CalibrationDiagnosticModal from "../videos/CalibrationDiagnosticModal";
 import "./CameraCalibrationPanel.css";
 
@@ -64,6 +64,32 @@ function CameraCalibrationPanel() {
         fetchActiveConfig();
       } else {
         setErrorMessage(data.message || "Failed to apply site calibration profile.");
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorMessage("Could not connect to backend server.");
+    } finally {
+      setRecalculating(false);
+    }
+  };
+
+  const handleDeleteSiteProfile = async (videoId, filename) => {
+    if (!window.confirm(`Are you sure you want to permanently delete the site calibration map for "${filename}"?`)) {
+      return;
+    }
+
+    setRecalculating(true);
+    setSuccessMessage("");
+    setErrorMessage("");
+
+    try {
+      const { response, data } = await deleteVideoSiteCalibration(videoId);
+      if (response.ok && data.status === "success") {
+        setSuccessMessage(data.message || `Permanently deleted calibration map for '${filename}'.`);
+        fetchActiveConfig();
+        fetchCalibratedVideos();
+      } else {
+        setErrorMessage(data.message || "Failed to delete site calibration map.");
       }
     } catch (err) {
       console.error(err);
@@ -242,6 +268,32 @@ function CameraCalibrationPanel() {
                         <span>Apply for Future Runs</span>
                       </button>
                     )}
+
+                    <button
+                      type="button"
+                      title="Permanently Delete Calibration Map"
+                      style={{
+                        width: "100%",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px",
+                        padding: "8px 12px",
+                        borderRadius: "8px",
+                        fontSize: "0.825rem",
+                        fontWeight: "600",
+                        cursor: recalculating ? "not-allowed" : "pointer",
+                        background: "#fff1f2",
+                        color: "#e11d48",
+                        border: "1px solid #fecdd3",
+                        transition: "all 0.2s ease"
+                      }}
+                      onClick={() => handleDeleteSiteProfile(vidId, vid.original_filename)}
+                      disabled={recalculating}
+                    >
+                      <Trash2 size={14} />
+                      <span>Delete Calibration Map</span>
+                    </button>
                   </div>
                 </div>
               );

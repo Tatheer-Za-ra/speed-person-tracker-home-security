@@ -1,5 +1,5 @@
 import React from "react";
-import { X, Compass, Sliders, CheckCircle2, Eye } from "lucide-react";
+import { X, Compass, Sliders, CheckCircle2, Eye, AlertTriangle } from "lucide-react";
 import "./CalibrationDiagnosticModal.css";
 
 const API_BASE = "http://localhost:5000";
@@ -8,7 +8,8 @@ export default function CalibrationDiagnosticModal({ video, onClose }) {
   if (!video) return null;
 
   const calib = video.site_calibration || {};
-  const diagnosticImageUrl = video.calibration_diagnostic_url
+  const isMapDeleted = video.has_standalone_site_calibration === false;
+  const diagnosticImageUrl = (!isMapDeleted && video.calibration_diagnostic_url)
     ? `${API_BASE}${video.calibration_diagnostic_url}`
     : null;
 
@@ -21,7 +22,7 @@ export default function CalibrationDiagnosticModal({ video, onClose }) {
             <div>
               <h3>Site Speed Calibration Map</h3>
               <p className="calib-subtitle">
-                {video.original_filename} • {video.is_active_profile_fallback ? "ACTIVE PROFILE APPLIED" : (calib.preset ? calib.preset.toUpperCase() : "CUSTOM SITE")}
+                {video.original_filename} • {isMapDeleted ? "CALIBRATION MAP DELETED (DEFAULT PROFILE ACTIVE)" : (video.is_active_profile_fallback ? "ACTIVE PROFILE APPLIED" : (calib.preset ? calib.preset.toUpperCase() : "CUSTOM SITE"))}
               </p>
             </div>
           </div>
@@ -31,6 +32,13 @@ export default function CalibrationDiagnosticModal({ video, onClose }) {
         </div>
 
         <div className="calib-modal-body">
+          {isMapDeleted && (
+            <div style={{ background: "#fff1f2", border: "1px solid #fecdd3", color: "#9f1239", padding: "12px 16px", borderRadius: "10px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "10px", fontSize: "0.875rem", fontWeight: "600" }}>
+              <AlertTriangle size={20} style={{ color: "#e11d48", flexShrink: 0 }} />
+              <span>The standalone site calibration map for this video was permanently deleted. Speed telemetry defaults to your active account profile.</span>
+            </div>
+          )}
+
           <div className="calib-image-container">
             {diagnosticImageUrl ? (
               <img
@@ -39,9 +47,16 @@ export default function CalibrationDiagnosticModal({ video, onClose }) {
                 className="calib-diagnostic-img"
               />
             ) : (
-              <div className="calib-placeholder">
-                <Eye size={48} />
-                <p>Diagnostic image preview unavailable</p>
+              <div className="calib-placeholder" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px", textAlign: "center" }}>
+                {isMapDeleted ? <AlertTriangle size={44} style={{ color: "#f43f5e" }} /> : <Eye size={44} />}
+                <p style={{ marginTop: "12px", fontWeight: "600", color: "#334155" }}>
+                  {isMapDeleted ? "Site Calibration Map Permanently Deleted" : "Diagnostic image preview unavailable"}
+                </p>
+                {isMapDeleted && (
+                  <span style={{ fontSize: "0.8rem", color: "#64748b", marginTop: "4px" }}>
+                    Telemetry for this video uses active account camera calibration.
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -75,8 +90,8 @@ export default function CalibrationDiagnosticModal({ video, onClose }) {
               </div>
               <div className="metric-item">
                 <span className="metric-label">Precision Status</span>
-                <span className="metric-value status-trained">
-                  <CheckCircle2 size={13} /> {video.is_active_profile_fallback ? "ACTIVE ACCOUNT PROFILE APPLIED" : "SITE PERSPECTIVE TRAINED"}
+                <span className="metric-value status-trained" style={{ color: isMapDeleted ? "#e11d48" : "#10b981" }}>
+                  <CheckCircle2 size={13} /> {isMapDeleted ? "MAP DELETED (DEFAULT PROFILE)" : (video.is_active_profile_fallback ? "ACTIVE ACCOUNT PROFILE APPLIED" : "SITE PERSPECTIVE TRAINED")}
                 </span>
               </div>
             </div>

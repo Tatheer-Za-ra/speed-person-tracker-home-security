@@ -121,6 +121,57 @@ def apply_video_site_calibration(video_id):
         db.close()
 
 
+@config_bp.route("/camera-calibration/video/<int:video_id>", methods=["DELETE"])
+@login_required
+def delete_video_site_calibration(video_id):
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"status": "error", "message": "Authentication required"}), 401
+    db = get_db_session()
+    try:
+        import os
+        import json
+        from app.repositories import VideoRepository
+        video_repo = VideoRepository(db)
+        video = video_repo.get_video_by_id(video_id, user_id=user_id)
+        if not video:
+            return jsonify({"status": "error", "message": "Video log record not found."}), 404
+
+        filename = video.original_filename
+
+        # Remove physical calibration diagnostic overlay image if exists
+        if video.calibration_diagnostic_path and os.path.exists(video.calibration_diagnostic_path):
+            try:
+                os.remove(video.calibration_diagnostic_path)
+            except Exception as err:
+                print(f"Could not delete diagnostic file {video.calibration_diagnostic_path}: {err}")
+
+        video.site_calibration_json = None
+        video.calibration_diagnostic_path = None
+
+        # Check if this video's site calibration was the active profile for the account
+        from app.models import Config
+        key = f"camera_calibration_user_{user_id}" if user_id else "camera_calibration"
+        cfg_row = db.query(Config).filter(Config.key == key).first()
+        if cfg_row and cfg_row.value:
+            try:
+                active_cfg = json.loads(cfg_row.value)
+                if str(active_cfg.get("active_video_id")) == str(video_id):
+                    from app.ai_pipeline.speed_calculator import DEFAULT_CAMERA_CALIBRATION
+                    cfg_row.value = json.dumps(DEFAULT_CAMERA_CALIBRATION)
+            except Exception:
+                pass
+
+        db.commit()
+
+        return jsonify({
+            "status": "success",
+            "message": f"Permanently deleted site calibration map for '{filename}'."
+        }), 200
+    finally:
+        db.close()
+
+
 def set_camera_calibration_config(db, data: dict, user_id=None):
     """Updates camera position calibration settings in DB."""
     from app.models import Config
