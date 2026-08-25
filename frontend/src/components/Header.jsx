@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { UserCheck, Gauge, HardDrive, ChevronDown, User, LogOut } from "lucide-react";
 import "./Header.css";
 
-function Header({ currentPage, setCurrentPage, onNavigateToConfig, currentRunFilter, userName, onLogout }) {
+function Header({ currentPage, setCurrentPage, onNavigateToConfig, onResetRunFilter, currentRunFilter, userName, onLogout }) {
   const [isConfigDropdownOpen, setIsConfigDropdownOpen] = useState(false);
 
   const handleSelectConfigOption = (tabName) => {
@@ -16,11 +16,19 @@ function Header({ currentPage, setCurrentPage, onNavigateToConfig, currentRunFil
     setIsConfigDropdownOpen(false);
   };
 
+  const handleBrandClick = () => {
+    if (onResetRunFilter) {
+      onResetRunFilter();
+    } else {
+      setCurrentPage("dashboard");
+    }
+  };
+
   return (
     <header className="haventrack-header">
       <div className="header-container">
         {/* Brand Logo */}
-        <div className="header-brand" onClick={() => setCurrentPage("dashboard")} style={{ cursor: "pointer" }}>
+        <div className="header-brand" onClick={handleBrandClick} style={{ cursor: "pointer" }}>
           <span className="brand-name">Haven<span className="brand-accent">Track</span></span>
         </div>
 

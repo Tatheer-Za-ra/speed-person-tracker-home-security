@@ -106,6 +106,7 @@ function App() {
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
         onNavigateToConfig={handleNavigateToConfig}
+        onResetRunFilter={handleResetRunFilter}
         currentRunFilter={currentRunFilter}
         userName={loggedInUser.name}
         onLogout={handleLogout}

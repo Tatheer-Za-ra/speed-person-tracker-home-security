@@ -69,38 +69,18 @@ function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage, o
   return (
     <div className="dashboard-container">
       {/* Landing Hero Section */}
-      {!videoId && (
-        <LandingHero
-          onNavigateToUpload={() => onNavigateToPage && onNavigateToPage("videos")}
-          onNavigateToConfig={(tab) => {
-            if (onNavigateToConfig) {
-              onNavigateToConfig(tab);
-            } else if (onNavigateToPage) {
-              onNavigateToPage("config");
-            }
-          }}
-          onNavigateToLogs={() => onNavigateToPage && onNavigateToPage("logs")}
-          speedThresholds={speedThresholds}
-        />
-      )}
-
-
-
-      {/* Current Run Isolation Banner */}
-      {videoId && (
-        <div className="isolation-banner">
-          <div className="isolation-info">
-            <span className="isolation-tag">Run Isolation Active</span>
-            <span className="isolation-text">
-              Displaying telemetry strictly for {currentRunFilter?.filename ? `"${currentRunFilter.filename}"` : `Video ${videoId}`}
-            </span>
-          </div>
-
-          <button type="button" className="reset-run-btn" onClick={onResetRunFilter}>
-            ← Reset to All Runs
-          </button>
-        </div>
-      )}
+      <LandingHero
+        onNavigateToUpload={() => onNavigateToPage && onNavigateToPage("videos")}
+        onNavigateToConfig={(tab) => {
+          if (onNavigateToConfig) {
+            onNavigateToConfig(tab);
+          } else if (onNavigateToPage) {
+            onNavigateToPage("config");
+          }
+        }}
+        onNavigateToLogs={() => onNavigateToPage && onNavigateToPage("logs")}
+        speedThresholds={speedThresholds}
+      />
 
       {/* Speed Threshold Settings Modal */}
       <SpeedConfigModal
