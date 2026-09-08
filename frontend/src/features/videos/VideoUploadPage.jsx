@@ -20,53 +20,12 @@ import {
 import "./VideoUploadPage.css";
 import { listVideos, uploadVideos } from "../../api/videoApi";
 import CalibrationDiagnosticModal from "./CalibrationDiagnosticModal";
+import {
+  getTodayDateString,
+  getCurrentLocalDateTimeString,
+  formatFootageDateTime,
+} from "./dateUtils";
 
-// Helper to get today's date in format YYYY-MM-DD
-export function getTodayDateString() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-// Helper to get local date-time string in format YYYY-MM-DDTHH:mm:ss for initial value
-export function getCurrentLocalDateTimeString() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  const hours = String(now.getHours()).padStart(2, "0");
-  const minutes = String(now.getMinutes()).padStart(2, "0");
-  const seconds = String(now.getSeconds()).padStart(2, "0");
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-}
-
-// Helper to format date-time string into "23 Aug 2026, 09:02:05 AM"
-export function formatFootageDateTime(dtInput) {
-  if (!dtInput) return "Not specified";
-  try {
-    const d = new Date(dtInput);
-    if (isNaN(d.getTime())) return String(dtInput);
-
-    const day = d.getDate();
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const month = months[d.getMonth()];
-    const year = d.getFullYear();
-
-    let hours = d.getHours();
-    const ampm = hours >= 12 ? "PM" : "AM";
-    hours = hours % 12;
-    if (hours === 0) hours = 12;
-    const hoursStr = String(hours).padStart(2, "0");
-    const minsStr = String(d.getMinutes()).padStart(2, "0");
-    const secsStr = String(d.getSeconds()).padStart(2, "0");
-
-    return `${day} ${month} ${year}, ${hoursStr}:${minsStr}:${secsStr} ${ampm}`;
-  } catch {
-    return String(dtInput);
-  }
-}
 
 /**
  * Reusable Column-Labeled DateTime Picker Component
@@ -591,7 +550,8 @@ function VideoUploadPage({ onNavigateToRun }) {
 
                 return (
                   <div key={`${file.name}-${index}`} className="selected-file-item">
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                    {/* Line 1: File Information and Remove Action */}
+                    <div className="selected-file-top-row">
                       <div className="file-info-left">
                         <FileVideo size={16} className="file-type-icon" />
                         <div className="file-name-meta">
@@ -612,42 +572,45 @@ function VideoUploadPage({ onNavigateToRun }) {
                       )}
                     </div>
 
-                    {/* Per-file timing configuration display */}
-                    {selectedFiles.length > 1 && (
-                      <div className="file-timing-control-row">
-                        {isContinuous ? (
-                          index === 0 ? (
-                            <span className="chained-file-badge" style={{ background: "#e0f2fe", color: "#0369a1", borderColor: "#bae6fd" }}>
-                              <Clock size={13} />
-                              <strong>Origin Video 1:</strong> Starts @ {formatFootageDateTime(singleStartTime)}
-                            </span>
-                          ) : (
-                            <span className="chained-file-badge">
-                              <Link2 size={13} />
-                              <strong>Sequential:</strong> Starts @ Video #{index} Start time + It's Duration
-                            </span>
-                          )
-                        ) : (
-                          <div className="file-timing-inline-container">
-                            <span className="file-timing-label">
-                              <Clock size={13} style={{ color: "#0284c7" }} />
-                              Video #{index + 1} Start Time:
-                            </span>
-
-                            <FootageDateTimePicker
-                              value={fileStartTimeVal}
-                              onChange={(val) => handleFileTimeChange(index, val)}
-                              disabled={isProcessingBatch}
-                              isCompact
-                            />
-
-                            <span className="file-timing-preview-pill">
-                              {formatFootageDateTime(fileStartTimeVal)}
-                            </span>
+                    {/* Line 2: Dedicated Full-Width Timing Row */}
+                    <div className="file-timing-second-line">
+                      {selectedFiles.length === 1 ? (
+                        <div className="chained-file-badge origin">
+                          <Clock size={14} style={{ color: "#1e40af", flexShrink: 0 }} />
+                          <span><strong>Footage Start:</strong> Starts @ {formatFootageDateTime(singleStartTime)}</span>
+                        </div>
+                      ) : isContinuous ? (
+                        index === 0 ? (
+                          <div className="chained-file-badge origin">
+                            <Clock size={14} style={{ color: "#1e40af", flexShrink: 0 }} />
+                            <span><strong>Origin Video 1:</strong> Starts @ {formatFootageDateTime(singleStartTime)}</span>
                           </div>
-                        )}
-                      </div>
-                    )}
+                        ) : (
+                          <div className="chained-file-badge sequential">
+                            <Link2 size={14} style={{ color: "#15803d", flexShrink: 0 }} />
+                            <span><strong>Sequential:</strong> Starts @ Video #{index} Start time + It's Duration</span>
+                          </div>
+                        )
+                      ) : (
+                        <div className="non-continuous-second-line">
+                          <span className="file-timing-label">
+                            <Clock size={14} style={{ color: "#0284c7" }} />
+                            Video #{index + 1} Start Time:
+                          </span>
+
+                          <FootageDateTimePicker
+                            value={fileStartTimeVal}
+                            onChange={(val) => handleFileTimeChange(index, val)}
+                            disabled={isProcessingBatch}
+                            isCompact
+                          />
+
+                          <span className="file-timing-preview-pill">
+                            {formatFootageDateTime(fileStartTimeVal)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
