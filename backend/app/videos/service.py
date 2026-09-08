@@ -83,7 +83,7 @@ class VideoService:
                 if is_continuous:
                     if idx == 0:
                         raw_t0 = start_times.get("0") or start_times.get(0) or single_start_time
-                        chained_start_time = parse_start_time(raw_t0) or datetime.now()
+                        chained_start_time = parse_start_time(raw_t0) if raw_t0 else None
                         file_start_time = chained_start_time
                     else:
                         # Auto-chain: Previous Video Start Time + Previous Video Duration
@@ -91,11 +91,11 @@ class VideoService:
                             chained_start_time = chained_start_time + timedelta(seconds=chained_duration)
                             file_start_time = chained_start_time
                         else:
-                            file_start_time = datetime.now()
+                            file_start_time = None
                 else:
                     # Non-continuous: Lookup explicit start time for index idx or single_start_time fallback
                     raw_ti = start_times.get(str(idx)) or start_times.get(idx) or single_start_time
-                    file_start_time = parse_start_time(raw_ti) or datetime.now()
+                    file_start_time = parse_start_time(raw_ti) if raw_ti else None
 
                 result = self._process_single_file(
                     db,

@@ -653,3 +653,30 @@
   white-space: nowrap;
   flex-shrink: 0;
 }
+
+/* Unknown / Relative Timing Toggle & Info Pill */
+.footage-timing-toggle-row {
+  margin: 8px 0;
+  padding: 10px 14px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.footage-timing-toggle-row:hover {
+  border-color: #cbd5e1;
+}
+
+.timing-unknown-info-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  color: #0369a1;
+  line-height: 1.45;
+}

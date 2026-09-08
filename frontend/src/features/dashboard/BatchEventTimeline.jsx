@@ -62,8 +62,8 @@ export function formatFootageClockTime(calculatedTimestamp, timestampSeconds, re
     return `${day} ${month} ${year}, ${hoursStr}:${minsStr}:${secsStr} ${ampm}`;
   }
 
-  // Fallback if no start time is available
-  return `@ ${formatTimestamp(timestampSeconds)}`;
+  // Fallback if no start time is available (Relative Elapsed Time)
+  return `T+${formatTimestamp(timestampSeconds)}`;
 }
 
 /**
@@ -112,10 +112,15 @@ function BatchEventTimeline({ events, onSelectEvent }) {
             <div className="video-section-header">
               <div className="video-title-info">
                 <span className="video-badge">📹 {videoTitle}</span>
-                {videoStartTime && (
+                {videoStartTime ? (
                   <span className="video-time-pill" title="Footage Recording Start Time">
                     <Clock size={13} />
                     <span>Footage Started: {formatFootageClockTime(videoStartTime, 0)}</span>
+                  </span>
+                ) : (
+                  <span className="video-time-pill" title="Footage Recording Start Time Unknown — Relative Playback Timeline" style={{ background: "#f8fafc", borderColor: "#cbd5e1", color: "#475569" }}>
+                    <Clock size={13} style={{ color: "#64748b" }} />
+                    <span>Relative Playback (T+00s)</span>
                   </span>
                 )}
                 <span className="video-subtext">

@@ -200,13 +200,23 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
               <Truck size={14} />
               <span>Truck Limit: <strong>{runSpeedLimits.truck} km/h</strong></span>
             </span>
-            {(videoDetails?.recording_start_time || events[0]?.recording_start_time) && (
+            {(videoDetails?.recording_start_time || events[0]?.recording_start_time) ? (
               <span style={{ background: "#f0f9ff", color: "#0369a1", border: "1px solid #bae6fd", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "6px" }}>
                 <Clock size={14} />
                 <span>Footage Started: <strong>{formatFootageClockTime(videoDetails?.recording_start_time || events[0]?.recording_start_time, 0)}</strong></span>
                 {(videoDetails?.duration_seconds || events[0]?.duration_seconds) && (
                   <span style={{ color: "#64748b", fontWeight: "400" }}>
                     ({Math.floor((videoDetails?.duration_seconds || events[0]?.duration_seconds) / 60)}m {Math.floor((videoDetails?.duration_seconds || events[0]?.duration_seconds) % 60)}s)
+                  </span>
+                )}
+              </span>
+            ) : (
+              <span style={{ background: "#f8fafc", color: "#64748b", border: "1px solid #e2e8f0", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                <Clock size={14} />
+                <span>Timeline: <strong>Relative Playback (T+00s)</strong></span>
+                {(videoDetails?.duration_seconds || events[0]?.duration_seconds) && (
+                  <span style={{ color: "#64748b", fontWeight: "400" }}>
+                    ({Math.floor((videoDetails?.duration_seconds || events[0]?.duration_seconds) / 60)}m {Math.floor((videoDetails?.duration_seconds || events[0]?.duration_seconds) % 60)}s duration)
                   </span>
                 )}
               </span>

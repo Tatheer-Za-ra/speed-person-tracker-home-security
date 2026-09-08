@@ -44,7 +44,7 @@ def _format_event(event, snapshot_repo, video_repo=None, video_cache=None) -> di
 
         if v:
             video_title = v.original_filename
-            ref_start = v.recording_start_time or v.uploaded_at
+            ref_start = v.recording_start_time
             if ref_start:
                 from datetime import timedelta
                 recording_start_time = ref_start.isoformat()

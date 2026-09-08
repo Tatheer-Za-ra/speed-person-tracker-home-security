@@ -233,6 +233,7 @@ function VideoUploadPage({ onNavigateToRun }) {
   const [singleStartTime, setSingleStartTime] = useState(getCurrentLocalDateTimeString());
   const [isContinuous, setIsContinuous] = useState(true);
   const [fileStartTimes, setFileStartTimes] = useState({});
+  const [isStartTimeKnown, setIsStartTimeKnown] = useState(true);
 
   const fetchVideos = async () => {
     try {
@@ -318,8 +319,8 @@ function VideoUploadPage({ onNavigateToRun }) {
 
       const options = {
         isContinuous: selectedFiles.length > 1 ? isContinuous : false,
-        recordingStartTime: singleStartTime,
-        startTimes: fileStartTimes,
+        recordingStartTime: isStartTimeKnown ? singleStartTime : null,
+        startTimes: isStartTimeKnown ? fileStartTimes : {},
       };
 
       await uploadVideos(selectedFiles, enableSiteCalibration, options);
@@ -394,31 +395,49 @@ function VideoUploadPage({ onNavigateToRun }) {
               {selectedFiles.length === 1 ? (
                 <div>
                   <p className="footage-timing-desc">
-                    Specify the date & time when this recording began (from the CCTV on-screen clock display). Note: Footage timestamp cannot be set to a future date or time.
+                    Specify the date & time when this recording began (from the CCTV on-screen clock display), or toggle relative mode if unknown. Note: Footage timestamp cannot be set to a future date or time.
                   </p>
 
-                  <div style={{ display: "flex", alignItems: "flex-end", gap: "10px", flexWrap: "wrap", marginTop: "8px" }}>
-                    <FootageDateTimePicker
-                      value={singleStartTime}
-                      onChange={setSingleStartTime}
-                      disabled={isProcessingBatch}
-                    />
-
-                    <button
-                      type="button"
-                      className="timing-now-btn"
-                      onClick={() => setSingleStartTime(getCurrentLocalDateTimeString())}
-                      disabled={isProcessingBatch}
-                    >
-                      <Clock size={14} />
-                      <span>Set to Current Time</span>
-                    </button>
+                  <div className="footage-timing-toggle-row">
+                    <label className="checkbox-container">
+                      <input
+                        type="checkbox"
+                        checked={isStartTimeKnown}
+                        onChange={(e) => setIsStartTimeKnown(e.target.checked)}
+                        disabled={isProcessingBatch}
+                      />
+                      <div className="checkbox-text">
+                        <span className="checkbox-title" style={{ color: "#0369a1" }}>
+                          CCTV On-Screen Timestamp is Visible on Video
+                        </span>
+                        <span className="checkbox-desc">
+                          {isStartTimeKnown
+                            ? "Real-world clock timestamps will be computed for all security events and incident logs."
+                            : "Start time is unknown. Events will be tracked cleanly using relative playback time (e.g. T+00m 15s)."}
+                        </span>
+                      </div>
+                    </label>
                   </div>
 
-                  <div className="timing-preview-badge">
-                    <Calendar size={14} />
-                    <span>Footage Start: {formatFootageDateTime(singleStartTime)}</span>
-                  </div>
+                  {isStartTimeKnown ? (
+                    <div style={{ marginTop: "12px" }}>
+                      <FootageDateTimePicker
+                        value={singleStartTime}
+                        onChange={setSingleStartTime}
+                        disabled={isProcessingBatch}
+                      />
+
+                      <div className="timing-preview-badge">
+                        <Calendar size={14} />
+                        <span>Footage Start: {formatFootageDateTime(singleStartTime)}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="timing-unknown-info-pill" style={{ marginTop: "10px" }}>
+                      <Clock size={15} style={{ color: "#0284c7", flexShrink: 0 }} />
+                      <span>Start time marked as <strong>Unknown</strong>. Events will be tracked by <strong>Relative Playback Time (T+00s)</strong> instead of an assumed clock time.</span>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div>
@@ -464,31 +483,82 @@ function VideoUploadPage({ onNavigateToRun }) {
                   {/* Continuous Mode: First Video Start Time Input */}
                   {isContinuous && (
                     <div style={{ marginTop: "12px" }}>
-                      <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: "600", color: "#334155", marginBottom: "6px" }}>
-                        Start Time for Video #1 (Origin Baseline):
-                      </label>
-                      <div style={{ display: "flex", alignItems: "flex-end", gap: "10px", flexWrap: "wrap" }}>
-                        <FootageDateTimePicker
-                          value={singleStartTime}
-                          onChange={setSingleStartTime}
-                          disabled={isProcessingBatch}
-                        />
-
-                        <button
-                          type="button"
-                          className="timing-now-btn"
-                          onClick={() => setSingleStartTime(getCurrentLocalDateTimeString())}
-                          disabled={isProcessingBatch}
-                        >
-                          <Clock size={14} />
-                          <span>Set to Now</span>
-                        </button>
+                      <div className="footage-timing-toggle-row">
+                        <label className="checkbox-container">
+                          <input
+                            type="checkbox"
+                            checked={isStartTimeKnown}
+                            onChange={(e) => setIsStartTimeKnown(e.target.checked)}
+                            disabled={isProcessingBatch}
+                          />
+                          <div className="checkbox-text">
+                            <span className="checkbox-title" style={{ color: "#0369a1" }}>
+                              Origin CCTV Timestamp Available for Video #1
+                            </span>
+                            <span className="checkbox-desc">
+                              {isStartTimeKnown
+                                ? "Set start time for Video #1. Subsequent continuous video start times chain automatically."
+                                : "Origin start time is unknown. Batch videos will be sequenced from relative zero (T+00:00:00)."}
+                            </span>
+                          </div>
+                        </label>
                       </div>
 
-                      <div className="timing-preview-badge">
-                        <Calendar size={14} />
-                        <span>Video 1: {formatFootageDateTime(singleStartTime)} (Subsequent videos chained by duration)</span>
+                      {isStartTimeKnown ? (
+                        <div style={{ marginTop: "10px" }}>
+                          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: "600", color: "#334155", marginBottom: "6px" }}>
+                            Start Time for Video #1 (Origin Baseline):
+                          </label>
+                          <FootageDateTimePicker
+                            value={singleStartTime}
+                            onChange={setSingleStartTime}
+                            disabled={isProcessingBatch}
+                          />
+
+                          <div className="timing-preview-badge">
+                            <Calendar size={14} />
+                            <span>Video 1: {formatFootageDateTime(singleStartTime)} (Subsequent videos chained by duration)</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="timing-unknown-info-pill" style={{ marginTop: "10px" }}>
+                          <Clock size={15} style={{ color: "#0284c7", flexShrink: 0 }} />
+                          <span>Origin start time marked as <strong>Unknown</strong>. Sequential batch videos will track from <strong>Relative Playback Time (T+00:00)</strong>.</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Non-Continuous Mode: Independent Start Time Toggle */}
+                  {!isContinuous && (
+                    <div style={{ marginTop: "12px" }}>
+                      <div className="footage-timing-toggle-row">
+                        <label className="checkbox-container">
+                          <input
+                            type="checkbox"
+                            checked={isStartTimeKnown}
+                            onChange={(e) => setIsStartTimeKnown(e.target.checked)}
+                            disabled={isProcessingBatch}
+                          />
+                          <div className="checkbox-text">
+                            <span className="checkbox-title" style={{ color: "#0369a1" }}>
+                              Specify Independent Start Times for Selected Clips
+                            </span>
+                            <span className="checkbox-desc">
+                              {isStartTimeKnown
+                                ? "Set individual recording start times for each video clip in the list below."
+                                : "Start times are unknown. All clips will be analyzed using each video's relative elapsed playback time (T+00s)."}
+                            </span>
+                          </div>
+                        </label>
                       </div>
+
+                      {!isStartTimeKnown && (
+                        <div className="timing-unknown-info-pill" style={{ marginTop: "10px" }}>
+                          <Clock size={15} style={{ color: "#0284c7", flexShrink: 0 }} />
+                          <span>All clips marked as <strong>Unknown Start Time</strong>. Each video's detections will use <strong>Relative Playback Time (T+00s)</strong>.</span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -572,8 +642,8 @@ function VideoUploadPage({ onNavigateToRun }) {
                       )}
                     </div>
 
-                    {/* Dedicated Timing Row only for Non-Continuous Batch Mode */}
-                    {selectedFiles.length > 1 && !isContinuous && (
+                    {/* Dedicated Timing Row only for Non-Continuous Batch Mode when start time is known */}
+                    {selectedFiles.length > 1 && !isContinuous && isStartTimeKnown && (
                       <div className="file-timing-second-line">
                         <div className="non-continuous-second-line">
                           <span className="file-timing-label">
@@ -629,10 +699,20 @@ function VideoUploadPage({ onNavigateToRun }) {
                       </span>
                     </p>
 
-                    {video.recording_start_time && (
+                    {video.recording_start_time ? (
                       <p className="video-meta" style={{ display: "flex", alignItems: "center", gap: "6px", color: "#0369a1", fontWeight: "600" }}>
                         <Clock size={13} />
                         <span>Footage Start: {formatFootageDateTime(video.recording_start_time)}</span>
+                        {video.duration_seconds && (
+                          <span style={{ color: "#64748b", fontWeight: "400", marginLeft: "4px" }}>
+                            ({Math.floor(video.duration_seconds / 60)}m {Math.floor(video.duration_seconds % 60)}s duration)
+                          </span>
+                        )}
+                      </p>
+                    ) : (
+                      <p className="video-meta" style={{ display: "flex", alignItems: "center", gap: "6px", color: "#64748b" }}>
+                        <Clock size={13} />
+                        <span>Footage Timing: <em>Relative Playback (T+00s)</em></span>
                         {video.duration_seconds && (
                           <span style={{ color: "#64748b", fontWeight: "400", marginLeft: "4px" }}>
                             ({Math.floor(video.duration_seconds / 60)}m {Math.floor(video.duration_seconds % 60)}s duration)

@@ -55,7 +55,9 @@ function SnapshotModal({ event, onClose }) {
             <div className="meta-group-title">Event Information</div>
             <div className="meta-table">
               <div className="meta-item" style={{ background: "#f0f9ff", borderRadius: "8px", padding: "6px 8px", border: "1px solid #bae6fd" }}>
-                <span className="meta-label" style={{ color: "#0369a1", fontWeight: "700" }}>Footage Clock Time</span>
+                <span className="meta-label" style={{ color: "#0369a1", fontWeight: "700" }}>
+                  {event.calculated_timestamp || event.recording_start_time ? "Footage Clock Time" : "Relative Elapsed Time"}
+                </span>
                 <span className="meta-val" style={{ color: "#0284c7", fontWeight: "800", fontSize: "0.875rem" }}>
                   🕒 {clockTimeStr}
                 </span>
@@ -80,12 +82,12 @@ function SnapshotModal({ event, onClose }) {
                 <span className="meta-label">Video Elapsed Time</span>
                 <span className="meta-val">+{formatTimestamp(event.timestamp_seconds)}</span>
               </div>
-              {event.recording_start_time && (
-                <div className="meta-item">
-                  <span className="meta-label">Footage Baseline</span>
-                  <span className="meta-val">{formatFootageClockTime(event.recording_start_time, 0)}</span>
-                </div>
-              )}
+              <div className="meta-item">
+                <span className="meta-label">Footage Baseline</span>
+                <span className="meta-val">
+                  {event.recording_start_time ? formatFootageClockTime(event.recording_start_time, 0) : "Unknown (Relative T+00s)"}
+                </span>
+              </div>
               <div className="meta-item">
                 <span className="meta-label">Alert Status</span>
                 <span
