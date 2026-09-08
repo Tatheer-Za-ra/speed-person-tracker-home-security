@@ -1,6 +1,6 @@
 const API_BASE = "http://localhost:5000";
 
-export async function uploadVideos(files, enableSiteCalibration = false) {
+export async function uploadVideos(files, enableSiteCalibration = false, options = {}) {
   const formData = new FormData();
 
   for (const file of files) {
@@ -8,6 +8,15 @@ export async function uploadVideos(files, enableSiteCalibration = false) {
   }
   if (enableSiteCalibration) {
     formData.append("enable_site_calibration", "true");
+  }
+  if (options.isContinuous) {
+    formData.append("is_continuous", "true");
+  }
+  if (options.recordingStartTime) {
+    formData.append("recording_start_time", options.recordingStartTime);
+  }
+  if (options.startTimes) {
+    formData.append("start_times", JSON.stringify(options.startTimes));
   }
 
   const response = await fetch(`${API_BASE}/api/videos/upload`, {

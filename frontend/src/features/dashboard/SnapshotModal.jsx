@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import { normalizeCategory } from "./FilterBar";
-import { formatTimestamp } from "./BatchEventTimeline";
+import { formatTimestamp, formatFootageClockTime } from "./BatchEventTimeline";
 
 const API_HOST = "http://localhost:5000";
 
@@ -23,6 +23,12 @@ function SnapshotModal({ event, onClose }) {
   const snapshotFullUrl = event.snapshot_url
     ? `${API_HOST}${event.snapshot_url}`
     : null;
+
+  const clockTimeStr = formatFootageClockTime(
+    event.calculated_timestamp,
+    event.timestamp_seconds,
+    event.recording_start_time
+  );
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -48,6 +54,12 @@ function SnapshotModal({ event, onClose }) {
           <div className="modal-metadata-box">
             <div className="meta-group-title">Event Information</div>
             <div className="meta-table">
+              <div className="meta-item" style={{ background: "#f0f9ff", borderRadius: "8px", padding: "6px 8px", border: "1px solid #bae6fd" }}>
+                <span className="meta-label" style={{ color: "#0369a1", fontWeight: "700" }}>Footage Clock Time</span>
+                <span className="meta-val" style={{ color: "#0284c7", fontWeight: "800", fontSize: "0.875rem" }}>
+                  🕒 {clockTimeStr}
+                </span>
+              </div>
               <div className="meta-item">
                 <span className="meta-label">Event Type</span>
                 <span className="meta-val">{event.event_type}</span>
@@ -65,9 +77,15 @@ function SnapshotModal({ event, onClose }) {
                 <span className="meta-val">#{event.track_id ?? "N/A"}</span>
               </div>
               <div className="meta-item">
-                <span className="meta-label">Video Timestamp</span>
-                <span className="meta-val">{formatTimestamp(event.timestamp_seconds)}</span>
+                <span className="meta-label">Video Elapsed Time</span>
+                <span className="meta-val">+{formatTimestamp(event.timestamp_seconds)}</span>
               </div>
+              {event.recording_start_time && (
+                <div className="meta-item">
+                  <span className="meta-label">Footage Baseline</span>
+                  <span className="meta-val">{formatFootageClockTime(event.recording_start_time, 0)}</span>
+                </div>
+              )}
               <div className="meta-item">
                 <span className="meta-label">Alert Status</span>
                 <span

@@ -58,6 +58,8 @@ class Video(Base):
     uploaded_at = Column(DateTime(timezone=True), server_default=func.now())
     site_calibration_json = Column(Text, nullable=True)
     calibration_diagnostic_path = Column(Text, nullable=True)
+    recording_start_time = Column(DateTime(timezone=True), nullable=True)
+    duration_seconds = Column(Float, nullable=True)
 
 class ProcessingLog(Base):
     __tablename__ = "processing_logs"

@@ -233,6 +233,9 @@ class ProcessingWorker:
                         f"Saved {len(created_snapshots)} event snapshots. "
                         f"Saved {result['debug_frames_saved_count']} debug frames."
                     )
+                    if result.get("duration_seconds"):
+                        queued_video.duration_seconds = float(result["duration_seconds"])
+
                     queued_log.completed_at = datetime.now()
                     db.commit()
 

@@ -10,8 +10,8 @@ from app.repositories import EventRepository, SnapshotRepository, VideoRepositor
 events_bp = Blueprint("events_bp", __name__, url_prefix="/api/events")
 
 
-def _format_event(event, snapshot_repo, video_repo=None) -> dict:
-    """Format event record for JSON response, attaching metadata, snapshot URL & video title."""
+def _format_event(event, snapshot_repo, video_repo=None, video_cache=None) -> dict:
+    """Format event record for JSON response, attaching metadata, snapshot URL, video title & calculated footage timestamp."""
     snapshot = snapshot_repo.get_snapshot_by_event_id(event.id)
     snapshot_url = None
 
@@ -29,10 +29,29 @@ def _format_event(event, snapshot_repo, video_repo=None) -> dict:
             metadata = {}
 
     video_title = None
+    recording_start_time = None
+    duration_seconds = None
+    calculated_timestamp = None
+
     if video_repo and event.video_id:
-        v = video_repo.get_video_by_id(event.video_id)
+        v = None
+        if video_cache is not None and event.video_id in video_cache:
+            v = video_cache[event.video_id]
+        else:
+            v = video_repo.get_video_by_id(event.video_id)
+            if video_cache is not None:
+                video_cache[event.video_id] = v
+
         if v:
             video_title = v.original_filename
+            ref_start = v.recording_start_time or v.uploaded_at
+            if ref_start:
+                from datetime import timedelta
+                recording_start_time = ref_start.isoformat()
+                calc_dt = ref_start + timedelta(seconds=float(event.timestamp_seconds or 0.0))
+                calculated_timestamp = calc_dt.isoformat()
+            if v.duration_seconds is not None:
+                duration_seconds = round(v.duration_seconds, 2)
 
     return {
         "id": event.id,
@@ -42,6 +61,9 @@ def _format_event(event, snapshot_repo, video_repo=None) -> dict:
         "event_type": event.event_type,
         "label": event.label,
         "timestamp_seconds": round(event.timestamp_seconds, 2),
+        "recording_start_time": recording_start_time,
+        "calculated_timestamp": calculated_timestamp,
+        "duration_seconds": duration_seconds,
         "confidence": round(event.confidence, 4) if event.confidence is not None else None,
         "is_alert": event.is_alert,
         "metadata": metadata,
@@ -84,7 +106,8 @@ def list_events():
         offset=offset,
     )
 
-    formatted = [_format_event(ev, snapshot_repo, video_repo) for ev in events]
+    video_cache = {}
+    formatted = [_format_event(ev, snapshot_repo, video_repo, video_cache=video_cache) for ev in events]
 
     return jsonify({
         "status": "success",
@@ -108,7 +131,8 @@ def list_alerts():
     video_repo = VideoRepository(db)
 
     alerts = event_repo.get_alert_events(user_id=user_id, limit=limit)
-    formatted = [_format_event(ev, snapshot_repo, video_repo) for ev in alerts]
+    video_cache = {}
+    formatted = [_format_event(ev, snapshot_repo, video_repo, video_cache=video_cache) for ev in alerts]
 
     return jsonify({
         "status": "success",

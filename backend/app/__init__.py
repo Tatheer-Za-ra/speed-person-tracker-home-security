@@ -32,6 +32,9 @@ def create_app():
     os.makedirs(app.config["KNOWN_PERSONS_DIR"], exist_ok=True)
     os.makedirs(app.config["TEMP_DIR"], exist_ok=True)
 
+    from app.db import check_and_migrate_db
+    check_and_migrate_db()
+
     CORS(
         app,
         supports_credentials=True,

@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Zap, Car, Bike, Truck, FileSpreadsheet, ArrowLeft, Compass } from "lucide-react";
+import { Zap, Car, Bike, Truck, FileSpreadsheet, ArrowLeft, Compass, Clock } from "lucide-react";
 import { fetchEvents } from "../../api/eventsApi";
 import { listAllVideoLogs } from "../../api/videoApi";
 import FilterBar, { normalizeCategory } from "./FilterBar";
-import BatchEventTimeline from "./BatchEventTimeline";
+import BatchEventTimeline, { formatFootageClockTime } from "./BatchEventTimeline";
 import SnapshotModal from "./SnapshotModal";
 import ReportModal from "./ReportModal";
 import CalibrationDiagnosticModal from "../videos/CalibrationDiagnosticModal";
@@ -200,6 +200,17 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
               <Truck size={14} />
               <span>Truck Limit: <strong>{runSpeedLimits.truck} km/h</strong></span>
             </span>
+            {(videoDetails?.recording_start_time || events[0]?.recording_start_time) && (
+              <span style={{ background: "#f0f9ff", color: "#0369a1", border: "1px solid #bae6fd", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                <Clock size={14} />
+                <span>Footage Started: <strong>{formatFootageClockTime(videoDetails?.recording_start_time || events[0]?.recording_start_time, 0)}</strong></span>
+                {(videoDetails?.duration_seconds || events[0]?.duration_seconds) && (
+                  <span style={{ color: "#64748b", fontWeight: "400" }}>
+                    ({Math.floor((videoDetails?.duration_seconds || events[0]?.duration_seconds) / 60)}m {Math.floor((videoDetails?.duration_seconds || events[0]?.duration_seconds) % 60)}s)
+                  </span>
+                )}
+              </span>
+            )}
           </div>
         </div>
 

@@ -18,6 +18,16 @@ def upload_videos():
     files = request.files.getlist("videos")
     user_id = session.get("user_id")
     enable_site_calibration = request.form.get("enable_site_calibration", "false").lower() in ("true", "1", "yes")
+    is_continuous = request.form.get("is_continuous", "false").lower() in ("true", "1", "yes")
+    single_start_time = request.form.get("recording_start_time")
+    start_times_raw = request.form.get("start_times")
+    start_times = {}
+    if start_times_raw:
+        try:
+            import json
+            start_times = json.loads(start_times_raw)
+        except Exception:
+            start_times = {}
 
     if not files:
         return jsonify({"error": "No video files provided"}), 400
@@ -29,7 +39,10 @@ def upload_videos():
     upload_result = video_service.process_uploaded_videos(
         user_id=user_id,
         files=files,
-        enable_site_calibration=enable_site_calibration
+        enable_site_calibration=enable_site_calibration,
+        is_continuous=is_continuous,
+        start_times=start_times,
+        single_start_time=single_start_time,
     )
 
     results = upload_result["results"]
@@ -90,6 +103,8 @@ def list_current_batch_videos():
                 "original_filename": video.original_filename,
                 "stored_path": video.stored_path,
                 "uploaded_at": str(video.uploaded_at) if video.uploaded_at else None,
+                "recording_start_time": video.recording_start_time.isoformat() if video.recording_start_time else None,
+                "duration_seconds": round(video.duration_seconds, 2) if video.duration_seconds is not None else None,
                 "status": status,
                 "message": msg,
                 "progress_percent": progress,

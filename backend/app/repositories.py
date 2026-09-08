@@ -241,7 +241,9 @@ class VideoRepository:
         original_filename: str,
         stored_path: str,
         site_calibration_json: str | None = None,
-        calibration_diagnostic_path: str | None = None
+        calibration_diagnostic_path: str | None = None,
+        recording_start_time = None,
+        duration_seconds: float | None = None,
     ):
         video = Video(
             batch_id=batch_id,
@@ -249,11 +251,21 @@ class VideoRepository:
             stored_path=stored_path,
             site_calibration_json=site_calibration_json,
             calibration_diagnostic_path=calibration_diagnostic_path,
+            recording_start_time=recording_start_time,
+            duration_seconds=duration_seconds,
         )
         self.db.add(video)
         self.db.commit()
         self.db.refresh(video)
         return video
+
+    def update_video_duration(self, video_id: int, duration_seconds: float):
+        v = self.db.query(Video).filter(Video.id == video_id).first()
+        if v:
+            v.duration_seconds = duration_seconds
+            self.db.commit()
+            self.db.refresh(v)
+        return v
 
     def update_video_calibration(
         self,
@@ -377,6 +389,8 @@ class VideoRepository:
                 "original_filename": v.original_filename,
                 "stored_path": v.stored_path,
                 "uploaded_at": v.uploaded_at.isoformat() if v.uploaded_at else None,
+                "recording_start_time": v.recording_start_time.isoformat() if v.recording_start_time else None,
+                "duration_seconds": round(v.duration_seconds, 2) if v.duration_seconds is not None else None,
                 "status": status,
                 "message": message,
                 "completed_at": completed_at.isoformat() if completed_at else None,
