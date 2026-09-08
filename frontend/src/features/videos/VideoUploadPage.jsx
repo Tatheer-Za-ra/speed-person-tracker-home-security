@@ -572,26 +572,9 @@ function VideoUploadPage({ onNavigateToRun }) {
                       )}
                     </div>
 
-                    {/* Line 2: Dedicated Full-Width Timing Row */}
-                    <div className="file-timing-second-line">
-                      {selectedFiles.length === 1 ? (
-                        <div className="chained-file-badge origin">
-                          <Clock size={14} style={{ color: "#1e40af", flexShrink: 0 }} />
-                          <span><strong>Footage Start:</strong> Starts @ {formatFootageDateTime(singleStartTime)}</span>
-                        </div>
-                      ) : isContinuous ? (
-                        index === 0 ? (
-                          <div className="chained-file-badge origin">
-                            <Clock size={14} style={{ color: "#1e40af", flexShrink: 0 }} />
-                            <span><strong>Origin Video 1:</strong> Starts @ {formatFootageDateTime(singleStartTime)}</span>
-                          </div>
-                        ) : (
-                          <div className="chained-file-badge sequential">
-                            <Link2 size={14} style={{ color: "#15803d", flexShrink: 0 }} />
-                            <span><strong>Sequential:</strong> Starts @ Video #{index} Start time + It's Duration</span>
-                          </div>
-                        )
-                      ) : (
+                    {/* Dedicated Timing Row only for Non-Continuous Batch Mode */}
+                    {selectedFiles.length > 1 && !isContinuous && (
+                      <div className="file-timing-second-line">
                         <div className="non-continuous-second-line">
                           <span className="file-timing-label">
                             <Clock size={14} style={{ color: "#0284c7" }} />
@@ -609,8 +592,8 @@ function VideoUploadPage({ onNavigateToRun }) {
                             {formatFootageDateTime(fileStartTimeVal)}
                           </span>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
