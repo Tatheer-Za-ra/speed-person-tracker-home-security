@@ -424,11 +424,11 @@ function VideoUploadPage({ onNavigateToRun }) {
             <div className="footage-timing-card">
               <div className="footage-timing-header">
                 <Clock size={18} style={{ color: "#0284c7" }} />
-                <span className="footage-timing-title">Batch Footage Timing Configuration</span>
+                <span className="footage-timing-title">How were these videos recorded?</span>
               </div>
 
               <p className="footage-timing-desc">
-                Choose how recording timestamps are assigned to this batch. You can set exact times or toggle &ldquo;Don&rsquo;t know the time?&rdquo; per video card below.
+                Tell us if these files are continuous parts of one recording or separate clips.
               </p>
 
               {/* Batch Timing Mode Selector */}
@@ -440,12 +440,12 @@ function VideoUploadPage({ onNavigateToRun }) {
                   <div className="batch-mode-title-row">
                     <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
                       <Link2 size={16} style={{ color: isContinuous ? "#0284c7" : "#64748b" }} />
-                      Continuous (Sequential)
+                      Continuous Recording
                     </span>
                     {isContinuous && <CheckCircle2 size={15} style={{ color: "#0284c7" }} />}
                   </div>
                   <span className="batch-mode-desc">
-                    Consecutive CCTV recordings. Set start time on Video #1; subsequent video start times chain automatically based on preceding video durations.
+                    Parts of one long recording. Set when Video #1 started, and the next videos will automatically continue the timeline.
                   </span>
                 </div>
 
@@ -456,12 +456,12 @@ function VideoUploadPage({ onNavigateToRun }) {
                   <div className="batch-mode-title-row">
                     <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
                       <Split size={16} style={{ color: !isContinuous ? "#0284c7" : "#64748b" }} />
-                      Non-Continuous (Independent)
+                      Separate Clips
                     </span>
                     {!isContinuous && <CheckCircle2 size={15} style={{ color: "#0284c7" }} />}
                   </div>
                   <span className="batch-mode-desc">
-                    Independent clips from different days, hours, or cameras. Specify individual recording start times or mark individual clips as unknown below.
+                    Different times, days, or camera angles. Set the start time for each clip individually.
                   </span>
                 </div>
               </div>
@@ -514,7 +514,7 @@ function VideoUploadPage({ onNavigateToRun }) {
                             <Link2 size={14} style={{ color: "#0284c7", flexShrink: 0 }} />
                             <span>
                               {unknownTimeMap[0]
-                                ? "Sequential: Chained from Video #1 @ Relative Timeline + Duration"
+                                ? "Sequential: Continues automatically from Video #1"
                                 : "Sequential: Starts @ Video #1 Start time + It's Duration"}
                             </span>
                           </div>
@@ -528,10 +528,10 @@ function VideoUploadPage({ onNavigateToRun }) {
                               <div className="card-unknown-time-content">
                                 <div className="card-unknown-time-title">
                                   <Clock size={15} style={{ color: "#0284c7", flexShrink: 0 }} />
-                                  <span>Start Time Unknown &bull; <strong>Relative Playback Mode (T+00s)</strong></span>
+                                  <span>Time Unknown &bull; <strong>Using Video Timer</strong></span>
                                 </div>
                                 <p className="card-unknown-time-desc">
-                                  Footage start time is not set. Events, speed violations, and incident logs will be tracked using elapsed video time (e.g. <strong>T+00m 15s</strong>) starting from 00:00 instead of a clock timestamp.
+                                  No problem! Detections, speed alerts, and logs will show the video running time (e.g. <strong>00:15</strong>) instead of clock time.
                                 </p>
                               </div>
 
@@ -540,7 +540,7 @@ function VideoUploadPage({ onNavigateToRun }) {
                                   type="button"
                                   className="set-exact-time-btn"
                                   onClick={() => toggleUnknownTime(index)}
-                                  title="Specify footage recording clock time"
+                                  title="Enter footage clock time"
                                 >
                                   <RotateCcw size={13} />
                                   <span>Set Clock Time</span>
@@ -554,10 +554,10 @@ function VideoUploadPage({ onNavigateToRun }) {
                                 <span className="file-timing-label">
                                   <Clock size={14} style={{ color: "#0284c7" }} />
                                   {selectedFiles.length > 1 && isContinuous
-                                    ? "Video #1 Start Time (Origin Baseline):"
+                                    ? "Video #1 Start Time:"
                                     : selectedFiles.length > 1
                                     ? `Video #${index + 1} Start Time:`
-                                    : "Footage Start Time:"}
+                                    : "Recording Start Time:"}
                                 </span>
 
                                 <FootageDateTimePicker
@@ -580,7 +580,7 @@ function VideoUploadPage({ onNavigateToRun }) {
                                   type="button"
                                   className="unknown-time-btn"
                                   onClick={() => toggleUnknownTime(index)}
-                                  title="Click if you don't know the footage start time"
+                                  title="Click if you don't know when this was recorded"
                                 >
                                   <HelpCircle size={13} />
                                   <span>Don&rsquo;t know the time?</span>
@@ -607,10 +607,10 @@ function VideoUploadPage({ onNavigateToRun }) {
               />
               <div className="checkbox-text">
                 <span className="checkbox-title">
-                  Optimize Precision for New Camera Location (Site Auto-Calibration)
+                  Calibrate for New Camera Angle (Site Auto-Calibration)
                 </span>
                 <span className="checkbox-desc">
-                  First time uploading video from a new camera angle? Enable Site Auto-Calibration for maximum precision and visual perspective analysis.
+                  First time using footage from this camera? Turn this on to automatically calibrate distance and speed for this perspective.
                 </span>
               </div>
             </label>
