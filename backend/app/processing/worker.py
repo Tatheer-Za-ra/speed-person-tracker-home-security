@@ -68,14 +68,17 @@ class ProcessingWorker:
                         db.commit()
 
                         import os, sys
-                        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-                        if project_root not in sys.path:
-                            sys.path.insert(0, project_root)
+                        workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+                        if not os.path.exists(os.path.join(workspace_root, "tools")):
+                            # Fallback if structure varies
+                            workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+                        if workspace_root not in sys.path:
+                            sys.path.insert(0, workspace_root)
                         from tools.site_calibration_trainer import SiteCalibrationTrainer
 
                         trainer = SiteCalibrationTrainer(queued_video.stored_path)
                         diag_filename = f"calib_diag_video_{queued_video.id}.jpg"
-                        snapshots_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "storage", "snapshots"))
+                        snapshots_dir = os.path.abspath(os.path.join(workspace_root, "storage", "snapshots"))
                         os.makedirs(snapshots_dir, exist_ok=True)
                         diag_path = os.path.join(snapshots_dir, diag_filename)
 

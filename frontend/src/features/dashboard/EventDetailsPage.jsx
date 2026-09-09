@@ -233,21 +233,22 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
               display: "inline-flex",
               alignItems: "center",
               gap: "6px",
-              background: videoDetails?.has_standalone_site_calibration === false ? "#fff1f2" : "#f0f9ff",
-              border: videoDetails?.has_standalone_site_calibration === false ? "1px solid #fecdd3" : "1px solid #0284c7",
-              color: videoDetails?.has_standalone_site_calibration === false ? "#e11d48" : "#0284c7",
+              background: "#f0f9ff",
+              border: "1px solid #bae6fd",
+              color: "#0284c7",
               padding: "8px 14px",
               fontSize: "0.875rem",
               fontWeight: "600",
-              borderRadius: "8px"
+              borderRadius: "8px",
+              transition: "all 0.2s ease",
             }}
             onClick={handleOpenCalibModal}
           >
             <Compass size={16} />
             <span>
-              {videoDetails?.has_standalone_site_calibration === false
-                ? "Site Map Deleted (Default Profile Applied)"
-                : "View Site Calibration Map"}
+              {videoDetails?.has_standalone_site_calibration
+                ? "View Site Calibration Map"
+                : "View Camera Calibration Profile"}
             </span>
           </button>
           <button

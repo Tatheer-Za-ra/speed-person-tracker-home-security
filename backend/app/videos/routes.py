@@ -97,6 +97,22 @@ def list_current_batch_videos():
                 if progress == 0:
                     progress = 10
 
+            site_calib = None
+            is_active_profile_fallback = False
+            if video.site_calibration_json:
+                try:
+                    import json
+                    site_calib = json.loads(video.site_calibration_json)
+                except Exception:
+                    pass
+            else:
+                from app.config_routes import get_camera_calibration_config
+                site_calib = get_camera_calibration_config(db, user_id=user_id)
+                is_active_profile_fallback = True
+
+            has_standalone_site_calibration = bool(video.calibration_diagnostic_path)
+            diag_url = f"/api/videos/{video.id}/calibration-diagnostic"
+
             output.append({
                 "id": video.id,
                 "batch_id": video.batch_id,
@@ -108,6 +124,10 @@ def list_current_batch_videos():
                 "status": status,
                 "message": msg,
                 "progress_percent": progress,
+                "site_calibration": site_calib,
+                "calibration_diagnostic_url": diag_url,
+                "has_standalone_site_calibration": has_standalone_site_calibration,
+                "is_active_profile_fallback": is_active_profile_fallback,
             })
 
         return jsonify(output), 200

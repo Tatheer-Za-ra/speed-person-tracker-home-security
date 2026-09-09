@@ -181,7 +181,14 @@ class SiteCalibrationTrainer:
 
         try:
             from ultralytics import YOLO
-            model = YOLO("yolov8n.pt")
+            possible_paths = [
+                os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", "yolov8n.pt")),
+                os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "yolov8n.pt")),
+                os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend", "yolov8n.pt")),
+                "yolov8n.pt",
+            ]
+            m_path = next((p for p in possible_paths if os.path.exists(p)), "yolov8n.pt")
+            model = YOLO(m_path)
 
             for frame in sample_frames[:5]:
                 results = model(frame, verbose=False)
