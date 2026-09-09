@@ -16,6 +16,8 @@ import {
   Link2,
   Split,
   CheckCircle2,
+  HelpCircle,
+  RotateCcw,
 } from "lucide-react";
 import "./VideoUploadPage.css";
 import { listVideos, uploadVideos } from "../../api/videoApi";
@@ -233,7 +235,7 @@ function VideoUploadPage({ onNavigateToRun }) {
   const [singleStartTime, setSingleStartTime] = useState(getCurrentLocalDateTimeString());
   const [isContinuous, setIsContinuous] = useState(true);
   const [fileStartTimes, setFileStartTimes] = useState({});
-  const [isStartTimeKnown, setIsStartTimeKnown] = useState(true);
+  const [unknownTimeMap, setUnknownTimeMap] = useState({});
 
   const fetchVideos = async () => {
     try {
@@ -269,6 +271,7 @@ function VideoUploadPage({ onNavigateToRun }) {
       initialTimes[idx] = defaultTime;
     });
     setFileStartTimes(initialTimes);
+    setUnknownTimeMap({});
   };
 
   const removeSelectedFile = (indexToRemove) => {
@@ -284,7 +287,25 @@ function VideoUploadPage({ onNavigateToRun }) {
       });
       return next;
     });
+    setUnknownTimeMap((prev) => {
+      const next = {};
+      let nextIdx = 0;
+      selectedFiles.forEach((_, idx) => {
+        if (idx !== indexToRemove) {
+          if (prev[idx]) next[nextIdx] = true;
+          nextIdx++;
+        }
+      });
+      return next;
+    });
     setMessage("");
+  };
+
+  const toggleUnknownTime = (index) => {
+    setUnknownTimeMap((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
   };
 
   const handleFileTimeChange = (index, value) => {
@@ -317,11 +338,27 @@ function VideoUploadPage({ onNavigateToRun }) {
       setMessageType("info");
       setMessage("Uploading and starting processing...");
 
+      const isBatchContinuous = selectedFiles.length > 1 ? isContinuous : false;
       const options = {
-        isContinuous: selectedFiles.length > 1 ? isContinuous : false,
-        recordingStartTime: isStartTimeKnown ? singleStartTime : null,
-        startTimes: isStartTimeKnown ? fileStartTimes : {},
+        isContinuous: isBatchContinuous,
       };
+
+      if (isBatchContinuous) {
+        const isV0Unknown = Boolean(unknownTimeMap[0]);
+        const v0Time = isV0Unknown ? null : (fileStartTimes[0] || singleStartTime);
+        options.recordingStartTime = v0Time;
+        options.startTimes = {
+          0: v0Time,
+        };
+      } else {
+        const resolvedStartTimes = {};
+        selectedFiles.forEach((_, idx) => {
+          const isUnknown = Boolean(unknownTimeMap[idx]);
+          resolvedStartTimes[idx] = isUnknown ? null : (fileStartTimes[idx] || singleStartTime);
+        });
+        options.startTimes = resolvedStartTimes;
+        options.recordingStartTime = Boolean(unknownTimeMap[0]) ? null : (fileStartTimes[0] || singleStartTime);
+      }
 
       await uploadVideos(selectedFiles, enableSiteCalibration, options);
       setMessageType("success");
@@ -382,187 +419,181 @@ function VideoUploadPage({ onNavigateToRun }) {
             </div>
           </div>
 
-          {/* Footage Recording Start Time Configuration */}
-          {selectedFiles.length > 0 && (
+          {/* Batch Timing Mode Configuration - for multiple video selections */}
+          {selectedFiles.length > 1 && (
             <div className="footage-timing-card">
               <div className="footage-timing-header">
                 <Clock size={18} style={{ color: "#0284c7" }} />
-                <span className="footage-timing-title">
-                  {selectedFiles.length === 1 ? "Footage Recording Start Time" : "Batch Footage Timing Configuration"}
-                </span>
+                <span className="footage-timing-title">Batch Footage Timing Configuration</span>
               </div>
 
-              {selectedFiles.length === 1 ? (
-                <div>
-                  <p className="footage-timing-desc">
-                    Specify the date & time when this recording began (from the CCTV on-screen clock display), or toggle relative mode if unknown. Note: Footage timestamp cannot be set to a future date or time.
-                  </p>
+              <p className="footage-timing-desc">
+                Choose how recording timestamps are assigned to this batch. You can set exact times or toggle &ldquo;Don&rsquo;t know the time?&rdquo; per video card below.
+              </p>
 
-                  <div className="footage-timing-toggle-row">
-                    <label className="checkbox-container">
-                      <input
-                        type="checkbox"
-                        checked={isStartTimeKnown}
-                        onChange={(e) => setIsStartTimeKnown(e.target.checked)}
-                        disabled={isProcessingBatch}
-                      />
-                      <div className="checkbox-text">
-                        <span className="checkbox-title" style={{ color: "#0369a1" }}>
-                          CCTV On-Screen Timestamp is Visible on Video
-                        </span>
-                        <span className="checkbox-desc">
-                          {isStartTimeKnown
-                            ? "Real-world clock timestamps will be computed for all security events and incident logs."
-                            : "Start time is unknown. Events will be tracked cleanly using relative playback time (e.g. T+00m 15s)."}
-                        </span>
-                      </div>
-                    </label>
+              {/* Batch Timing Mode Selector */}
+              <div className="batch-timing-mode-grid">
+                <div
+                  className={`batch-mode-card ${isContinuous ? "active" : ""}`}
+                  onClick={() => !isProcessingBatch && setIsContinuous(true)}
+                >
+                  <div className="batch-mode-title-row">
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                      <Link2 size={16} style={{ color: isContinuous ? "#0284c7" : "#64748b" }} />
+                      Continuous (Sequential)
+                    </span>
+                    {isContinuous && <CheckCircle2 size={15} style={{ color: "#0284c7" }} />}
                   </div>
-
-                  {isStartTimeKnown ? (
-                    <div style={{ marginTop: "12px" }}>
-                      <FootageDateTimePicker
-                        value={singleStartTime}
-                        onChange={setSingleStartTime}
-                        disabled={isProcessingBatch}
-                      />
-
-                      <div className="timing-preview-badge">
-                        <Calendar size={14} />
-                        <span>Footage Start: {formatFootageDateTime(singleStartTime)}</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="timing-unknown-info-pill" style={{ marginTop: "10px" }}>
-                      <Clock size={15} style={{ color: "#0284c7", flexShrink: 0 }} />
-                      <span>Start time marked as <strong>Unknown</strong>. Events will be tracked by <strong>Relative Playback Time (T+00s)</strong> instead of an assumed clock time.</span>
-                    </div>
-                  )}
+                  <span className="batch-mode-desc">
+                    Consecutive CCTV recordings. Set start time on Video #1; subsequent video start times chain automatically based on preceding video durations.
+                  </span>
                 </div>
-              ) : (
-                <div>
-                  <p className="footage-timing-desc">
-                    Choose how recording timestamps should be assigned to this batch of videos:
-                  </p>
 
-                  {/* Batch Timing Mode Selector */}
-                  <div className="batch-timing-mode-grid">
-                    <div
-                      className={`batch-mode-card ${isContinuous ? "active" : ""}`}
-                      onClick={() => !isProcessingBatch && setIsContinuous(true)}
-                    >
-                      <div className="batch-mode-title-row">
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                          <Link2 size={16} style={{ color: isContinuous ? "#0284c7" : "#64748b" }} />
-                          Continuous (Sequential)
-                        </span>
-                        {isContinuous && <CheckCircle2 size={15} style={{ color: "#0284c7" }} />}
-                      </div>
-                      <span className="batch-mode-desc">
-                        Consecutive CCTV recordings. Set start time for Video 1, and subsequent video start times chain automatically based on preceding video durations.
-                      </span>
-                    </div>
-
-                    <div
-                      className={`batch-mode-card ${!isContinuous ? "active" : ""}`}
-                      onClick={() => !isProcessingBatch && setIsContinuous(false)}
-                    >
-                      <div className="batch-mode-title-row">
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                          <Split size={16} style={{ color: !isContinuous ? "#0284c7" : "#64748b" }} />
-                          Non-Continuous (Independent)
-                        </span>
-                        {!isContinuous && <CheckCircle2 size={15} style={{ color: "#0284c7" }} />}
-                      </div>
-                      <span className="batch-mode-desc">
-                        Independent clips from different days, hours, or cameras. Specify individual recording start times for each video file below.
-                      </span>
-                    </div>
+                <div
+                  className={`batch-mode-card ${!isContinuous ? "active" : ""}`}
+                  onClick={() => !isProcessingBatch && setIsContinuous(false)}
+                >
+                  <div className="batch-mode-title-row">
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                      <Split size={16} style={{ color: !isContinuous ? "#0284c7" : "#64748b" }} />
+                      Non-Continuous (Independent)
+                    </span>
+                    {!isContinuous && <CheckCircle2 size={15} style={{ color: "#0284c7" }} />}
                   </div>
+                  <span className="batch-mode-desc">
+                    Independent clips from different days, hours, or cameras. Specify individual recording start times or mark individual clips as unknown below.
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
-                  {/* Continuous Mode: First Video Start Time Input */}
-                  {isContinuous && (
-                    <div style={{ marginTop: "12px" }}>
-                      <div className="footage-timing-toggle-row">
-                        <label className="checkbox-container">
-                          <input
-                            type="checkbox"
-                            checked={isStartTimeKnown}
-                            onChange={(e) => setIsStartTimeKnown(e.target.checked)}
-                            disabled={isProcessingBatch}
-                          />
-                          <div className="checkbox-text">
-                            <span className="checkbox-title" style={{ color: "#0369a1" }}>
-                              Origin CCTV Timestamp Available for Video #1
-                            </span>
-                            <span className="checkbox-desc">
-                              {isStartTimeKnown
-                                ? "Set start time for Video #1. Subsequent continuous video start times chain automatically."
-                                : "Origin start time is unknown. Batch videos will be sequenced from relative zero (T+00:00:00)."}
-                            </span>
+          {/* Selected Videos List with Per-Video Smart Controls */}
+          {selectedFiles.length > 0 && (
+            <div className="selected-files-card">
+              <div className="selected-files-header">
+                <Film size={16} className="selected-files-icon" />
+                <span>Selected Videos ({selectedFiles.length})</span>
+              </div>
+
+              <div className="selected-files-list">
+                {selectedFiles.map((file, index) => {
+                  const sizeInMB = file.size ? (file.size / (1024 * 1024)).toFixed(1) : null;
+                  const fileStartTimeVal = fileStartTimes[index] || singleStartTime;
+                  const isUnknown = Boolean(unknownTimeMap[index]);
+
+                  return (
+                    <div key={`${file.name}-${index}`} className="selected-file-item">
+                      {/* Line 1: File Information and Remove Action */}
+                      <div className="selected-file-top-row">
+                        <div className="file-info-left">
+                          <FileVideo size={16} className="file-type-icon" />
+                          <div className="file-name-meta">
+                            <span className="file-name">#{index + 1}: {file.name}</span>
+                            {sizeInMB && <span className="file-size">{sizeInMB} MB</span>}
                           </div>
-                        </label>
+                        </div>
+
+                        {!isProcessingBatch && (
+                          <button
+                            type="button"
+                            className="remove-file-btn"
+                            onClick={() => removeSelectedFile(index)}
+                            title="Remove file"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
                       </div>
 
-                      {isStartTimeKnown ? (
-                        <div style={{ marginTop: "10px" }}>
-                          <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: "600", color: "#334155", marginBottom: "6px" }}>
-                            Start Time for Video #1 (Origin Baseline):
-                          </label>
-                          <FootageDateTimePicker
-                            value={singleStartTime}
-                            onChange={setSingleStartTime}
-                            disabled={isProcessingBatch}
-                          />
-
-                          <div className="timing-preview-badge">
-                            <Calendar size={14} />
-                            <span>Video 1: {formatFootageDateTime(singleStartTime)} (Subsequent videos chained by duration)</span>
+                      {/* Dedicated Timing Row per Video Card */}
+                      {selectedFiles.length > 1 && isContinuous && index > 0 ? (
+                        /* Continuous Batch: Subsequent videos chain automatically from Video #1 */
+                        <div className="file-timing-second-line">
+                          <div className="continuous-chained-note">
+                            <Link2 size={14} style={{ color: "#0284c7", flexShrink: 0 }} />
+                            <span>
+                              {unknownTimeMap[0]
+                                ? "Sequential: Chained from Video #1 @ Relative Timeline + Duration"
+                                : "Sequential: Starts @ Video #1 Start time + It's Duration"}
+                            </span>
                           </div>
                         </div>
                       ) : (
-                        <div className="timing-unknown-info-pill" style={{ marginTop: "10px" }}>
-                          <Clock size={15} style={{ color: "#0284c7", flexShrink: 0 }} />
-                          <span>Origin start time marked as <strong>Unknown</strong>. Sequential batch videos will track from <strong>Relative Playback Time (T+00:00)</strong>.</span>
+                        /* Single Video, Video #1 in Continuous, OR Any Video in Non-Continuous */
+                        <div className="file-timing-second-line">
+                          {isUnknown ? (
+                            /* Mention shown on card when user clicks "Don't know the time" */
+                            <div className="card-unknown-time-box">
+                              <div className="card-unknown-time-content">
+                                <div className="card-unknown-time-title">
+                                  <Clock size={15} style={{ color: "#0284c7", flexShrink: 0 }} />
+                                  <span>Start Time Unknown &bull; <strong>Relative Playback Mode (T+00s)</strong></span>
+                                </div>
+                                <p className="card-unknown-time-desc">
+                                  Footage start time is not set. Events, speed violations, and incident logs will be tracked using elapsed video time (e.g. <strong>T+00m 15s</strong>) starting from 00:00 instead of a clock timestamp.
+                                </p>
+                              </div>
+
+                              {!isProcessingBatch && (
+                                <button
+                                  type="button"
+                                  className="set-exact-time-btn"
+                                  onClick={() => toggleUnknownTime(index)}
+                                  title="Specify footage recording clock time"
+                                >
+                                  <RotateCcw size={13} />
+                                  <span>Set Clock Time</span>
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            /* Active Time Picker with Smart "Don't know the time?" Button */
+                            <div className="card-time-picker-row">
+                              <div className="card-time-picker-left">
+                                <span className="file-timing-label">
+                                  <Clock size={14} style={{ color: "#0284c7" }} />
+                                  {selectedFiles.length > 1 && isContinuous
+                                    ? "Video #1 Start Time (Origin Baseline):"
+                                    : selectedFiles.length > 1
+                                    ? `Video #${index + 1} Start Time:`
+                                    : "Footage Start Time:"}
+                                </span>
+
+                                <FootageDateTimePicker
+                                  value={fileStartTimeVal}
+                                  onChange={(val) => {
+                                    handleFileTimeChange(index, val);
+                                    if (index === 0) setSingleStartTime(val);
+                                  }}
+                                  disabled={isProcessingBatch}
+                                  isCompact
+                                />
+
+                                <span className="file-timing-preview-pill">
+                                  {formatFootageDateTime(fileStartTimeVal)}
+                                </span>
+                              </div>
+
+                              {!isProcessingBatch && (
+                                <button
+                                  type="button"
+                                  className="unknown-time-btn"
+                                  onClick={() => toggleUnknownTime(index)}
+                                  title="Click if you don't know the footage start time"
+                                >
+                                  <HelpCircle size={13} />
+                                  <span>Don&rsquo;t know the time?</span>
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
-                  )}
-
-                  {/* Non-Continuous Mode: Independent Start Time Toggle */}
-                  {!isContinuous && (
-                    <div style={{ marginTop: "12px" }}>
-                      <div className="footage-timing-toggle-row">
-                        <label className="checkbox-container">
-                          <input
-                            type="checkbox"
-                            checked={isStartTimeKnown}
-                            onChange={(e) => setIsStartTimeKnown(e.target.checked)}
-                            disabled={isProcessingBatch}
-                          />
-                          <div className="checkbox-text">
-                            <span className="checkbox-title" style={{ color: "#0369a1" }}>
-                              Specify Independent Start Times for Selected Clips
-                            </span>
-                            <span className="checkbox-desc">
-                              {isStartTimeKnown
-                                ? "Set individual recording start times for each video clip in the list below."
-                                : "Start times are unknown. All clips will be analyzed using each video's relative elapsed playback time (T+00s)."}
-                            </span>
-                          </div>
-                        </label>
-                      </div>
-
-                      {!isStartTimeKnown && (
-                        <div className="timing-unknown-info-pill" style={{ marginTop: "10px" }}>
-                          <Clock size={15} style={{ color: "#0284c7", flexShrink: 0 }} />
-                          <span>All clips marked as <strong>Unknown Start Time</strong>. Each video's detections will use <strong>Relative Playback Time (T+00s)</strong>.</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -605,71 +636,6 @@ function VideoUploadPage({ onNavigateToRun }) {
             )}
           </button>
         </form>
-
-        {selectedFiles.length > 0 && (
-          <div className="selected-files-card">
-            <div className="selected-files-header">
-              <Film size={16} className="selected-files-icon" />
-              <span>Selected Videos ({selectedFiles.length})</span>
-            </div>
-
-            <div className="selected-files-list">
-              {selectedFiles.map((file, index) => {
-                const sizeInMB = file.size ? (file.size / (1024 * 1024)).toFixed(1) : null;
-                const fileStartTimeVal = fileStartTimes[index] || singleStartTime;
-
-                return (
-                  <div key={`${file.name}-${index}`} className="selected-file-item">
-                    {/* Line 1: File Information and Remove Action */}
-                    <div className="selected-file-top-row">
-                      <div className="file-info-left">
-                        <FileVideo size={16} className="file-type-icon" />
-                        <div className="file-name-meta">
-                          <span className="file-name">#{index + 1}: {file.name}</span>
-                          {sizeInMB && <span className="file-size">{sizeInMB} MB</span>}
-                        </div>
-                      </div>
-
-                      {!isProcessingBatch && (
-                        <button
-                          type="button"
-                          className="remove-file-btn"
-                          onClick={() => removeSelectedFile(index)}
-                          title="Remove file"
-                        >
-                          <X size={14} />
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Dedicated Timing Row only for Non-Continuous Batch Mode when start time is known */}
-                    {selectedFiles.length > 1 && !isContinuous && isStartTimeKnown && (
-                      <div className="file-timing-second-line">
-                        <div className="non-continuous-second-line">
-                          <span className="file-timing-label">
-                            <Clock size={14} style={{ color: "#0284c7" }} />
-                            Video #{index + 1} Start Time:
-                          </span>
-
-                          <FootageDateTimePicker
-                            value={fileStartTimeVal}
-                            onChange={(val) => handleFileTimeChange(index, val)}
-                            disabled={isProcessingBatch}
-                            isCompact
-                          />
-
-                          <span className="file-timing-preview-pill">
-                            {formatFootageDateTime(fileStartTimeVal)}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="videos-card">

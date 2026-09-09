@@ -82,7 +82,10 @@ class VideoService:
                 file_start_time = None
                 if is_continuous:
                     if idx == 0:
-                        raw_t0 = start_times.get("0") or start_times.get(0) or single_start_time
+                        if "0" in start_times or 0 in start_times:
+                            raw_t0 = start_times.get("0") if "0" in start_times else start_times.get(0)
+                        else:
+                            raw_t0 = single_start_time
                         chained_start_time = parse_start_time(raw_t0) if raw_t0 else None
                         file_start_time = chained_start_time
                     else:
@@ -94,7 +97,10 @@ class VideoService:
                             file_start_time = None
                 else:
                     # Non-continuous: Lookup explicit start time for index idx or single_start_time fallback
-                    raw_ti = start_times.get(str(idx)) or start_times.get(idx) or single_start_time
+                    if str(idx) in start_times or idx in start_times:
+                        raw_ti = start_times.get(str(idx)) if str(idx) in start_times else start_times.get(idx)
+                    else:
+                        raw_ti = single_start_time
                     file_start_time = parse_start_time(raw_ti) if raw_ti else None
 
                 result = self._process_single_file(
