@@ -10,12 +10,13 @@ import SpeedConfigModal from "./SpeedConfigModal";
 import SnapshotModal from "./SnapshotModal";
 import ReportModal from "./ReportModal";
 import LandingHero from "./LandingHero";
+import CapabilitiesGrid from "./CapabilitiesGrid";
 import WorkflowSteps from "./WorkflowSteps";
 import "./DashboardPage.css";
 
 const API_HOST = "http://localhost:5000";
 
-function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage, onNavigateToConfig }) {
+function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage, onNavigateToConfig, onNavigateToRun }) {
   const [summary, setSummary] = useState(null);
   const [rawEvents, setRawEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -83,6 +84,27 @@ function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage, o
         speedThresholds={speedThresholds}
       />
       
+      {/* 6 Residential Security Capabilities & Quick-Access Portal */}
+      <CapabilitiesGrid
+        onNavigateToConfig={(tab) => {
+          if (onNavigateToConfig) {
+            onNavigateToConfig(tab);
+          } else if (onNavigateToPage) {
+            onNavigateToPage("config");
+          }
+        }}
+        onNavigateToLogs={() => onNavigateToPage && onNavigateToPage("logs")}
+        onNavigateToAnalytics={() => {
+          if (onNavigateToRun) {
+            onNavigateToRun(null, "summary", null);
+          } else if (onNavigateToPage) {
+            onNavigateToPage("event-details");
+          }
+        }}
+        onOpenReportModal={() => setIsReportModalOpen(true)}
+        speedThresholds={speedThresholds}
+      />
+
       {/* 3-Step Pipeline: From Video to Threat Intelligence */}
       <WorkflowSteps
         onNavigateToUpload={() => onNavigateToPage && onNavigateToPage("videos")}
