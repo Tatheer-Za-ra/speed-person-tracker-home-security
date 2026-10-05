@@ -1,7 +1,7 @@
 // frontend/src/components/Header.jsx
 
 import React, { useState } from "react";
-import { UserCheck, Gauge, HardDrive, ChevronDown, User, LogOut } from "lucide-react";
+import { UserCheck, Gauge, HardDrive, ChevronDown, User, LogOut, ShieldCheck } from "lucide-react";
 import "./Header.css";
 
 function Header({ currentPage, setCurrentPage, onNavigateToConfig, onResetRunFilter, currentRunFilter, userName, onLogout }) {
@@ -27,8 +27,11 @@ function Header({ currentPage, setCurrentPage, onNavigateToConfig, onResetRunFil
   return (
     <header className="haventrack-header">
       <div className="header-container">
-        {/* Brand Logo */}
+        {/* Brand Logo with Shield Emblem */}
         <div className="header-brand" onClick={handleBrandClick} style={{ cursor: "pointer" }}>
+          <div className="brand-logo-emblem">
+            <ShieldCheck size={20} className="brand-emblem-icon" />
+          </div>
           <span className="brand-name">Haven<span className="brand-accent">Track</span></span>
         </div>
 

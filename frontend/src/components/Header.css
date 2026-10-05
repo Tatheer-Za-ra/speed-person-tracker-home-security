@@ -24,7 +24,32 @@
 .header-brand {
   display: flex;
   align-items: center;
+  gap: 10px;
   user-select: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.brand-logo-emblem {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.3);
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.header-brand:hover .brand-logo-emblem {
+  transform: scale(1.06);
+}
+
+.brand-emblem-icon {
+  color: #ffffff;
 }
 
 .brand-name {

@@ -10,6 +10,7 @@ import SpeedConfigModal from "./SpeedConfigModal";
 import SnapshotModal from "./SnapshotModal";
 import ReportModal from "./ReportModal";
 import LandingHero from "./LandingHero";
+import WorkflowSteps from "./WorkflowSteps";
 import "./DashboardPage.css";
 
 const API_HOST = "http://localhost:5000";
@@ -80,6 +81,19 @@ function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage, o
         }}
         onNavigateToLogs={() => onNavigateToPage && onNavigateToPage("logs")}
         speedThresholds={speedThresholds}
+      />
+      
+      {/* 3-Step Pipeline: From Video to Threat Intelligence */}
+      <WorkflowSteps
+        onNavigateToUpload={() => onNavigateToPage && onNavigateToPage("videos")}
+        onNavigateToConfig={(tab) => {
+          if (onNavigateToConfig) {
+            onNavigateToConfig(tab);
+          } else if (onNavigateToPage) {
+            onNavigateToPage("config");
+          }
+        }}
+        onNavigateToLogs={() => onNavigateToPage && onNavigateToPage("logs")}
       />
 
       {/* Speed Threshold Settings Modal */}
