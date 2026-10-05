@@ -65,6 +65,74 @@
   color: #0066cc;
 }
 
+/* Event Details Top Tab Navigation */
+.event-details-tabs-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: -6px;
+  margin-bottom: 4px;
+}
+
+.details-tabs-pills {
+  display: inline-flex;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 4px;
+  gap: 6px;
+}
+
+.details-nav-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 9px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #64748b;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.details-nav-tab:hover {
+  color: #0f172a;
+}
+
+.details-nav-tab.active {
+  background: #ffffff;
+  color: #0284c7;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.details-tab-counter {
+  background: #e0f2fe;
+  color: #0284c7;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.details-nav-tab.active .details-tab-counter {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.details-tab-badge {
+  background: #ecfdf5;
+  color: #059669;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 12px;
+  border: 1px solid #a7f3d0;
+}
+
+
 /* Current Run Isolation Banner */
 .isolation-banner {
   background: #ffffff;

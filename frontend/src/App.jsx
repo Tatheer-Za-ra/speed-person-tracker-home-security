@@ -130,11 +130,16 @@ function App() {
           <LogHistoryPage
             onNavigateToRun={handleNavigateToRun}
             onNavigateToUpload={() => setCurrentPage("videos")}
+            onNavigateToAnalytics={() => {
+              setCurrentRunFilter({ videoId: null, mode: "summary", filename: null, sourcePage: "logs" });
+              setCurrentPage("event-details");
+            }}
           />
         ) : (
           <EventDetailsPage
             runFilter={currentRunFilter}
             onBackToVideos={() => setCurrentPage("videos")}
+            onBackToLogs={() => setCurrentPage("logs")}
           />
         )}
       </main>

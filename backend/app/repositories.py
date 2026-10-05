@@ -195,6 +195,243 @@ class EventRepository:
             "breakdown_by_label": label_counts,
         }
 
+    def get_analytics_stats(
+        self,
+        user_id: int | None = None,
+        video_id: int | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+    ):
+        from datetime import datetime, timedelta
+        import json
+
+        query = self.db.query(Event, Video).join(Video, Event.video_id == Video.id)
+
+        if user_id is not None:
+            query = query.join(UploadBatch, Video.batch_id == UploadBatch.id).filter(UploadBatch.user_id == user_id)
+
+        if video_id is not None and video_id > 0:
+            query = query.filter(Event.video_id == video_id)
+
+        results = query.order_by(Event.timestamp_seconds.asc(), Event.id.asc()).all()
+
+        start_date_obj = None
+        end_date_obj = None
+        if start_date:
+            try:
+                start_date_obj = datetime.strptime(start_date.split("T")[0], "%Y-%m-%d").date()
+            except Exception:
+                pass
+        if end_date:
+            try:
+                end_date_obj = datetime.strptime(end_date.split("T")[0], "%Y-%m-%d").date()
+            except Exception:
+                pass
+
+        hourly_data = [
+            {
+                "hour": h,
+                "label": f"{h:02d}:00",
+                "display_label": datetime(2000, 1, 1, h, 0).strftime("%I %p").lstrip("0"),
+                "total": 0,
+                "vehicles": 0,
+                "persons": 0,
+                "overspeed": 0,
+                "alerts": 0,
+            }
+            for h in range(24)
+        ]
+
+        day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        weekday_data = {
+            d: {"day": d, "total": 0, "vehicles": 0, "persons": 0, "alerts": 0, "overspeed": 0}
+            for d in day_order
+        }
+
+        daily_timeline = {}
+
+        vehicle_categories = {
+            "car": {"category": "car", "total": 0, "overspeed": 0, "speeds": [], "max_speed": 0.0, "avg_speed": 0.0, "limit": 30.0},
+            "motorcycle": {"category": "motorcycle", "total": 0, "overspeed": 0, "speeds": [], "max_speed": 0.0, "avg_speed": 0.0, "limit": 40.0},
+            "truck": {"category": "truck", "total": 0, "overspeed": 0, "speeds": [], "max_speed": 0.0, "avg_speed": 0.0, "limit": 25.0},
+        }
+
+        severity_counts = {
+            "normal": 0,
+            "minor": 0,
+            "severe": 0,
+        }
+
+        total_events = 0
+        total_alerts = 0
+        total_vehicles = 0
+        total_persons = 0
+        total_overspeed = 0
+        known_persons_count = 0
+        unknown_persons_count = 0
+        night_threats_count = 0
+        top_speed_record = None
+
+        for event, video in results:
+            if video.recording_start_time:
+                ev_dt = video.recording_start_time + timedelta(seconds=float(event.timestamp_seconds or 0.0))
+            elif event.created_at:
+                ev_dt = event.created_at
+            else:
+                ev_dt = datetime.now()
+
+            ev_date = ev_dt.date()
+            if start_date_obj and ev_date < start_date_obj:
+                continue
+            if end_date_obj and ev_date > end_date_obj:
+                continue
+
+            total_events += 1
+            h = ev_dt.hour
+            weekday_name = day_order[ev_dt.weekday()]
+            date_key = ev_date.isoformat()
+
+            if date_key not in daily_timeline:
+                daily_timeline[date_key] = {
+                    "date": date_key,
+                    "display_date": ev_date.strftime("%d %b"),
+                    "total": 0,
+                    "vehicles": 0,
+                    "persons": 0,
+                    "overspeed": 0,
+                    "alerts": 0,
+                }
+
+            hourly_data[h]["total"] += 1
+            weekday_data[weekday_name]["total"] += 1
+            daily_timeline[date_key]["total"] += 1
+
+            is_alert = bool(event.is_alert)
+            if is_alert:
+                total_alerts += 1
+                hourly_data[h]["alerts"] += 1
+                weekday_data[weekday_name]["alerts"] += 1
+                daily_timeline[date_key]["alerts"] += 1
+
+            meta = {}
+            if event.metadata_json:
+                try:
+                    meta = json.loads(event.metadata_json)
+                except Exception:
+                    meta = {}
+
+            if event.label == "person":
+                total_persons += 1
+                hourly_data[h]["persons"] += 1
+                weekday_data[weekday_name]["persons"] += 1
+                daily_timeline[date_key]["persons"] += 1
+
+                is_known = (event.event_type == "known_person") or (meta.get("face_match_status") == "known")
+                if is_known:
+                    known_persons_count += 1
+                else:
+                    unknown_persons_count += 1
+                    if h >= 22 or h < 6:
+                        night_threats_count += 1
+
+            elif event.label in vehicle_categories:
+                total_vehicles += 1
+                hourly_data[h]["vehicles"] += 1
+                weekday_data[weekday_name]["vehicles"] += 1
+                daily_timeline[date_key]["vehicles"] += 1
+
+                vcat = event.label
+                cat_info = vehicle_categories[vcat]
+                cat_info["total"] += 1
+
+                spd = float(meta.get("estimated_speed_kmh") or 0.0)
+                lim = float(meta.get("speed_limit_kmh") or cat_info["limit"])
+                cat_info["limit"] = lim
+
+                if spd > 0:
+                    cat_info["speeds"].append(spd)
+                    if spd > cat_info["max_speed"]:
+                        cat_info["max_speed"] = round(spd, 1)
+
+                    diff = spd - lim
+                    if diff > 0:
+                        total_overspeed += 1
+                        cat_info["overspeed"] += 1
+                        hourly_data[h]["overspeed"] += 1
+                        weekday_data[weekday_name]["overspeed"] += 1
+                        daily_timeline[date_key]["overspeed"] += 1
+
+                        if diff > 10:
+                            severity_counts["severe"] += 1
+                        else:
+                            severity_counts["minor"] += 1
+                    else:
+                        severity_counts["normal"] += 1
+
+                    if top_speed_record is None or spd > top_speed_record["speed"]:
+                        top_speed_record = {
+                            "speed": round(spd, 1),
+                            "vehicle_label": vcat.capitalize(),
+                            "limit": lim,
+                            "overshoot": round(max(0.0, diff), 1),
+                            "time_str": ev_dt.strftime("%d %b %Y, %I:%M %p"),
+                            "video_title": video.original_filename,
+                        }
+
+        for cat, info in vehicle_categories.items():
+            if info["speeds"]:
+                info["avg_speed"] = round(sum(info["speeds"]) / len(info["speeds"]), 1)
+            del info["speeds"]
+
+        peak_hour = None
+        max_hourly_count = 0
+        for item in hourly_data:
+            if item["total"] > max_hourly_count:
+                max_hourly_count = item["total"]
+                peak_hour = item
+
+        peak_rush_summary = None
+        if peak_hour and max_hourly_count > 0:
+            h = peak_hour["hour"]
+            start_str = datetime(2000, 1, 1, h, 0).strftime("%I:00 %p")
+            end_str = datetime(2000, 1, 1, (h + 1) % 24, 0).strftime("%I:00 %p")
+            peak_rush_summary = {
+                "hour": h,
+                "label": f"{start_str} - {end_str}",
+                "count": peak_hour["total"],
+                "vehicles": peak_hour["vehicles"],
+                "persons": peak_hour["persons"],
+                "overspeed": peak_hour["overspeed"],
+                "alerts": peak_hour["alerts"],
+            }
+
+        overspeed_rate = round((total_overspeed / total_vehicles * 100), 1) if total_vehicles > 0 else 0.0
+        unknown_rate = round((unknown_persons_count / total_persons * 100), 1) if total_persons > 0 else 0.0
+
+        sorted_daily = [daily_timeline[k] for k in sorted(daily_timeline.keys())]
+
+        return {
+            "summary": {
+                "total_events": total_events,
+                "total_vehicles": total_vehicles,
+                "total_persons": total_persons,
+                "total_alerts": total_alerts,
+                "total_overspeed": total_overspeed,
+                "overspeed_rate": overspeed_rate,
+                "known_persons_count": known_persons_count,
+                "unknown_persons_count": unknown_persons_count,
+                "unknown_rate": unknown_rate,
+                "night_threats_count": night_threats_count,
+                "peak_rush_hour": peak_rush_summary,
+                "top_speed_record": top_speed_record,
+            },
+            "hourly_distribution": hourly_data,
+            "weekday_distribution": [weekday_data[d] for d in day_order],
+            "daily_timeline": sorted_daily,
+            "vehicle_analytics": list(vehicle_categories.values()),
+            "violation_severity": severity_counts,
+        }
+
 
 class ProcessingLogRepository:
     def __init__(self, db_session=None):

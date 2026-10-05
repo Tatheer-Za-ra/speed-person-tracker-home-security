@@ -37,3 +37,20 @@ export async function fetchAlerts(limit = 50) {
   const data = await response.json();
   return { response, data };
 }
+
+export async function fetchEventAnalytics(params = {}) {
+  const queryParams = new URLSearchParams();
+
+  if (params.video_id) queryParams.append("video_id", params.video_id);
+  if (params.start_date) queryParams.append("start_date", params.start_date);
+  if (params.end_date) queryParams.append("end_date", params.end_date);
+  if (params.preset) queryParams.append("preset", params.preset);
+
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : "";
+  const response = await fetch(`${API_BASE}/api/events/analytics${queryString}`, {
+    credentials: "include",
+  });
+  const data = await response.json();
+  return { response, data };
+}
+

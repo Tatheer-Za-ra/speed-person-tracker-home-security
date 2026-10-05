@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Zap, Car, Bike, Truck, FileSpreadsheet, ArrowLeft, Compass, Clock } from "lucide-react";
+import { Zap, Car, Bike, Truck, FileSpreadsheet, ArrowLeft, Compass, Clock, BarChart3 } from "lucide-react";
 import { fetchEvents } from "../../api/eventsApi";
 import { listAllVideoLogs } from "../../api/videoApi";
 import FilterBar, { normalizeCategory } from "./FilterBar";
@@ -8,15 +8,19 @@ import BatchEventTimeline, { formatFootageClockTime } from "./BatchEventTimeline
 import SnapshotModal from "./SnapshotModal";
 import ReportModal from "./ReportModal";
 import CalibrationDiagnosticModal from "../videos/CalibrationDiagnosticModal";
+import SummaryAnalyticsTab from "./SummaryAnalyticsTab";
 import "./DashboardPage.css";
 
-function EventDetailsPage({ runFilter, onBackToVideos }) {
+function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [videoDetails, setVideoDetails] = useState(null);
 
   // Filters & Modals
+  const [activeTab, setActiveTab] = useState(() => {
+    return runFilter?.mode === "summary" || !runFilter?.videoId ? "analytics" : "timeline";
+  });
   const [activeQuickMode, setActiveQuickMode] = useState("ALL");
   const [personFilter, setPersonFilter] = useState("ALL");
   const [vehicleFilter, setVehicleFilter] = useState("ALL");
@@ -26,6 +30,14 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
 
   const videoId = runFilter?.videoId || null;
   const filename = runFilter?.filename || null;
+
+  const handleBack = () => {
+    if (runFilter?.sourcePage === "logs" && onBackToLogs) {
+      onBackToLogs();
+    } else if (onBackToVideos) {
+      onBackToVideos();
+    }
+  };
 
   useEffect(() => {
     if (!videoId) return;
@@ -141,10 +153,10 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
   return (
     <div className="dashboard-container">
       {/* Top Left Clean Back Link */}
-      <div style={{ display: "flex", justifyContent: "flex-start", width: "100%", marginBottom: "-12px" }}>
+      <div style={{ display: "flex", justifyContent: "flex-start", width: "100%", marginBottom: "-6px" }}>
         <button
           type="button"
-          onClick={onBackToVideos}
+          onClick={handleBack}
           style={{
             background: "none",
             border: "none",
@@ -162,24 +174,58 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
           onMouseLeave={(e) => (e.currentTarget.style.color = "#475569")}
         >
           <ArrowLeft size={16} />
-          <span>Back</span>
+          <span>{runFilter?.sourcePage === "logs" ? "Back to Event Logs" : "Back to Upload Sessions"}</span>
         </button>
       </div>
 
-      {/* Unified Control & Speed Thresholds Top Bar */}
-      <div className="speed-limits-run-bar" style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        background: "#ffffff",
-        border: "1px solid #e2e8f0",
-        borderRadius: "12px",
-        padding: "12px 20px",
-        marginBottom: "20px",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-        flexWrap: "wrap",
-        gap: "12px"
-      }}>
+      {/* Top Navigation Tabs: Timeline vs Summary Stats & Analytics */}
+      <div className="event-details-tabs-header">
+        <div className="details-tabs-pills">
+          {videoId && (
+            <button
+              type="button"
+              className={`details-nav-tab ${activeTab === "timeline" ? "active" : ""}`}
+              onClick={() => setActiveTab("timeline")}
+            >
+              <Clock size={16} />
+              <span>Event Timeline & Feed</span>
+              <span className="details-tab-counter">{events.length}</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            className={`details-nav-tab ${activeTab === "analytics" ? "active" : ""}`}
+            onClick={() => setActiveTab("analytics")}
+          >
+            <BarChart3 size={16} />
+            <span>Summary Stats & Traffic Intelligence</span>
+            <span className="details-tab-badge">{videoId ? "Expanded" : "All CCTV Logs"}</span>
+          </button>
+        </div>
+      </div>
+
+      {activeTab === "analytics" ? (
+        <SummaryAnalyticsTab
+          runVideoId={videoId}
+          runFilename={filename}
+        />
+      ) : (
+        <>
+          {/* Unified Control & Speed Thresholds Top Bar */}
+          <div className="speed-limits-run-bar" style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: "12px",
+            padding: "12px 20px",
+            marginBottom: "20px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+            flexWrap: "wrap",
+            gap: "12px"
+          }}>
         {/* Speed Thresholds Pills */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "700", color: "#334155", fontSize: "0.875rem" }}>
@@ -308,30 +354,32 @@ function EventDetailsPage({ runFilter, onBackToVideos }) {
         alertEventsCount={alertEventsCount}
       />
 
-      {/* Batch Segregation Event Feed */}
-      <div className="events-section">
-        <div className="section-header">
-          <div className="section-title">
-            Run Event Feed & Timeline
-            <span className="event-count-badge">{filteredEvents.length} matching events</span>
-          </div>
-        </div>
+          {/* Batch Segregation Event Feed */}
+          <div className="events-section">
+            <div className="section-header">
+              <div className="section-title">
+                Run Event Feed & Timeline
+                <span className="event-count-badge">{filteredEvents.length} matching events</span>
+              </div>
+            </div>
 
-        {loading ? (
-          <div style={{ padding: "40px", textAlign: "center", color: "#94a3b8" }}>
-            Loading isolated run telemetry...
+            {loading ? (
+              <div style={{ padding: "40px", textAlign: "center", color: "#94a3b8" }}>
+                Loading isolated run telemetry...
+              </div>
+            ) : error ? (
+              <div style={{ padding: "30px", background: "rgba(239,68,68,0.1)", color: "#ef4444", borderRadius: "12px" }}>
+                {error}
+              </div>
+            ) : (
+              <BatchEventTimeline
+                events={filteredEvents}
+                onSelectEvent={(ev) => setSelectedEvent(ev)}
+              />
+            )}
           </div>
-        ) : error ? (
-          <div style={{ padding: "30px", background: "rgba(239,68,68,0.1)", color: "#ef4444", borderRadius: "12px" }}>
-            {error}
-          </div>
-        ) : (
-          <BatchEventTimeline
-            events={filteredEvents}
-            onSelectEvent={(ev) => setSelectedEvent(ev)}
-          />
-        )}
-      </div>
+        </>
+      )}
 
       {/* Report Generator Modal */}
       <ReportModal

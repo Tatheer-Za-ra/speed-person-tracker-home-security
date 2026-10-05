@@ -162,3 +162,65 @@ def event_summary():
         "status": "success",
         "summary": stats,
     }), 200
+
+
+@events_bp.route("/analytics", methods=["GET"])
+@login_required
+def event_analytics():
+    """
+    Expanded security analytics: peak rush hours, speed violations matrix,
+    hourly distribution, day of week patterns, and identity threat metrics.
+    """
+    from datetime import datetime, timedelta, date
+
+    user_id = session.get("user_id")
+    video_id = request.args.get("video_id", type=int)
+    start_date = request.args.get("start_date", type=str)
+    end_date = request.args.get("end_date", type=str)
+    preset = request.args.get("preset", type=str)
+
+    today = date.today()
+    if preset == "7d":
+        start_date = (today - timedelta(days=7)).isoformat()
+    elif preset == "30d":
+        start_date = (today - timedelta(days=30)).isoformat()
+    elif preset == "this_month":
+        start_date = date(today.year, today.month, 1).isoformat()
+
+    db = get_db_session()
+    try:
+        event_repo = EventRepository(db)
+        analytics = event_repo.get_analytics_stats(
+            user_id=user_id,
+            video_id=video_id,
+            start_date=start_date,
+            end_date=end_date,
+        )
+
+        video_meta = None
+        if video_id:
+            video_repo = VideoRepository(db)
+            v = video_repo.get_video_by_id(video_id, user_id=user_id)
+            if v:
+                video_meta = {
+                    "id": v.id,
+                    "original_filename": v.original_filename,
+                    "recording_start_time": v.recording_start_time.isoformat() if v.recording_start_time else None,
+                    "duration_seconds": v.duration_seconds,
+                }
+
+        analytics["video_meta"] = video_meta
+        analytics["filters"] = {
+            "video_id": video_id,
+            "start_date": start_date,
+            "end_date": end_date,
+            "preset": preset or "all",
+        }
+
+        return jsonify({
+            "status": "success",
+            "analytics": analytics,
+        }), 200
+    finally:
+        db.close()
+
