@@ -246,6 +246,7 @@
   text-overflow: ellipsis;
 }
 
+.metric-card .metric-value,
 .metric-value {
   font-size: 2.25rem;
   font-weight: 800;
@@ -253,14 +254,22 @@
   line-height: 1.1;
 }
 
+.metric-card .metric-value.total-val,
+.metric-value.total-val {
+  color: #2563eb;
+}
+
+.metric-card .metric-value.alert-val,
 .metric-value.alert-val {
   color: #dc2626;
 }
 
+.metric-card .metric-value.vehicle-val,
 .metric-value.vehicle-val {
   color: #0066cc;
 }
 
+.metric-card .metric-value.person-val,
 .metric-value.person-val {
   color: #059669;
 }

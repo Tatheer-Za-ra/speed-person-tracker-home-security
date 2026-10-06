@@ -60,10 +60,10 @@ function CameraCalibrationPanel() {
     try {
       const { response, data } = await applyVideoSiteCalibration(videoId);
       if (response.ok && data.status === "success") {
-        setSuccessMessage(data.message || `Activated site calibration from '${filename}' for future video runs!`);
+        setSuccessMessage(data.message || `Activated camera perspective from '${filename}' for future footage!`);
         fetchActiveConfig();
       } else {
-        setErrorMessage(data.message || "Failed to apply site calibration profile.");
+        setErrorMessage(data.message || "Failed to apply camera perspective profile.");
       }
     } catch (err) {
       console.error(err);
@@ -74,7 +74,7 @@ function CameraCalibrationPanel() {
   };
 
   const handleDeleteSiteProfile = async (videoId, filename) => {
-    if (!window.confirm(`Are you sure you want to permanently delete the site calibration map for "${filename}"?`)) {
+    if (!window.confirm(`Are you sure you want to permanently delete the perspective profile for "${filename}"?`)) {
       return;
     }
 
@@ -85,11 +85,11 @@ function CameraCalibrationPanel() {
     try {
       const { response, data } = await deleteVideoSiteCalibration(videoId);
       if (response.ok && data.status === "success") {
-        setSuccessMessage(data.message || `Permanently deleted calibration map for '${filename}'.`);
+        setSuccessMessage(data.message || `Permanently deleted perspective profile for '${filename}'.`);
         fetchActiveConfig();
         fetchCalibratedVideos();
       } else {
-        setErrorMessage(data.message || "Failed to delete site calibration map.");
+        setErrorMessage(data.message || "Failed to delete perspective profile.");
       }
     } catch (err) {
       console.error(err);
@@ -100,7 +100,7 @@ function CameraCalibrationPanel() {
   };
 
   const handleDeleteAllSiteProfiles = async () => {
-    if (!window.confirm("Are you sure you want to permanently delete ALL saved site calibration maps in your gallery?")) {
+    if (!window.confirm("Are you sure you want to permanently delete ALL saved camera perspective profiles?")) {
       return;
     }
 
@@ -111,11 +111,11 @@ function CameraCalibrationPanel() {
     try {
       const { response, data } = await deleteAllSiteCalibrations();
       if (response.ok && data.status === "success") {
-        setSuccessMessage(data.message || "Successfully deleted all saved site calibration maps!");
+        setSuccessMessage(data.message || "Successfully deleted all saved perspective profiles!");
         fetchActiveConfig();
         fetchCalibratedVideos();
       } else {
-        setErrorMessage(data.message || "Failed to delete site calibration maps.");
+        setErrorMessage(data.message || "Failed to delete perspective profiles.");
       }
     } catch (err) {
       console.error(err);
@@ -158,11 +158,11 @@ function CameraCalibrationPanel() {
       <div className="calibration-header">
         <div className="header-status-badge">
           <ShieldCheck size={14} />
-          <span>AUTOMATED AI CAMERA CALIBRATION ENGINE</span>
+          <span>CAMERA PERSPECTIVE &amp; SPEED CALIBRATION</span>
         </div>
-        <h2>Saved Site Calibration Maps & Active Account Profile</h2>
+        <h2>Saved Camera Angles &amp; Active Perspective Profiles</h2>
         <p className="calibration-desc">
-          Every uploaded CCTV video runs AI perspective profiling. Below are all saved site calibration maps for your camera locations. Select any profile to set it as the <strong>active default</strong> for future video runs.
+          Each uploaded CCTV video calibrates the camera angle for accurate speed detection. Below are saved perspective settings for your camera locations. Select any profile to make it the <strong>active default</strong> for future footage.
         </p>
       </div>
 
@@ -173,13 +173,13 @@ function CameraCalibrationPanel() {
       <div className="iso-dimensions-section" style={{ marginTop: "16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", marginBottom: "8px" }}>
           <label className="section-label" style={{ fontSize: "1rem", fontWeight: "700", display: "flex", alignItems: "center", gap: "8px", margin: 0 }}>
-            <Compass size={18} style={{ color: "#0284c7" }} /> All Saved Camera Location Maps ({calibratedVideos.length})
+            <Compass size={18} style={{ color: "#0284c7" }} /> Saved Camera Perspectives ({calibratedVideos.length})
           </label>
 
           {calibratedVideos.length > 0 && (
             <button
               type="button"
-              title="Permanently Delete All Saved Site Calibration Maps"
+              title="Permanently Delete All Saved Perspective Profiles"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -198,7 +198,7 @@ function CameraCalibrationPanel() {
               disabled={recalculating}
             >
               <Trash2 size={14} />
-              <span>Delete All Maps</span>
+              <span>Delete All Profiles</span>
             </button>
           )}
         </div>
@@ -207,9 +207,9 @@ function CameraCalibrationPanel() {
           <div className="no-calib-banner" style={{ background: "#f8fafc", border: "1px solid #e2e8f0", padding: "16px", borderRadius: "12px", display: "flex", alignItems: "flex-start", gap: "12px", marginTop: "10px" }}>
             <Info size={20} style={{ color: "#0284c7", flexShrink: 0, marginTop: "2px" }} />
             <div style={{ fontSize: "0.875rem", color: "#475569", lineHeight: "1.5" }}>
-              <strong style={{ color: "#0f172a" }}>No Site Perspective Maps Recorded Yet</strong>
+              <strong style={{ color: "#0f172a" }}>No Camera Perspective Profiles Recorded Yet</strong>
               <br />
-              When you upload a video with <strong>"[x] Optimize Precision for New Camera Location"</strong> enabled, its vanishing point crosshair, horizon line, and depth grid diagnostic map will automatically be saved and displayed here.
+              When you upload a video with <strong>"[x] Set Up Perspective for a New Camera Location"</strong> enabled, its road angle, horizon level, and distance grid settings will automatically be saved and displayed here.
             </div>
           </div>
         ) : (
@@ -262,7 +262,7 @@ function CameraCalibrationPanel() {
                       <span>Batch: <strong>Batch #{vid.batch_number ?? vid.batch_id}</strong></span>
                       <span>Camera Height: <strong>{calib.camera_height_m ?? "3.5"}m</strong></span>
                       <span>Tilt Angle: <strong>{calib.camera_tilt_deg ?? "30"}°</strong></span>
-                      <span>Vertical FOV: <strong>{calib.fov_deg ?? "55"}°</strong></span>
+                      <span>Field of View: <strong>{calib.fov_deg ?? "55"}°</strong></span>
                     </div>
                   </div>
 
@@ -291,7 +291,7 @@ function CameraCalibrationPanel() {
                       })}
                     >
                       <Compass size={16} />
-                      <span>View Site Calibration Map</span>
+                      <span>View Perspective Map</span>
                     </button>
 
                     {!isActive && (
@@ -317,13 +317,13 @@ function CameraCalibrationPanel() {
                         disabled={recalculating}
                       >
                         <Zap size={15} />
-                        <span>Apply for Future Runs</span>
+                        <span>Set as Active Perspective</span>
                       </button>
                     )}
 
                     <button
                       type="button"
-                      title="Permanently Delete Calibration Map"
+                      title="Permanently Delete Perspective Profile"
                       style={{
                         width: "100%",
                         display: "inline-flex",
@@ -344,7 +344,7 @@ function CameraCalibrationPanel() {
                       disabled={recalculating}
                     >
                       <Trash2 size={14} />
-                      <span>Delete Calibration Map</span>
+                      <span>Delete Perspective Profile</span>
                     </button>
                   </div>
                 </div>
@@ -356,7 +356,7 @@ function CameraCalibrationPanel() {
 
       <div className="calibration-footer-ai" style={{ marginTop: "24px", justifyContent: "center", textAlign: "center" }}>
         <div className="ai-footer-info" style={{ textAlign: "center", width: "100%" }}>
-          <span><strong>Zero Setup Required:</strong> Every uploaded CCTV video automatically uses AI self-calibrated velocity telemetry.</span>
+          <span><strong>Zero Setup Required:</strong> Every uploaded CCTV video automatically applies camera perspective settings for accurate vehicle speed calculations.</span>
         </div>
       </div>
     </div>

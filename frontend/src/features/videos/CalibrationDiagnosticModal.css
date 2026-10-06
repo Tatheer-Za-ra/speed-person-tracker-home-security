@@ -145,24 +145,24 @@
   border: 1px solid #334155;
 }
 
-.metric-label {
+.calib-modal-content .metric-label {
   font-size: 0.75rem;
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.metric-value {
+.calib-modal-content .metric-value {
   font-size: 0.95rem;
   font-weight: 600;
   color: #f8fafc;
 }
 
-.badge-preset {
+.calib-modal-content .badge-preset {
   color: #38bdf8;
 }
 
-.status-trained {
+.calib-modal-content .status-trained {
   color: #34d399;
   display: flex;
   align-items: center;

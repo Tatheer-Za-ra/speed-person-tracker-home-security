@@ -197,8 +197,7 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
               onClick={() => setActiveTab("timeline")}
             >
               <Clock size={16} />
-              <span>Event Timeline & Feed</span>
-              <span className="details-tab-counter">{events.length}</span>
+              <span>Event Timeline</span>
             </button>
           )}
 
@@ -208,8 +207,7 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
             onClick={() => setActiveTab("analytics")}
           >
             <BarChart3 size={16} />
-            <span>Summary Stats & Traffic Intelligence</span>
-            <span className="details-tab-badge">{videoId ? "Expanded" : "All CCTV Logs"}</span>
+            <span>Summary Stats &amp; Traffic Intelligence</span>
           </button>
         </div>
       </div>
@@ -239,7 +237,7 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
         <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: "700", color: "#334155", fontSize: "0.875rem" }}>
             <Zap size={16} style={{ color: "#d97706" }} />
-            <span>Speed Thresholds Set For This Run:</span>
+            <span>Speed Limits for This Footage:</span>
           </div>
 
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
@@ -255,27 +253,6 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
               <Truck size={14} />
               <span>Truck Limit: <strong>{runSpeedLimits.truck} km/h</strong></span>
             </span>
-            {(videoDetails?.recording_start_time || events[0]?.recording_start_time) ? (
-              <span style={{ background: "#f0f9ff", color: "#0369a1", border: "1px solid #bae6fd", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                <Clock size={14} />
-                <span>Footage Started: <strong>{formatFootageClockTime(videoDetails?.recording_start_time || events[0]?.recording_start_time, 0)}</strong></span>
-                {(videoDetails?.duration_seconds || events[0]?.duration_seconds) && (
-                  <span style={{ color: "#64748b", fontWeight: "400" }}>
-                    ({Math.floor((videoDetails?.duration_seconds || events[0]?.duration_seconds) / 60)}m {Math.floor((videoDetails?.duration_seconds || events[0]?.duration_seconds) % 60)}s)
-                  </span>
-                )}
-              </span>
-            ) : (
-              <span style={{ background: "#f8fafc", color: "#64748b", border: "1px solid #e2e8f0", padding: "4px 12px", borderRadius: "20px", fontSize: "0.8125rem", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                <Clock size={14} />
-                <span>Timeline: <strong>Relative Playback (T+00s)</strong></span>
-                {(videoDetails?.duration_seconds || events[0]?.duration_seconds) && (
-                  <span style={{ color: "#64748b", fontWeight: "400" }}>
-                    ({Math.floor((videoDetails?.duration_seconds || events[0]?.duration_seconds) / 60)}m {Math.floor((videoDetails?.duration_seconds || events[0]?.duration_seconds) % 60)}s duration)
-                  </span>
-                )}
-              </span>
-            )}
           </div>
         </div>
 
@@ -302,8 +279,8 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
             <Compass size={16} />
             <span>
               {videoDetails?.has_standalone_site_calibration
-                ? "View Site Calibration Map"
-                : "View Camera Calibration Profile"}
+                ? "Camera Perspective Map"
+                : "Camera Calibration Profile"}
             </span>
           </button>
           <button
@@ -313,7 +290,7 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
             onClick={() => setIsReportModalOpen(true)}
           >
             <FileSpreadsheet size={16} />
-            <span>Generate Security Audit Report</span>
+            <span>Generate Incident Audit Report</span>
           </button>
         </div>
       </div>
@@ -322,16 +299,14 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
       <div className="metrics-grid">
         <div className="metric-card">
           <div className="metric-title">TOTAL EVENTS</div>
-          <div className="metric-value">{events.length}</div>
-          <div className="metric-subtext" title={filename ? filename : `Video #${videoId}`}>
-            Video: {filename ? filename : `Video #${videoId}`}
-          </div>
+          <div className="metric-value total-val">{events.length}</div>
+          <div className="metric-subtext">All events in this footage</div>
         </div>
 
         <div className="metric-card alert-card">
           <div className="metric-title">SECURITY ALERTS</div>
           <div className="metric-value alert-val">{alertEventsCount}</div>
-          <div className="metric-subtext">Speeding & unknown face alerts</div>
+          <div className="metric-subtext">Speeding & unrecognized visitor alerts</div>
         </div>
 
         <div className="metric-card">
@@ -347,7 +322,7 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
           <div className="metric-value person-val">
             {events.filter((e) => e.label === "person").length}
           </div>
-          <div className="metric-subtext">Pedestrians & recognized faces</div>
+          <div className="metric-subtext">Residents & detected visitors</div>
         </div>
       </div>
 
@@ -367,14 +342,13 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
           <div className="events-section">
             <div className="section-header">
               <div className="section-title">
-                Run Event Feed & Timeline
-                <span className="event-count-badge">{filteredEvents.length} matching events</span>
+                Recorded Events &amp; Timeline
               </div>
             </div>
 
             {loading ? (
               <div style={{ padding: "40px", textAlign: "center", color: "#94a3b8" }}>
-                Loading isolated run telemetry...
+                Loading detected events and speed telemetry...
               </div>
             ) : error ? (
               <div style={{ padding: "30px", background: "rgba(239,68,68,0.1)", color: "#ef4444", borderRadius: "12px" }}>
@@ -384,6 +358,8 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
               <BatchEventTimeline
                 events={filteredEvents}
                 onSelectEvent={(ev) => setSelectedEvent(ev)}
+                videoDurationSeconds={videoDetails?.duration_seconds || events[0]?.duration_seconds}
+                isFiltered={filteredEvents.length !== events.length}
               />
             )}
           </div>

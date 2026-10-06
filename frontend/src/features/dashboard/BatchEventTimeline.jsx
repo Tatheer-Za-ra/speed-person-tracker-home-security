@@ -1,10 +1,18 @@
 // frontend/src/features/dashboard/BatchEventTimeline.jsx
 
 import React, { useMemo } from "react";
-import { Clock } from "lucide-react";
+import { Clock, Video, Gauge, CheckCircle2, AlertTriangle, UserCheck, UserX } from "lucide-react";
 import { normalizeCategory } from "./FilterBar";
 
 const API_HOST = "http://localhost:5000";
+
+export function formatMMSS(seconds) {
+  if (seconds === undefined || seconds === null) return "00:00";
+  const secNum = Math.floor(parseFloat(seconds) || 0);
+  const mins = Math.floor(secNum / 60);
+  const secs = secNum % 60;
+  return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
 
 export function formatTimestamp(seconds) {
   if (seconds === undefined || seconds === null) return "00s";
@@ -63,14 +71,14 @@ export function formatFootageClockTime(calculatedTimestamp, timestampSeconds, re
   }
 
   // Fallback if no start time is available (Relative Elapsed Time)
-  return `T+${formatTimestamp(timestampSeconds)}`;
+  return `+${formatTimestamp(timestampSeconds)}`;
 }
 
 /**
  * Batch Event Segregation Timeline Component
  * Groups filtered security events by Video ID / Video Name, rendering distinct video sections.
  */
-function BatchEventTimeline({ events, onSelectEvent }) {
+function BatchEventTimeline({ events, onSelectEvent, videoDurationSeconds, isFiltered }) {
   // Group events by video_title / video filename
   const eventsByVideo = useMemo(() => {
     const map = new Map();
@@ -105,22 +113,27 @@ function BatchEventTimeline({ events, onSelectEvent }) {
       {eventsByVideo.map(([videoTitle, videoEvents]) => {
         const firstEv = videoEvents[0] || {};
         const videoStartTime = firstEv.recording_start_time;
+        const durSec = videoDurationSeconds || firstEv.duration_seconds || videoEvents.find(e => e.duration_seconds)?.duration_seconds;
+        const durationFormatted = durSec ? `(${Math.floor(durSec / 60)}m ${Math.floor(durSec % 60)}s duration)` : "";
 
         return (
           <div key={videoTitle} className="video-batch-section">
             {/* Distinct Video Section Header */}
             <div className="video-section-header">
               <div className="video-title-info">
-                <span className="video-badge">📹 {videoTitle}</span>
+                <span className="video-badge" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                  <Video size={14} />
+                  <span>{videoTitle}</span>
+                </span>
                 {videoStartTime ? (
                   <span className="video-time-pill" title="Footage Recording Start Time">
                     <Clock size={13} />
-                    <span>Footage Started: {formatFootageClockTime(videoStartTime, 0)}</span>
+                    <span>Recorded: {formatFootageClockTime(videoStartTime, 0)} {durationFormatted}</span>
                   </span>
                 ) : (
-                  <span className="video-time-pill" title="Footage Recording Start Time Unknown — Relative Playback Timeline" style={{ background: "#f8fafc", borderColor: "#cbd5e1", color: "#475569" }}>
-                    <Clock size={13} style={{ color: "#64748b" }} />
-                    <span>Relative Playback (T+00s)</span>
+                  <span className="video-time-pill" title="Video Runtime" style={{ background: "#f8fafc", borderColor: "#cbd5e1", color: "#475569" }}>
+                    <Clock size={13} style={{ color: "#0284c7" }} />
+                    <span>Video Timeline: 00:00 – {durSec ? formatMMSS(durSec) : "End"} {durationFormatted}</span>
                   </span>
                 )}
                 <span className="video-subtext">
@@ -169,8 +182,9 @@ function BatchEventTimeline({ events, onSelectEvent }) {
                       </div>
 
                       {meta.estimated_speed_kmh !== undefined && (
-                        <div className={`speed-badge-top ${isOverspeed ? "overspeed" : ""}`}>
-                          ⚡ {meta.estimated_speed_kmh} km/h
+                        <div className={`speed-badge-top ${isOverspeed ? "overspeed" : ""}`} style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                          <Gauge size={13} />
+                          <span>{meta.estimated_speed_kmh} km/h</span>
                         </div>
                       )}
                     </div>
@@ -178,22 +192,59 @@ function BatchEventTimeline({ events, onSelectEvent }) {
                     <div className="event-details-body">
                       <div className="event-main-header">
                         <span className="event-type-name">
-                          {normCategory.toUpperCase()} #{ev.track_id ?? ev.id}
+                          {normCategory.toUpperCase()}
                         </span>
-                        <span className="event-relative-tag" title="Video Elapsed Offset">
-                          +{formatTimestamp(ev.timestamp_seconds)}
-                        </span>
+                        {/* Only show separate offset tag if real-world recording start time exists */}
+                        {ev.recording_start_time && (
+                          <span className="event-relative-tag" title="Video Elapsed Offset">
+                            +{formatTimestamp(ev.timestamp_seconds)}
+                          </span>
+                        )}
                       </div>
 
-                      {/* Calculated Real-World Footage Clock Timestamp */}
-                      <div className={`event-clock-time-badge ${isAlert ? "alert-time" : ""}`} title="Calculated CCTV Footage Clock Time">
+                      {/* Real-World CCTV Footage Clock Time or Video Elapsed Time */}
+                      <div className={`event-clock-time-badge ${isAlert ? "alert-time" : ""}`} title={videoStartTime ? "Calculated CCTV Footage Clock Time" : "Video Playback Time"}>
                         <Clock size={14} className="clock-icon" style={{ color: isAlert ? "#dc2626" : "#0284c7" }} />
-                        <span className="clock-time-text">{clockTimeStr}</span>
+                        <span className="clock-time-text">
+                          {videoStartTime ? clockTimeStr : `Video Timer: ${formatMMSS(ev.timestamp_seconds)} (${formatTimestamp(ev.timestamp_seconds)})`}
+                        </span>
                       </div>
 
+                      {/* Clean security details (replaces redundant class and raw ML confidence) */}
                       <div className="event-meta-row">
-                        <span>Raw: {ev.label}</span>
-                        <span>Conf: {ev.confidence ? `${(ev.confidence * 100).toFixed(0)}%` : "N/A"}</span>
+                        {ev.label === "person" ? (
+                          meta.face_match_status === "known" ? (
+                            <span style={{ color: "#059669", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                              <UserCheck size={14} />
+                              <span>Resident: {meta.known_person_name || `#${meta.known_person_id || "Verified"}`}</span>
+                            </span>
+                          ) : (
+                            <span style={{ color: "#e11d48", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                              <UserX size={14} />
+                              <span>Unrecognized Visitor</span>
+                            </span>
+                          )
+                        ) : (
+                          <>
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                              <Gauge size={13} style={{ color: "#64748b" }} />
+                              <span>Limit: <strong>{meta.speed_limit_kmh ?? 30} km/h</strong></span>
+                            </span>
+                            <span style={{ color: isOverspeed ? "#dc2626" : "#16a34a", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                              {isOverspeed ? (
+                                <>
+                                  <AlertTriangle size={13} />
+                                  <span>Over Limit</span>
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle2 size={13} />
+                                  <span>Within Limit</span>
+                                </>
+                              )}
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

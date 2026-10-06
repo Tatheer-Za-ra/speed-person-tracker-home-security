@@ -133,31 +133,7 @@ export default function SummaryAnalyticsTab({ runVideoId, runFilename, onSelectH
         )}
 
         {/* Date Presets: Active when viewing All CCTV Logs */}
-        {scope === "single" && runVideoId ? (
-          <div className="single-run-info-pill">
-            <Film size={14} style={{ color: "#0284c7" }} />
-            <span>Analyzing Video: <strong>{runFilename ? runFilename : `#${runVideoId}`}</strong></span>
-            {analytics?.video_meta?.recording_start_time ? (
-              <span className="single-run-time-tag">
-                Clock Time: {new Date(analytics.video_meta.recording_start_time).toLocaleDateString()}
-              </span>
-            ) : (
-              <span className="single-run-time-tag relative">
-                Standard Video Time
-              </span>
-            )}
-            <button
-              type="button"
-              className="refresh-analytics-btn"
-              onClick={loadAnalytics}
-              title="Refresh statistics"
-              style={{ marginLeft: "8px" }}
-            >
-              <RefreshCw size={13} className={loading ? "spin" : ""} />
-              <span>Refresh</span>
-            </button>
-          </div>
-        ) : (
+        {scope !== "single" && (
           <div className="analytics-presets-row">
             <div className="preset-buttons">
               <button
