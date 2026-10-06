@@ -383,15 +383,21 @@ function VideoUploadPage({ onNavigateToRun }) {
         />
       )}
 
+      {/* Left Card: Upload & Timing Configuration */}
       <div className="videos-card">
-        <h2>Upload Security Videos</h2>
+        <div className="videos-card-header-block">
+          <h2>Upload Security Footage</h2>
+          <p className="videos-subtitle">
+            Upload residential CCTV recordings to detect vehicles, verify residents, and measure driveway speeds.
+          </p>
+        </div>
 
         {message && <p className={`message ${messageType}`}>{message}</p>}
 
         <form onSubmit={handleUpload}>
           <div className="videos-field">
             <label className="videos-label">
-              Select one or more CCTV videos (.mp4, .avi, .mov, .mkv) <span className="required-asterisk">*</span>
+              Select Video Files (.mp4, .avi, .mov, .mkv) <span className="required-asterisk">*</span>
             </label>
 
             <div className="custom-file-upload-wrapper">
@@ -413,7 +419,7 @@ function VideoUploadPage({ onNavigateToRun }) {
                 <span className="file-upload-text">
                   {selectedFiles.length > 0
                     ? `${selectedFiles.length} video file(s) selected`
-                    : "Choose CCTV video files"}
+                    : "Choose CCTV Video Files"}
                 </span>
               </label>
             </div>
@@ -423,12 +429,12 @@ function VideoUploadPage({ onNavigateToRun }) {
           {selectedFiles.length > 1 && (
             <div className="footage-timing-card">
               <div className="footage-timing-header">
-                <Clock size={18} style={{ color: "#0284c7" }} />
-                <span className="footage-timing-title">How were these videos recorded?</span>
+                <Clock size={17} style={{ color: "#0284c7" }} />
+                <span className="footage-timing-title">Footage Recording Mode</span>
               </div>
 
               <p className="footage-timing-desc">
-                Tell us if these files are continuous parts of one recording or separate clips.
+                Choose how these files relate to each other on the timeline:
               </p>
 
               {/* Batch Timing Mode Selector */}
@@ -445,7 +451,7 @@ function VideoUploadPage({ onNavigateToRun }) {
                     {isContinuous && <CheckCircle2 size={15} style={{ color: "#0284c7" }} />}
                   </div>
                   <span className="batch-mode-desc">
-                    Parts of one long recording. Set when Video #1 started, and the next videos will automatically continue the timeline.
+                    Files belong to one recording. Set when Clip #1 started, and subsequent clips will automatically chain in order.
                   </span>
                 </div>
 
@@ -461,7 +467,7 @@ function VideoUploadPage({ onNavigateToRun }) {
                     {!isContinuous && <CheckCircle2 size={15} style={{ color: "#0284c7" }} />}
                   </div>
                   <span className="batch-mode-desc">
-                    Different times, days, or camera angles. Set the start time for each clip individually.
+                    Recorded at different times, days, or camera angles. Set the recording time for each clip individually.
                   </span>
                 </div>
               </div>
@@ -513,9 +519,7 @@ function VideoUploadPage({ onNavigateToRun }) {
                           <div className="continuous-chained-note">
                             <Link2 size={14} style={{ color: "#0284c7", flexShrink: 0 }} />
                             <span>
-                              {unknownTimeMap[0]
-                                ? "Sequential: Continues automatically from Video #1"
-                                : "Sequential: Starts @ Video #1 Start time + It's Duration"}
+                              Continuous timeline: Starts automatically when previous clip ends
                             </span>
                           </div>
                         </div>
@@ -528,10 +532,10 @@ function VideoUploadPage({ onNavigateToRun }) {
                               <div className="card-unknown-time-content">
                                 <div className="card-unknown-time-title">
                                   <Clock size={15} style={{ color: "#0284c7", flexShrink: 0 }} />
-                                  <span>Time Unknown &bull; <strong>Using Video Timer</strong></span>
+                                  <span>Using Video Elapsed Time</span>
                                 </div>
                                 <p className="card-unknown-time-desc">
-                                  No problem! Detections, speed alerts, and logs will show the video running time (e.g. <strong>00:15</strong>) instead of clock time.
+                                  Events and speed alerts will show video runtime (e.g. <strong>00:15</strong>) instead of clock time.
                                 </p>
                               </div>
 
@@ -554,10 +558,10 @@ function VideoUploadPage({ onNavigateToRun }) {
                                 <span className="file-timing-label">
                                   <Clock size={14} style={{ color: "#0284c7" }} />
                                   {selectedFiles.length > 1 && isContinuous
-                                    ? "Video #1 Start Time:"
+                                    ? "Clip #1 Recording Time:"
                                     : selectedFiles.length > 1
-                                    ? `Video #${index + 1} Start Time:`
-                                    : "Recording Start Time:"}
+                                    ? `Clip #${index + 1} Recording Time:`
+                                    : "Recording Date & Time:"}
                                 </span>
 
                                 <FootageDateTimePicker
@@ -607,10 +611,10 @@ function VideoUploadPage({ onNavigateToRun }) {
               />
               <div className="checkbox-text">
                 <span className="checkbox-title">
-                  Calibrate for New Camera Angle (Site Auto-Calibration)
+                  First-Time Camera Angle Setup
                 </span>
                 <span className="checkbox-desc">
-                  First time using footage from this camera? Turn this on to automatically calibrate distance and speed for this perspective.
+                  First time using footage from this camera? Turn this on to optimize real-world distance and vehicle speed accuracy for this angle.
                 </span>
               </div>
             </label>
@@ -624,96 +628,110 @@ function VideoUploadPage({ onNavigateToRun }) {
             {isUploading ? (
               <>
                 <Loader2 size={16} className="spin-icon" />
-                <span>Uploading Batch...</span>
+                <span>Uploading Footage...</span>
               </>
             ) : isProcessingBatch ? (
               <>
                 <Loader2 size={16} className="spin-icon" />
-                <span>Processing in Progress...</span>
+                <span>Analysis in Progress...</span>
               </>
             ) : (
-              "Upload & Start Processing"
+              "Upload & Analyze Footage"
             )}
           </button>
         </form>
       </div>
 
+      {/* Right Card: Footage Library & Analysis Status */}
       <div className="videos-card">
-        <h2>Uploaded Videos & Status</h2>
+        <div className="videos-card-header-block">
+          <h2>Footage Library &amp; Status</h2>
+          <p className="videos-subtitle">
+            Review analysis status, detected vehicle speeds, and security events.
+          </p>
+        </div>
 
         {videos.length === 0 ? (
-          <p>No videos uploaded yet.</p>
+          <div className="empty-videos-state">
+            <FileVideo size={36} className="empty-videos-icon" />
+            <p className="empty-title">No security footage uploaded yet</p>
+            <span className="empty-desc">
+              Select CCTV video files on the left to begin speed tracking and visitor verification.
+            </span>
+          </div>
         ) : (
           <div className="video-list">
             {videos.map((video) => {
               const statusLower = (video.status || "").toLowerCase();
               const isCompleted = statusLower === "completed";
               const isProcessing = statusLower === "processing" || statusLower === "queued";
+              const isFailed = statusLower === "failed";
               const progressPct = video.progress_percent ?? (isCompleted ? 100 : isProcessing ? 15 : 0);
 
               return (
                 <div key={video.id} className="video-item-wrapper">
                   <div className="video-item">
-                    <p className="video-title">
-                      <strong>{video.original_filename}</strong>
-                    </p>
-
-                    <p className="video-meta">
-                      Status:{" "}
+                    {/* Top Row: File Name on left, Status Badge on right */}
+                    <div className="video-item-top-row">
+                      <div className="video-title">
+                        <FileVideo size={16} className="video-file-icon" />
+                        <strong>{video.original_filename}</strong>
+                      </div>
                       <span className={getStatusClass(video.status)}>
-                        {video.status || "unknown"}
+                        {isProcessing ? "Analyzing..." : video.status || "Unknown"}
                       </span>
-                    </p>
+                    </div>
 
-                    {video.recording_start_time ? (
-                      <p className="video-meta" style={{ display: "flex", alignItems: "center", gap: "6px", color: "#0369a1", fontWeight: "600" }}>
-                        <Clock size={13} />
-                        <span>Footage Start: {formatFootageDateTime(video.recording_start_time)}</span>
-                        {video.duration_seconds && (
-                          <span style={{ color: "#64748b", fontWeight: "400", marginLeft: "4px" }}>
-                            ({Math.floor(video.duration_seconds / 60)}m {Math.floor(video.duration_seconds % 60)}s duration)
-                          </span>
-                        )}
-                      </p>
-                    ) : (
-                      <p className="video-meta" style={{ display: "flex", alignItems: "center", gap: "6px", color: "#64748b" }}>
-                        <Clock size={13} />
-                        <span>Footage Timing: <em>Relative Playback (T+00s)</em></span>
-                        {video.duration_seconds && (
-                          <span style={{ color: "#64748b", fontWeight: "400", marginLeft: "4px" }}>
-                            ({Math.floor(video.duration_seconds / 60)}m {Math.floor(video.duration_seconds % 60)}s duration)
-                          </span>
-                        )}
-                      </p>
-                    )}
+                    {/* Timing & Duration Information */}
+                    <div className="video-timing-meta">
+                      {video.recording_start_time ? (
+                        <span className="timing-pill">
+                          <Clock size={13} />
+                          <span>Recorded: {formatFootageDateTime(video.recording_start_time)}</span>
+                          {video.duration_seconds && (
+                            <span className="timing-duration">
+                              ({Math.floor(video.duration_seconds / 60)}m {Math.floor(video.duration_seconds % 60)}s)
+                            </span>
+                          )}
+                        </span>
+                      ) : (
+                        <span className="timing-pill neutral">
+                          <Clock size={13} />
+                          <span>Timeline: Starts at 00:00</span>
+                          {video.duration_seconds && (
+                            <span className="timing-duration">
+                              ({Math.floor(video.duration_seconds / 60)}m {Math.floor(video.duration_seconds % 60)}s)
+                            </span>
+                          )}
+                        </span>
+                      )}
+                    </div>
 
-                    {!isProcessing && video.message && (
-                      <p className="video-meta" style={{ fontSize: "0.8125rem" }}>
+                    {/* Show error explanation only when failed */}
+                    {isFailed && video.message && (
+                      <p className="video-error-message">
                         {video.message}
                       </p>
                     )}
 
                     {/* Dynamic Real-Time Frame Processing Progress Bar */}
                     {isProcessing && (
-                      <div className="processing-progress-box" style={{ marginTop: "12px", background: "#f8fafc", padding: "10px 14px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                          <span style={{ fontSize: "0.8125rem", fontWeight: "600", color: "#0284c7", display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                            <Loader2 size={14} style={{ animation: "spin 1.2s linear infinite" }} />
-                            <span>{video.message || "AI Frame Processing & Tracking..."}</span>
+                      <div className="processing-progress-box">
+                        <div className="progress-status-row">
+                          <span className="progress-status-text">
+                            <Loader2 size={14} className="spin-icon" />
+                            <span>{video.message || "Analyzing footage & tracking vehicles..."}</span>
                           </span>
-                          <span style={{ fontSize: "0.8125rem", fontWeight: "700", color: "#0369a1" }}>
+                          <span className="progress-pct-text">
                             {progressPct}%
                           </span>
                         </div>
 
-                        <div style={{ width: "100%", height: "8px", background: "#cbd5e1", borderRadius: "10px", overflow: "hidden" }}>
-                          <div style={{
-                            width: `${Math.max(6, progressPct)}%`,
-                            height: "100%",
-                            background: "linear-gradient(90deg, #0284c7 0%, #059669 100%)",
-                            borderRadius: "10px",
-                            transition: "width 0.5s ease-in-out"
-                          }} />
+                        <div className="progress-bar-track">
+                          <div
+                            className="progress-bar-fill"
+                            style={{ width: `${Math.max(6, progressPct)}%` }}
+                          />
                         </div>
                       </div>
                     )}
@@ -722,46 +740,46 @@ function VideoUploadPage({ onNavigateToRun }) {
                   {/* Post-Processing Action Panel */}
                   {isCompleted && (
                     <div className="post-processing-action-card">
-                      <div className="action-card-header" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <Zap size={15} style={{ color: "#059669" }} />
-                        <span>Processing Finished — Post-Run Actions</span>
+                      <div className="action-card-header">
+                        <CheckCircle2 size={15} style={{ color: "#059669" }} />
+                        <span>Analysis Complete — Review Results</span>
                       </div>
 
-                      <div className="action-buttons-group" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                      <div className="action-buttons-group">
                         <button
                           type="button"
                           className="action-btn details-btn"
-                          style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
                           onClick={() =>
                             onNavigateToRun &&
                             onNavigateToRun(video.id, "events", video.original_filename)
                           }
+                          title="Inspect all detected vehicles, speed readings, and people"
                         >
                           <Eye size={14} />
-                          <span>Event Details</span>
+                          <span>View Events</span>
                         </button>
 
                         <button
                           type="button"
                           className="action-btn summary-btn"
-                          style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
                           onClick={() =>
                             onNavigateToRun &&
                             onNavigateToRun(video.id, "summary", video.original_filename)
                           }
+                          title="View overall vehicle count, peak speed, and hourly charts"
                         >
                           <BarChart2 size={14} />
-                          <span>Run Summary</span>
+                          <span>Analytics Summary</span>
                         </button>
 
                         <button
                           type="button"
                           className="action-btn alerts-btn"
-                          style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
                           onClick={() =>
                             onNavigateToRun &&
                             onNavigateToRun(video.id, "alerts", video.original_filename)
                           }
+                          title="Review driveway speed violations and unrecognized visitor alerts"
                         >
                           <ShieldAlert size={14} />
                           <span>Security Alerts</span>
@@ -770,12 +788,12 @@ function VideoUploadPage({ onNavigateToRun }) {
                         {(video.calibration_diagnostic_url || video.site_calibration) && (
                           <button
                             type="button"
-                            className="calib-map-btn"
-                            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+                            className="action-btn calib-btn"
                             onClick={() => setActiveCalibVideo(video)}
+                            title="View road horizon calibration and camera perspective angles"
                           >
                             <Compass size={14} />
-                            <span>View Site Calibration Map</span>
+                            <span>Perspective Map</span>
                           </button>
                         )}
                       </div>
