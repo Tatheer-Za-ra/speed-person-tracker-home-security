@@ -138,45 +138,54 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
 
   if (!videoId) {
     return (
-      <div className="dashboard-container" style={{ padding: "40px", textAlign: "center" }}>
-        <h2>No Active Video Processing Session</h2>
-        <p style={{ color: "#94a3b8", margin: "12px 0 24px" }}>
-          The Event Details page strictly displays telemetry for a completed video processing run. Please upload a video first.
-        </p>
-        <button type="button" className="primary-button" onClick={onBackToVideos}>
-          <ArrowLeft size={16} style={{ marginRight: "6px" }} /> Go to Video Upload Page
-        </button>
+      <div className="dashboard-container">
+        <div className="global-analytics-header" style={{ marginBottom: "20px" }}>
+          <h1 style={{ display: "flex", alignItems: "center", gap: "10px", margin: "0 0 6px", fontSize: "1.65rem", color: "#0f172a" }}>
+            <BarChart3 size={28} style={{ color: "#0066cc" }} />
+            <span>Traffic Flow &amp; Peak Rush Analytics</span>
+          </h1>
+          <p style={{ margin: 0, color: "#64748b", fontSize: "0.9375rem" }}>
+            Comprehensive neighborhood velocity statistics, peak rush hour detection, vehicle classification, and multi-day trend analysis across all CCTV footage.
+          </p>
+        </div>
+
+        <SummaryAnalyticsTab
+          runVideoId={null}
+          runFilename={null}
+        />
       </div>
     );
   }
 
   return (
     <div className="dashboard-container">
-      {/* Top Left Clean Back Link */}
-      <div style={{ display: "flex", justifyContent: "flex-start", width: "100%", marginBottom: "-6px" }}>
-        <button
-          type="button"
-          onClick={handleBack}
-          style={{
-            background: "none",
-            border: "none",
-            padding: 0,
-            cursor: "pointer",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            color: "#475569",
-            fontSize: "0.875rem",
-            fontWeight: "600",
-            transition: "color 0.2s ease"
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#0066cc")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#475569")}
-        >
-          <ArrowLeft size={16} />
-          <span>{runFilter?.sourcePage === "logs" ? "Back to Event Logs" : "Back to Upload Sessions"}</span>
-        </button>
-      </div>
+      {/* Optional secondary source back button */}
+      {runFilter?.sourcePage === "logs" && (
+        <div style={{ display: "flex", justifyContent: "flex-start", width: "100%", marginBottom: "14px" }}>
+          <button
+            type="button"
+            onClick={handleBack}
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              color: "#64748b",
+              fontSize: "0.8125rem",
+              fontWeight: "500",
+              transition: "color 0.2s ease"
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#0066cc")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}
+          >
+            <ArrowLeft size={13} />
+            <span>Return to Video Logs</span>
+          </button>
+        </div>
+      )}
 
       {/* Top Navigation Tabs: Timeline vs Summary Stats & Analytics */}
       <div className="event-details-tabs-header">

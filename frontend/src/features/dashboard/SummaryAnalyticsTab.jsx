@@ -128,7 +128,7 @@ export default function SummaryAnalyticsTab({ runVideoId, runFilename, onSelectH
         ) : (
           <div className="global-scope-pill">
             <Globe size={16} style={{ color: "#0284c7" }} />
-            <span>All Video Logs History</span>
+            <span>All CCTV Scope (All Video Runs)</span>
           </div>
         )}
 
@@ -330,7 +330,7 @@ export default function SummaryAnalyticsTab({ runVideoId, runFilename, onSelectH
               <div>
                 <h3 className="card-heading" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                   <Clock size={18} style={{ color: "#0284c7" }} />
-                  <span>24-Hour Activity & Peak Rush Hours</span>
+                  <span>Hourly Activity &amp; Peak Rush Hours (24h Flow)</span>
                 </h3>
                 <p className="card-subheading">
                   Hourly activity throughout the day. Hover over any bar to view vehicle, pedestrian, and speeding details.

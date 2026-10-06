@@ -1,6 +1,6 @@
 // frontend/src/App.jsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./App.css";
 import { getCurrentUser, logoutUser } from "./api/authApi";
 import AuthPage from "./features/auth/AuthPage";
@@ -12,33 +12,138 @@ import LogHistoryPage from "./features/logs/LogHistoryPage";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 
+// Helper: Parse URL parameters into route state
+function parseUrlState() {
+  const params = new URLSearchParams(window.location.search);
+  const pageParam = params.get("page");
+  const tabParam = params.get("tab");
+  const videoIdParam = params.get("video_id");
+  const modeParam = params.get("mode");
+  const filenameParam = params.get("filename");
+  const sourcePageParam = params.get("source");
+
+  let page = pageParam || "dashboard";
+  let tab = tabParam || "persons";
+  let runFilter = null;
+
+  if (page === "analytics") {
+    page = "event-details";
+    runFilter = { videoId: null, mode: "summary", filename: null, sourcePage: sourcePageParam || "home" };
+  } else if (page === "event-details") {
+    runFilter = {
+      videoId: videoIdParam ? Number(videoIdParam) : null,
+      mode: modeParam || "events",
+      filename: filenameParam || null,
+      sourcePage: sourcePageParam || null,
+    };
+  }
+
+  return { page, tab, runFilter };
+}
+
+// Helper: Build URL string from route state
+function buildUrl(page, tab, runFilter) {
+  if (!page || page === "dashboard") {
+    return window.location.pathname;
+  }
+  const params = new URLSearchParams();
+  if (page === "event-details" && !runFilter?.videoId) {
+    params.set("page", "analytics");
+    if (runFilter?.sourcePage) params.set("source", runFilter.sourcePage);
+  } else {
+    params.set("page", page);
+    if (page === "config" && tab) {
+      params.set("tab", tab);
+    }
+    if (page === "event-details" && runFilter) {
+      if (runFilter.videoId) params.set("video_id", String(runFilter.videoId));
+      if (runFilter.mode) params.set("mode", runFilter.mode);
+      if (runFilter.filename) params.set("filename", runFilter.filename);
+      if (runFilter.sourcePage) params.set("source", runFilter.sourcePage);
+    }
+  }
+  const q = params.toString();
+  return q ? `${window.location.pathname}?${q}` : window.location.pathname;
+}
+
 function App() {
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [currentPage, setCurrentPage] = useState(() => {
-    return localStorage.getItem("currentPage") || "dashboard";
+    const urlState = parseUrlState();
+    return urlState.page || localStorage.getItem("currentPage") || "dashboard";
   });
   const [configTab, setConfigTab] = useState(() => {
-    return localStorage.getItem("configTab") || "persons";
+    const urlState = parseUrlState();
+    return urlState.tab || localStorage.getItem("configTab") || "persons";
+  });
+  const [currentRunFilter, setCurrentRunFilter] = useState(() => {
+    const urlState = parseUrlState();
+    return urlState.runFilter;
   });
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Isolated Run Filter state: { videoId: int|null, mode: 'events'|'summary'|'alerts', filename: string }
-  const [currentRunFilter, setCurrentRunFilter] = useState(null);
+  // Unified navigation function that synchronizes with browser history
+  const navigateTo = useCallback((targetPage, options = {}) => {
+    const resolvedTab = options.tab !== undefined ? options.tab : (targetPage === "config" ? configTab : null);
+    const resolvedFilter = options.runFilter !== undefined ? options.runFilter : (targetPage === "event-details" ? currentRunFilter : null);
+    const replace = Boolean(options.replace);
 
-  const handleNavigateToConfig = (tab) => {
-    const targetTab = tab || configTab || "persons";
-    setConfigTab(targetTab);
-    localStorage.setItem("configTab", targetTab);
-    setCurrentPage("config");
-  };
+    const targetUrl = buildUrl(targetPage, resolvedTab, resolvedFilter);
+    const stateData = {
+      page: targetPage,
+      tab: resolvedTab,
+      runFilter: resolvedFilter,
+    };
 
+    const currentFullSearch = window.location.search;
+    const isSameLocation = targetUrl === `${window.location.pathname}${currentFullSearch}`;
+
+    if (!isSameLocation) {
+      if (replace) {
+        window.history.replaceState(stateData, "", targetUrl);
+      } else {
+        window.history.pushState(stateData, "", targetUrl);
+      }
+    }
+
+    setCurrentPage(targetPage);
+    if (resolvedTab) {
+      setConfigTab(resolvedTab);
+      localStorage.setItem("configTab", resolvedTab);
+    }
+    setCurrentRunFilter(resolvedFilter);
+    localStorage.setItem("currentPage", targetPage);
+  }, [configTab, currentRunFilter]);
+
+  // Synchronize initial URL with browser history on mount
   useEffect(() => {
-    localStorage.setItem("configTab", configTab);
-  }, [configTab]);
+    const initial = parseUrlState();
+    const stateData = {
+      page: initial.page,
+      tab: initial.tab,
+      runFilter: initial.runFilter,
+    };
+    window.history.replaceState(stateData, "", window.location.href);
+  }, []);
 
+  // Browser Navigation: Listen to native browser Back and Forward buttons (popstate)
   useEffect(() => {
-    localStorage.setItem("currentPage", currentPage);
-  }, [currentPage]);
+    const handlePopState = (event) => {
+      const state = event.state || parseUrlState();
+      const resolvedPage = state.page || "dashboard";
+      const resolvedTab = state.tab || "persons";
+      const resolvedFilter = state.runFilter || null;
+
+      setCurrentPage(resolvedPage);
+      setConfigTab(resolvedTab);
+      setCurrentRunFilter(resolvedFilter);
+      localStorage.setItem("currentPage", resolvedPage);
+      localStorage.setItem("configTab", resolvedTab);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   useEffect(() => {
     const restoreSession = async () => {
@@ -64,17 +169,22 @@ function App() {
       console.error("Logout failed:", error);
     }
     setLoggedInUser(null);
-    setCurrentPage("dashboard");
+    navigateTo("dashboard", { runFilter: null, replace: true });
+  };
+
+  const handleNavigateToConfig = (tab) => {
+    const targetTab = tab || configTab || "persons";
+    navigateTo("config", { tab: targetTab });
   };
 
   const handleNavigateToRun = (videoId, mode, filename) => {
-    setCurrentRunFilter({ videoId, mode, filename });
-    setCurrentPage("event-details");
+    navigateTo("event-details", {
+      runFilter: { videoId, mode, filename },
+    });
   };
 
   const handleResetRunFilter = () => {
-    setCurrentRunFilter(null);
-    setCurrentPage("dashboard");
+    navigateTo("dashboard", { runFilter: null });
   };
 
   if (authLoading) {
@@ -93,7 +203,7 @@ function App() {
       <AuthPage
         onLoginSuccess={(user) => {
           setLoggedInUser(user);
-          setCurrentPage("dashboard");
+          navigateTo("dashboard", { runFilter: null, replace: true });
         }}
       />
     );
@@ -104,7 +214,7 @@ function App() {
       {/* Sleek Horizontal Header Navigation Bar */}
       <Header
         currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
+        setCurrentPage={(page) => navigateTo(page)}
         onNavigateToConfig={handleNavigateToConfig}
         onResetRunFilter={handleResetRunFilter}
         currentRunFilter={currentRunFilter}
@@ -119,27 +229,31 @@ function App() {
             currentRunFilter={currentRunFilter}
             onResetRunFilter={handleResetRunFilter}
             onNavigateToRun={handleNavigateToRun}
-            onNavigateToPage={setCurrentPage}
+            onNavigateToPage={(page) => navigateTo(page)}
             onNavigateToConfig={handleNavigateToConfig}
           />
         ) : currentPage === "config" ? (
-          <ConfigurationPage initialTab={configTab} />
+          <ConfigurationPage
+            initialTab={configTab}
+            onTabChange={(tab) => navigateTo("config", { tab })}
+          />
         ) : currentPage === "videos" ? (
           <VideoUploadPage onNavigateToRun={handleNavigateToRun} />
         ) : currentPage === "logs" ? (
           <LogHistoryPage
             onNavigateToRun={handleNavigateToRun}
-            onNavigateToUpload={() => setCurrentPage("videos")}
+            onNavigateToUpload={() => navigateTo("videos")}
             onNavigateToAnalytics={() => {
-              setCurrentRunFilter({ videoId: null, mode: "summary", filename: null, sourcePage: "logs" });
-              setCurrentPage("event-details");
+              navigateTo("event-details", {
+                runFilter: { videoId: null, mode: "summary", filename: null, sourcePage: "logs" },
+              });
             }}
           />
         ) : (
           <EventDetailsPage
             runFilter={currentRunFilter}
-            onBackToVideos={() => setCurrentPage("videos")}
-            onBackToLogs={() => setCurrentPage("logs")}
+            onBackToVideos={() => navigateTo("videos")}
+            onBackToLogs={() => navigateTo("logs")}
           />
         )}
       </main>

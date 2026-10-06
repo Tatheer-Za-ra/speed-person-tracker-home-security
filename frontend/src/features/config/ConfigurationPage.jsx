@@ -1,7 +1,7 @@
 // frontend/src/features/config/ConfigurationPage.jsx
 
 import React, { useState } from "react";
-import { Zap, Car, Bike, Truck, Settings } from "lucide-react";
+import { Zap, Car, Bike, Truck, Settings, UserCheck, Gauge, HardDrive } from "lucide-react";
 import KnownPersonsPage from "../known-persons/KnownPersonsPage";
 import SpeedConfigModal from "../dashboard/SpeedConfigModal";
 import RetentionConfigPanel from "./RetentionConfigPanel";
@@ -9,15 +9,14 @@ import CameraCalibrationPanel from "./CameraCalibrationPanel";
 import { fetchSpeedThresholds } from "../../api/configApi";
 import "./ConfigurationPage.css";
 
-function ConfigurationPage({ initialTab }) {
+function ConfigurationPage({ initialTab, onTabChange }) {
   const [activeTab, setActiveTab] = useState(() => {
     return initialTab || localStorage.getItem("configTab") || "persons";
   });
 
   React.useEffect(() => {
-    if (initialTab) {
+    if (initialTab && initialTab !== activeTab) {
       setActiveTab(initialTab);
-      localStorage.setItem("configTab", initialTab);
     }
   }, [initialTab]);
 
@@ -42,8 +41,45 @@ function ConfigurationPage({ initialTab }) {
     loadSpeedThresholds();
   }, []);
 
+  const handleSelectTab = (tab) => {
+    setActiveTab(tab);
+    if (onTabChange) {
+      onTabChange(tab);
+    }
+  };
+
   return (
     <div className="config-page-container">
+      {/* Configuration Sub-Tab Switcher Bar */}
+      <div className="config-tab-bar">
+        <button
+          type="button"
+          className={`config-tab-btn ${activeTab === "persons" ? "active" : ""}`}
+          onClick={() => handleSelectTab("persons")}
+        >
+          <UserCheck size={16} />
+          <span>Known Persons</span>
+        </button>
+
+        <button
+          type="button"
+          className={`config-tab-btn ${activeTab === "speed" ? "active" : ""}`}
+          onClick={() => handleSelectTab("speed")}
+        >
+          <Gauge size={16} />
+          <span>Speed Configuration</span>
+        </button>
+
+        <button
+          type="button"
+          className={`config-tab-btn ${activeTab === "retention" ? "active" : ""}`}
+          onClick={() => handleSelectTab("retention")}
+        >
+          <HardDrive size={16} />
+          <span>Data Retention</span>
+        </button>
+      </div>
+
       {/* Sub-Tab Content Rendering */}
       {activeTab === "persons" ? (
         <div className="config-tab-content">

@@ -252,8 +252,8 @@ function WorkflowSteps() {
                     <Clock size={16} />
                   </div>
                   <div className="outcome-content">
-                    <span className="outcome-title">24-Hour Peak Rush Updated</span>
-                    <span className="outcome-desc">Hourly traffic flow &amp; violation distribution</span>
+                    <span className="outcome-title">Peak Rush &amp; Traffic Trends</span>
+                    <span className="outcome-desc">Hourly traffic flow &amp; multi-day trend analytics</span>
                   </div>
                 </div>
 

@@ -226,24 +226,24 @@ function CapabilitiesGrid({
             </div>
           </motion.div>
 
-          {/* CARD 4: 24-Hour Peak Rush Analytics */}
+          {/* CARD 4: Peak Rush & Traffic Flow Analytics */}
           <motion.div
             className="capability-card"
             variants={cardVariants}
             onClick={onNavigateToAnalytics}
-            title="Click to explore 24-hour peak rush analytics"
+            title="Click to explore peak rush and traffic analytics across all CCTV logs"
           >
             {/* Top Bar: Icon Left + Title Right */}
             <div className="cap-top-bar">
               <div className="cap-icon-box cyan">
                 <BarChart3 size={24} />
               </div>
-              <h3 className="cap-card-title">24-Hour Peak Rush Analytics</h3>
+              <h3 className="cap-card-title">Peak Rush &amp; Traffic Flow Analytics</h3>
             </div>
 
             {/* Explanatory text starting right below the icon across full width */}
             <p className="cap-card-desc">
-              Discover when your street is busiest and pinpoint peak traffic hours with dynamic hourly flow distributions.
+              Pinpoint peak traffic rush hours, measure velocity patterns, and analyze hourly distributions across all CCTV history, past 7 days, or custom dates.
             </p>
 
             {/* Spacious Visual Viewport: Dark-Mode Peak Rush Analytics Graph */}
@@ -281,7 +281,7 @@ function CapabilitiesGrid({
             {/* Section Link Text Footer */}
             <div className="cap-link-footer">
               <span className="cap-link-text cyan">
-                <span>Explore Peak Rush Analytics</span>
+                <span>Explore Traffic &amp; Peak Rush Stats</span>
                 <ArrowRight size={15} className="link-arrow" />
               </span>
             </div>
