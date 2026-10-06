@@ -48,7 +48,7 @@ const TypewriterHero = () => {
         <span className="blinking-cursor">|</span>
       </h1>
       <p className="hero-subtitle">
-        Advanced AI that tracks vehicle speeds and identifies unknown persons on your property in real-time.
+        Transforms recorded residential CCTV footage into frame-by-frame vehicle velocity tracking, resident verification, and formal incident audit reports.
       </p>
       <button className="hero-cta-button">Upload Surveillance Footage</button>
     </div>

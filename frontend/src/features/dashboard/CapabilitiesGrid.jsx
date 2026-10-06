@@ -81,7 +81,7 @@ function CapabilitiesGrid({
             {/* Top Bar: Icon Left + Title Right */}
             <div className="cap-top-bar">
               <div className="cap-icon-box blue">
-                <Gauge size={24} />
+                <Gauge size={20} />
               </div>
               <h3 className="cap-card-title">Driveway Speed &amp; Safety</h3>
             </div>
@@ -119,7 +119,7 @@ function CapabilitiesGrid({
             <div className="cap-link-footer">
               <span className="cap-link-text blue">
                 <span>Configure Speed Limits</span>
-                <ArrowRight size={15} className="link-arrow" />
+                <ArrowRight size={13} className="link-arrow" />
               </span>
             </div>
           </motion.div>
@@ -134,7 +134,7 @@ function CapabilitiesGrid({
             {/* Top Bar: Icon Left + Title Right */}
             <div className="cap-top-bar">
               <div className="cap-icon-box green">
-                <UserCheck size={24} />
+                <UserCheck size={20} />
               </div>
               <h3 className="cap-card-title">Family &amp; Resident Verification</h3>
             </div>
@@ -170,7 +170,7 @@ function CapabilitiesGrid({
             <div className="cap-link-footer">
               <span className="cap-link-text green">
                 <span>Manage Known Persons</span>
-                <ArrowRight size={15} className="link-arrow" />
+                <ArrowRight size={13} className="link-arrow" />
               </span>
             </div>
           </motion.div>
@@ -185,7 +185,7 @@ function CapabilitiesGrid({
             {/* Top Bar: Icon Left + Title Right */}
             <div className="cap-top-bar">
               <div className="cap-icon-box amber">
-                <ClipboardList size={24} />
+                <ClipboardList size={20} />
               </div>
               <h3 className="cap-card-title">Comprehensive Event &amp; Audit Logs</h3>
             </div>
@@ -221,7 +221,7 @@ function CapabilitiesGrid({
             <div className="cap-link-footer">
               <span className="cap-link-text amber">
                 <span>View All Event Logs</span>
-                <ArrowRight size={15} className="link-arrow" />
+                <ArrowRight size={13} className="link-arrow" />
               </span>
             </div>
           </motion.div>
@@ -236,7 +236,7 @@ function CapabilitiesGrid({
             {/* Top Bar: Icon Left + Title Right */}
             <div className="cap-top-bar">
               <div className="cap-icon-box cyan">
-                <BarChart3 size={24} />
+                <BarChart3 size={20} />
               </div>
               <h3 className="cap-card-title">Peak Rush &amp; Traffic Flow Analytics</h3>
             </div>
@@ -282,7 +282,7 @@ function CapabilitiesGrid({
             <div className="cap-link-footer">
               <span className="cap-link-text cyan">
                 <span>Explore Traffic &amp; Peak Rush Stats</span>
-                <ArrowRight size={15} className="link-arrow" />
+                <ArrowRight size={13} className="link-arrow" />
               </span>
             </div>
           </motion.div>
@@ -297,7 +297,7 @@ function CapabilitiesGrid({
             {/* Top Bar: Icon Left + Title Right */}
             <div className="cap-top-bar">
               <div className="cap-icon-box indigo">
-                <FileText size={24} />
+                <FileText size={20} />
               </div>
               <h3 className="cap-card-title">Printable Incident Audit Reports</h3>
             </div>
@@ -334,7 +334,7 @@ function CapabilitiesGrid({
             <div className="cap-link-footer">
               <span className="cap-link-text indigo">
                 <span>Generate System Audit Report</span>
-                <ArrowRight size={15} className="link-arrow" />
+                <ArrowRight size={13} className="link-arrow" />
               </span>
             </div>
           </motion.div>
@@ -349,7 +349,7 @@ function CapabilitiesGrid({
             {/* Top Bar: Icon Left + Title Right */}
             <div className="cap-top-bar">
               <div className="cap-icon-box purple">
-                <Lock size={24} />
+                <Lock size={20} />
               </div>
               <h3 className="cap-card-title">Zero-Cloud Privacy &amp; Retention</h3>
             </div>
@@ -381,7 +381,7 @@ function CapabilitiesGrid({
             <div className="cap-link-footer">
               <span className="cap-link-text purple">
                 <span>Manage Retention &amp; Storage</span>
-                <ArrowRight size={15} className="link-arrow" />
+                <ArrowRight size={13} className="link-arrow" />
               </span>
             </div>
           </motion.div>

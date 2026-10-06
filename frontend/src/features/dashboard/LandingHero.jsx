@@ -14,8 +14,8 @@ function LandingHero({ onNavigateToUpload, onNavigateToConfig, onNavigateToLogs,
 
   const phrases = useMemo(() => [
     "Precision Speed Telemetry.",
-    "Automated Security Alerts.",
-    "Advanced Person Recognition."
+    "Formal Incident Audits.",
+    "Resident & Visitor Recognition."
   ], []);
 
   useEffect(() => {
@@ -87,7 +87,7 @@ function LandingHero({ onNavigateToUpload, onNavigateToConfig, onNavigateToLogs,
           >
             <motion.div className="hero-badge" variants={itemVariants}>
               <Shield className="badge-icon" size={16} />
-              <span>AI Surveillance Command Center</span>
+              <span>Local Residential Vision Intelligence</span>
             </motion.div>
 
             <motion.h1 className="hero-headline" variants={itemVariants}>
@@ -97,7 +97,7 @@ function LandingHero({ onNavigateToUpload, onNavigateToConfig, onNavigateToLogs,
             </motion.h1>
 
             <motion.p className="hero-subheadline" variants={itemVariants}>
-              Advanced AI that tracks vehicle speeds and identifies unknown persons on your property in real-time with automated security reports.
+              Transforms recorded residential CCTV footage into frame-by-frame vehicle velocity tracking, resident verification, and formal incident audit reports.
             </motion.p>
 
             <motion.div className="hero-actions" variants={itemVariants}>

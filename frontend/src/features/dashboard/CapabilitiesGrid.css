@@ -2,12 +2,14 @@
 
 .capabilities-section {
   width: 100%;
-  padding: 68px 24px 80px;
+  padding: 32px 20px 36px;
   background-color: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
 }
 
 .capabilities-container {
-  max-width: 1360px;
+  max-width: 1240px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -19,13 +21,13 @@
 .capabilities-eyebrow-wrapper {
   display: inline-flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 14px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 .cap-eyebrow-line {
   height: 2px;
-  width: 44px;
+  width: 32px;
 }
 
 .cap-eyebrow-line.left {
@@ -37,9 +39,9 @@
 }
 
 .capabilities-eyebrow {
-  font-size: 0.8125rem;
+  font-size: 0.725rem;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   color: #0284c7;
   text-transform: uppercase;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -47,28 +49,28 @@
 
 /* Headline & Subtitle */
 .capabilities-headline {
-  font-size: 2.45rem;
+  font-size: 1.65rem;
   font-weight: 800;
   color: #0f172a;
   line-height: 1.25;
   letter-spacing: -0.03em;
-  margin: 0 0 14px;
-  max-width: 840px;
+  margin: 0 0 6px;
+  max-width: 740px;
 }
 
 .capabilities-subheadline {
-  font-size: 1.05rem;
-  line-height: 1.6;
+  font-size: 0.825rem;
+  line-height: 1.45;
   color: #64748b;
-  max-width: 740px;
-  margin: 0 0 48px;
+  max-width: 620px;
+  margin: 0 0 22px;
 }
 
 /* 3x2 Grid */
 .capabilities-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 28px;
+  gap: 16px;
   width: 100%;
   align-items: stretch;
 }
@@ -79,20 +81,20 @@
 .capability-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  padding: 24px;
+  border-radius: 14px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   text-align: left;
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02);
+  box-shadow: 0 3px 14px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02);
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   cursor: pointer;
   position: relative;
 }
 
 .capability-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 18px 40px -6px rgba(15, 23, 42, 0.1), 0 4px 14px -2px rgba(15, 23, 42, 0.04);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.08), 0 3px 10px -2px rgba(15, 23, 42, 0.03);
   border-color: #cbd5e1;
 }
 
@@ -100,20 +102,20 @@
 .cap-top-bar {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 12px;
-  min-height: 52px;
+  gap: 10px;
+  margin-bottom: 6px;
+  min-height: 38px;
 }
 
 .cap-icon-box {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
 }
 
 .cap-icon-box.blue { background: #eff6ff; border: 1px solid #dbeafe; color: #2563eb; }
@@ -124,7 +126,7 @@
 .cap-icon-box.purple { background: #faf5ff; border: 1px solid #f3e8ff; color: #9333ea; }
 
 .cap-card-title {
-  font-size: 1.18rem;
+  font-size: 0.98rem;
   font-weight: 800;
   color: #0f172a;
   letter-spacing: -0.02em;
@@ -134,11 +136,11 @@
 
 /* Row 2: Explanatory text starting right below the icon across full width - wraps in 3 lines uniformly */
 .cap-card-desc {
-  font-size: 0.835rem;
-  line-height: 1.45;
+  font-size: 0.775rem;
+  line-height: 1.35;
   color: #475569;
-  margin: 0 0 16px 0;
-  height: 3.7rem;
+  margin: 0 0 8px 0;
+  height: 2.85rem;
   overflow: hidden;
   width: 100%;
 }
@@ -149,8 +151,9 @@
 .cap-viewport {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10.5;
-  border-radius: 14px;
+  aspect-ratio: 16 / 9;
+  max-height: 155px;
+  border-radius: 8px;
   overflow: hidden;
   background: #0f172a;
   border: 1px solid #e2e8f0;
@@ -294,7 +297,7 @@
 /* Card 4: Analytics Chart Viewport */
 .rush-chart-viewport {
   background: #090d16;
-  padding: 16px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -311,12 +314,12 @@
 .rush-highlight-banner {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: rgba(8, 145, 178, 0.18);
   border: 1px solid rgba(8, 145, 178, 0.4);
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.76rem;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.68rem;
   color: #38bdf8;
   width: fit-content;
 }
@@ -326,44 +329,44 @@
 .rush-bars-row {
   display: flex;
   align-items: flex-end;
-  gap: 8px;
-  height: 95px;
-  padding: 0 4px;
+  gap: 6px;
+  height: 58px;
+  padding: 0 2px;
   border-bottom: 1px solid #1e293b;
 }
 
 .mini-bar {
   flex: 1;
   background: #1e293b;
-  border-radius: 4px 4px 0 0;
+  border-radius: 3px 3px 0 0;
   transition: all 0.2s ease;
   position: relative;
 }
 
 .mini-bar.active-peak {
   background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
 }
 
 .bar-peak-badge {
   position: absolute;
-  top: -18px;
+  top: -15px;
   left: 50%;
   transform: translateX(-50%);
   background: #0284c7;
   color: #fff;
-  font-size: 0.58rem;
+  font-size: 0.52rem;
   font-weight: 700;
-  padding: 1px 4px;
-  border-radius: 3px;
+  padding: 1px 3px;
+  border-radius: 2px;
 }
 
 .rush-time-labels {
   display: flex;
   justify-content: space-between;
-  font-size: 0.68rem;
+  font-size: 0.6rem;
   color: #64748b;
-  padding-top: 4px;
+  padding-top: 3px;
 }
 
 .rush-time-labels .active-label {
@@ -374,7 +377,7 @@
 /* Card 5: PDF Document Viewport */
 .report-doc-viewport {
   background: #0f172a;
-  padding: 16px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -383,19 +386,19 @@
 .mini-report-doc {
   background: #1e293b;
   border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 16px;
+  border-radius: 8px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  gap: 8px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
 }
 
 .report-doc-top {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.82rem;
+  gap: 6px;
+  font-size: 0.72rem;
   font-weight: 700;
   color: #f1f5f9;
 }
@@ -405,13 +408,13 @@
 .report-doc-lines {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 5px;
 }
 
 .doc-skeleton-line {
-  height: 6px;
+  height: 5px;
   background: #334155;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
 .doc-skeleton-line.wide { width: 92%; }
@@ -422,17 +425,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 4px;
+  padding-top: 2px;
 }
 
 .doc-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.7rem;
+  gap: 4px;
+  font-size: 0.62rem;
   font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 6px;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 .doc-badge.green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
@@ -441,7 +444,7 @@
 /* Card 6: Storage Viewport */
 .storage-hub-viewport {
   background: #0f172a;
-  padding: 18px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -450,26 +453,26 @@
 .storage-trust-chips-wrap {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   width: 100%;
 }
 
 .trust-chip-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   background: rgba(30, 41, 59, 0.7);
   border: 1px solid #334155;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 0.82rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.72rem;
   font-weight: 700;
   color: #f1f5f9;
   transition: transform 0.15s ease;
 }
 
 .trust-chip-item:hover {
-  transform: translateX(3px);
+  transform: translateX(2px);
   background: rgba(30, 41, 59, 0.9);
 }
 
@@ -481,7 +484,7 @@
    ROW 4: SECTION LINK TEXT FOOTER
 ========================================================= */
 .cap-link-footer {
-  margin-top: 14px;
+  margin-top: 8px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -490,8 +493,8 @@
 .cap-link-text {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.86rem;
+  gap: 5px;
+  font-size: 0.76rem;
   font-weight: 700;
   transition: color 0.15s ease;
 }
@@ -508,7 +511,7 @@
 }
 
 .capability-card:hover .link-arrow {
-  transform: translateX(4px);
+  transform: translateX(3px);
 }
 
 /* =========================================================

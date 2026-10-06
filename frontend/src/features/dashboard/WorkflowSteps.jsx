@@ -73,10 +73,12 @@ function WorkflowSteps() {
           {/* STEP 1: Upload Security Footage */}
           <motion.div className="workflow-step-card" variants={cardVariants}>
             <div className="step-card-header">
-              <div className="step-badge">1</div>
-              <h3 className="step-title">Upload Security Footage</h3>
+              <div className="step-title-row">
+                <div className="step-badge">1</div>
+                <h3 className="step-title">Upload Security Footage</h3>
+              </div>
               <p className="step-desc">
-                Upload your residential CCTV footage. HavenTrack automatically configures your camera’s perspective and road angle to guarantee accurate, real-world speed measurements.
+                Upload your residential CCTV footage. HavenTrack automatically locks road horizon and camera angle for accurate speed tracking.
               </p>
             </div>
 
@@ -117,7 +119,7 @@ function WorkflowSteps() {
                 <div className="viewport-overlay-bottom">
                   <span className="calib-status-chip">
                     <CheckCircle2 size={13} className="chip-icon green" />
-                    <span>Smart Camera Calibration</span>
+                    <span>Smart Calibration</span>
                   </span>
                   <span className="calib-baseline-tag">15m Baseline</span>
                 </div>
@@ -133,10 +135,12 @@ function WorkflowSteps() {
           {/* STEP 2: Speed Tracking & Identity Check */}
           <motion.div className="workflow-step-card" variants={cardVariants}>
             <div className="step-card-header">
-              <div className="step-badge">2</div>
-              <h3 className="step-title">Speed Tracking & Identity Check</h3>
+              <div className="step-title-row">
+                <div className="step-badge">2</div>
+                <h3 className="step-title">Speed Tracking &amp; Identity Check</h3>
+              </div>
               <p className="step-desc">
-                Our intelligent vision engine tracks vehicle speeds frame-by-frame against your neighborhood limit, while smart facial recognition accurately separates family from unknown visitors.
+                Vision engine evaluates vehicle speeds against neighborhood limits, while face recognition verifies family from unknown visitors.
               </p>
             </div>
 
