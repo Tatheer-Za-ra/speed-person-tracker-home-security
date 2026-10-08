@@ -720,7 +720,18 @@ function VideoUploadPage({ onNavigateToRun }) {
                         <div className="progress-status-row">
                           <span className="progress-status-text">
                             <Loader2 size={14} className="spin-icon" />
-                            <span>{video.message || "Analyzing footage & tracking vehicles..."}</span>
+                            <span>
+                              {(() => {
+                                const msg = video.message || "Processing video...";
+                                if (/processing video/i.test(msg)) {
+                                  return "Processing video...";
+                                }
+                                return msg
+                                  .replace(/\s*\d+%\s*/g, " ")
+                                  .replace(/\(\d+\/\d+\s*frames\)/gi, "")
+                                  .trim();
+                              })()}
+                            </span>
                           </span>
                           <span className="progress-pct-text">
                             {progressPct}%

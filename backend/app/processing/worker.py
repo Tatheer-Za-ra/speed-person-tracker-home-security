@@ -113,7 +113,7 @@ class ProcessingWorker:
 
                 def on_progress(pct, current_f, total_f):
                     try:
-                        queued_log.message = f"Processing video... {pct}% ({current_f}/{total_f} frames)"
+                        queued_log.message = "Processing video..."
                         db.commit()
                     except Exception:
                         pass

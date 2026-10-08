@@ -67,11 +67,62 @@ def update_speed_thresholds():
         record = repo.set_threshold_for_user(user_id, category, limit_val)
         updated[category] = float(record.limit_kmh)
 
+    # Automatically synchronize existing vehicle events with updated thresholds
+    sync_events_with_speed_thresholds(db, user_id=user_id)
+
     return jsonify({
         "status": "success",
         "message": "Speed thresholds updated successfully.",
         "thresholds": repo.get_threshold_map(user_id)
     }), 200
+
+
+def sync_events_with_speed_thresholds(db, user_id=None):
+    """
+    Updates existing vehicle events for user_id to reflect active speed thresholds.
+    Ensures speed_limit_kmh, speed_status, and is_alert are recalculated accurately.
+    """
+    from app.models import Event, Video, UploadBatch
+    from app.repositories import SpeedThresholdRepository
+    import json
+
+    repo = SpeedThresholdRepository(db)
+    target_user_id = user_id if user_id is not None else 1
+    thresholds = repo.get_threshold_map(target_user_id)
+    if not thresholds:
+        return 0
+
+    query = db.query(Event).filter(Event.label.in_(["car", "motorcycle", "truck"]))
+    if user_id is not None:
+        query = query.join(Video, Event.video_id == Video.id).join(UploadBatch, Video.batch_id == UploadBatch.id).filter(UploadBatch.user_id == user_id)
+
+    events = query.all()
+    updated_count = 0
+    for ev in events:
+        if ev.label not in thresholds:
+            continue
+        lim = float(thresholds[ev.label])
+        meta = {}
+        if ev.metadata_json:
+            try:
+                meta = json.loads(ev.metadata_json)
+            except Exception:
+                meta = {}
+
+        meta["speed_limit_kmh"] = lim
+        spd = float(meta.get("estimated_speed_kmh") or 0.0)
+        if spd > 0:
+            is_overspeed = (spd > lim)
+            meta["speed_status"] = "OVERSPEED" if is_overspeed else "NORMAL"
+            ev.is_alert = is_overspeed
+        ev.metadata_json = json.dumps(meta)
+        updated_count += 1
+
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+    return updated_count
 
 
 def get_camera_calibration_config(db, user_id=None):

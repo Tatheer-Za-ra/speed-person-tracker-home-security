@@ -23,7 +23,7 @@ import { formatTimestamp, formatFootageClockTime, formatMMSS } from "./BatchEven
 
 const API_HOST = "http://localhost:5000";
 
-function SnapshotModal({ event, onClose }) {
+function SnapshotModal({ event, onClose, speedThresholds }) {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape" && event) {
@@ -166,41 +166,54 @@ function SnapshotModal({ event, onClose }) {
                     </span>
                     <span className="meta-val">{meta.max_speed_kmh ?? meta.estimated_speed_kmh} km/h</span>
                   </div>
-                  <div className="meta-item">
-                    <span className="meta-label" style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
-                      <Sliders size={14} />
-                      <span>Speed Limit</span>
-                    </span>
-                    <span className="meta-val">{meta.speed_limit_kmh ?? 30} km/h</span>
-                  </div>
-                  <div className="meta-item">
-                    <span className="meta-label" style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
-                      {meta.speed_status === "OVERSPEED" ? <AlertTriangle size={14} style={{ color: "#ef4444" }} /> : <CheckCircle2 size={14} style={{ color: "#10b981" }} />}
-                      <span>Speed Status</span>
-                    </span>
-                    <span
-                      className="meta-val"
-                      style={{
-                        fontWeight: "700",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "5px",
-                        color: meta.speed_status === "OVERSPEED" ? "#ef4444" : "#10b981",
-                      }}
-                    >
-                      {meta.speed_status === "OVERSPEED" ? (
-                        <>
-                          <AlertTriangle size={14} />
-                          <span>Speeding ({meta.estimated_speed_kmh > (meta.speed_limit_kmh ?? 30) ? `+${(meta.estimated_speed_kmh - (meta.speed_limit_kmh ?? 30)).toFixed(0)} km/h` : "Above Limit"})</span>
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 size={14} />
-                          <span>Within Speed Limit</span>
-                        </>
-                      )}
-                    </span>
-                  </div>
+                  {(() => {
+                    const displayLimit = (speedThresholds && event.label && speedThresholds[event.label])
+                      ? Number(speedThresholds[event.label])
+                      : (meta.speed_limit_kmh ?? (event.label === "motorcycle" ? 45 : 30));
+                    const isOverspeed = meta.estimated_speed_kmh !== undefined
+                      ? (parseFloat(meta.estimated_speed_kmh) > displayLimit)
+                      : (meta.speed_status === "OVERSPEED");
+
+                    return (
+                      <>
+                        <div className="meta-item">
+                          <span className="meta-label" style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                            <Sliders size={14} />
+                            <span>Speed Limit</span>
+                          </span>
+                          <span className="meta-val">{displayLimit} km/h</span>
+                        </div>
+                        <div className="meta-item">
+                          <span className="meta-label" style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                            {isOverspeed ? <AlertTriangle size={14} style={{ color: "#ef4444" }} /> : <CheckCircle2 size={14} style={{ color: "#10b981" }} />}
+                            <span>Speed Status</span>
+                          </span>
+                          <span
+                            className="meta-val"
+                            style={{
+                              fontWeight: "700",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "5px",
+                              color: isOverspeed ? "#ef4444" : "#10b981",
+                            }}
+                          >
+                            {isOverspeed ? (
+                              <>
+                                <AlertTriangle size={14} />
+                                <span>Speeding ({meta.estimated_speed_kmh > displayLimit ? `+${(meta.estimated_speed_kmh - displayLimit).toFixed(0)} km/h` : "Above Limit"})</span>
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle2 size={14} />
+                                <span>Within Speed Limit</span>
+                              </>
+                            )}
+                          </span>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </>
             )}

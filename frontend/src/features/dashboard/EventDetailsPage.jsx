@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Zap, Car, Bike, Truck, FileSpreadsheet, ArrowLeft, Compass, Clock, BarChart3 } from "lucide-react";
 import { fetchEvents } from "../../api/eventsApi";
 import { listAllVideoLogs } from "../../api/videoApi";
+import { fetchSpeedThresholds } from "../../api/configApi";
 import FilterBar, { normalizeCategory } from "./FilterBar";
 import BatchEventTimeline, { formatFootageClockTime } from "./BatchEventTimeline";
 import SnapshotModal from "./SnapshotModal";
@@ -16,6 +17,11 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [videoDetails, setVideoDetails] = useState(null);
+  const [speedThresholds, setSpeedThresholds] = useState({
+    car: 30.0,
+    motorcycle: 45.0,
+    truck: 25.0,
+  });
 
   // Filters & Modals
   const [activeTab, setActiveTab] = useState(() => {
@@ -72,6 +78,20 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
     loadRunEvents();
   }, [videoId]);
 
+  useEffect(() => {
+    const loadThresholds = async () => {
+      try {
+        const { response, data } = await fetchSpeedThresholds();
+        if (response.ok && data?.status === "success" && data?.thresholds) {
+          setSpeedThresholds(data.thresholds);
+        }
+      } catch (err) {
+        console.error("Could not fetch speed thresholds:", err);
+      }
+    };
+    loadThresholds();
+  }, []);
+
   const handleOpenCalibModal = async () => {
     if (!videoDetails && videoId) {
       try {
@@ -126,7 +146,11 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
 
   // Extract exact speed limits applied during this video run
   const runSpeedLimits = useMemo(() => {
-    const limits = { car: 30, motorcycle: 40, truck: 25 };
+    const limits = {
+      car: speedThresholds.car ?? 30,
+      motorcycle: speedThresholds.motorcycle ?? 45,
+      truck: speedThresholds.truck ?? 25,
+    };
     events.forEach((ev) => {
       const meta = ev.metadata || {};
       if (ev.label && meta.speed_limit_kmh) {
@@ -134,7 +158,7 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
       }
     });
     return limits;
-  }, [events]);
+  }, [events, speedThresholds]);
 
   if (!videoId) {
     return (
@@ -152,6 +176,7 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
         <SummaryAnalyticsTab
           runVideoId={null}
           runFilename={null}
+          speedThresholds={speedThresholds}
         />
       </div>
     );
@@ -216,6 +241,7 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
         <SummaryAnalyticsTab
           runVideoId={videoId}
           runFilename={filename}
+          speedThresholds={speedThresholds}
         />
       ) : (
         <>
@@ -360,6 +386,7 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
                 onSelectEvent={(ev) => setSelectedEvent(ev)}
                 videoDurationSeconds={videoDetails?.duration_seconds || events[0]?.duration_seconds}
                 isFiltered={filteredEvents.length !== events.length}
+                speedThresholds={speedThresholds}
               />
             )}
           </div>
@@ -376,7 +403,11 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
 
       {/* Snapshot Lightbox Inspection Modal */}
       {selectedEvent && (
-        <SnapshotModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+        <SnapshotModal
+          event={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+          speedThresholds={speedThresholds}
+        />
       )}
 
       {/* Site Calibration Map Lightbox Modal */}

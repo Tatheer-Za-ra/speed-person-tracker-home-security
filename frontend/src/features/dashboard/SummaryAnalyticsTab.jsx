@@ -24,6 +24,7 @@ import {
   Info
 } from "lucide-react";
 import { fetchEventAnalytics } from "../../api/eventsApi";
+import { fetchSpeedThresholds } from "../../api/configApi";
 import "./SummaryAnalyticsTab.css";
 
 function formatHourLabel(h) {
@@ -32,7 +33,7 @@ function formatHourLabel(h) {
   return `${displayHour} ${ampm}`;
 }
 
-export default function SummaryAnalyticsTab({ runVideoId, runFilename, onSelectHourFilter }) {
+export default function SummaryAnalyticsTab({ runVideoId, runFilename, onSelectHourFilter, speedThresholds: propSpeedThresholds }) {
   // Scope: "single" (this run) vs "global" (all CCTV logs)
   const [scope, setScope] = useState(runVideoId ? "single" : "global");
   const [preset, setPreset] = useState("all");
@@ -41,6 +42,21 @@ export default function SummaryAnalyticsTab({ runVideoId, runFilename, onSelectH
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [analytics, setAnalytics] = useState(null);
+  const [localSpeedThresholds, setLocalSpeedThresholds] = useState(propSpeedThresholds || null);
+
+  useEffect(() => {
+    if (propSpeedThresholds) {
+      setLocalSpeedThresholds(propSpeedThresholds);
+      return;
+    }
+    fetchSpeedThresholds()
+      .then(({ response, data }) => {
+        if (response.ok && data?.status === "success" && data?.thresholds) {
+          setLocalSpeedThresholds(data.thresholds);
+        }
+      })
+      .catch((err) => console.error("Could not fetch speed thresholds in analytics:", err));
+  }, [propSpeedThresholds]);
 
   // Active highlighted hour from chart hover or click
   const [hoveredHour, setHoveredHour] = useState(null);
@@ -451,6 +467,9 @@ export default function SummaryAnalyticsTab({ runVideoId, runFilename, onSelectH
                   const Icon = item.category === "motorcycle" ? Bike : item.category === "truck" ? Truck : Car;
                   const overspeedPct = item.total > 0 ? Math.round((item.overspeed / item.total) * 100) : 0;
                   const isViolationHigh = overspeedPct > 40;
+                  const activeCatLimit = (localSpeedThresholds && localSpeedThresholds[item.category])
+                    ? localSpeedThresholds[item.category]
+                    : (item.limit ?? (item.category === "motorcycle" ? 45 : 30));
 
                   return (
                     <div key={item.category} className="vehicle-cat-card">
@@ -461,7 +480,7 @@ export default function SummaryAnalyticsTab({ runVideoId, runFilename, onSelectH
                           </span>
                           <div>
                             <span className="cat-name">{item.category.toUpperCase()}</span>
-                            <span className="cat-limit">Limit: <strong>{item.limit} km/h</strong></span>
+                            <span className="cat-limit">Limit: <strong>{activeCatLimit} km/h</strong></span>
                           </div>
                         </div>
 

@@ -250,10 +250,25 @@ class EventRepository:
 
         daily_timeline = {}
 
+        effective_user_id = user_id
+        if effective_user_id is None and video_id:
+            vid_obj = self.db.query(Video).filter(Video.id == video_id).first()
+            if vid_obj and vid_obj.batch_id:
+                batch_obj = self.db.query(UploadBatch).filter(UploadBatch.id == vid_obj.batch_id).first()
+                if batch_obj:
+                    effective_user_id = batch_obj.user_id
+
+        user_thresholds = {}
+        try:
+            st_repo = SpeedThresholdRepository(self.db)
+            user_thresholds = st_repo.get_threshold_map(effective_user_id or 1)
+        except Exception:
+            user_thresholds = {}
+
         vehicle_categories = {
-            "car": {"category": "car", "total": 0, "overspeed": 0, "speeds": [], "max_speed": 0.0, "avg_speed": 0.0, "limit": 30.0},
-            "motorcycle": {"category": "motorcycle", "total": 0, "overspeed": 0, "speeds": [], "max_speed": 0.0, "avg_speed": 0.0, "limit": 40.0},
-            "truck": {"category": "truck", "total": 0, "overspeed": 0, "speeds": [], "max_speed": 0.0, "avg_speed": 0.0, "limit": 25.0},
+            "car": {"category": "car", "total": 0, "overspeed": 0, "speeds": [], "max_speed": 0.0, "avg_speed": 0.0, "limit": float(user_thresholds.get("car", 30.0))},
+            "motorcycle": {"category": "motorcycle", "total": 0, "overspeed": 0, "speeds": [], "max_speed": 0.0, "avg_speed": 0.0, "limit": float(user_thresholds.get("motorcycle", 45.0))},
+            "truck": {"category": "truck", "total": 0, "overspeed": 0, "speeds": [], "max_speed": 0.0, "avg_speed": 0.0, "limit": float(user_thresholds.get("truck", 25.0))},
         }
 
         severity_counts = {
@@ -345,7 +360,7 @@ class EventRepository:
                 cat_info["total"] += 1
 
                 spd = float(meta.get("estimated_speed_kmh") or 0.0)
-                lim = float(meta.get("speed_limit_kmh") or cat_info["limit"])
+                lim = float(user_thresholds.get(vcat) or meta.get("speed_limit_kmh") or cat_info["limit"])
                 cat_info["limit"] = lim
 
                 if spd > 0:
@@ -580,18 +595,24 @@ class VideoRepository:
                 if e.is_alert or (e.label == "person" and (json.loads(e.metadata_json or "{}")).get("face_match_status") != "known")
             )
 
-            run_thresholds = {"car": 30.0, "motorcycle": 40.0, "truck": 25.0}
+            user_st_records = {}
             batch = self.db.query(UploadBatch).filter(UploadBatch.id == v.batch_id).first()
             if batch:
                 st_records = self.db.query(SpeedThreshold).filter(SpeedThreshold.user_id == batch.user_id).all()
                 for rec in st_records:
-                    run_thresholds[rec.vehicle_category] = float(rec.limit_kmh)
+                    user_st_records[rec.vehicle_category] = float(rec.limit_kmh)
+
+            run_thresholds = {
+                "car": user_st_records.get("car", 30.0),
+                "motorcycle": user_st_records.get("motorcycle", 45.0),
+                "truck": user_st_records.get("truck", 25.0),
+            }
 
             for e in events:
                 if e.metadata_json and e.label in run_thresholds:
                     try:
                         m = json.loads(e.metadata_json)
-                        if "speed_limit_kmh" in m and m["speed_limit_kmh"] is not None:
+                        if e.label not in user_st_records and "speed_limit_kmh" in m and m["speed_limit_kmh"] is not None:
                             run_thresholds[e.label] = float(m["speed_limit_kmh"])
                     except Exception:
                         pass
