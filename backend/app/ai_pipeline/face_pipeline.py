@@ -182,6 +182,9 @@ def extract_faces_from_tracks(video_path, tracks_summary, face_templates):
                     },
                     "match_status": identity_result["match_status"],
                     "known_person_id": identity_result["known_person_id"],
+                    "known_person_name": identity_result.get("known_person_name"),
+                    "known_person_category": identity_result.get("known_person_category"),
+                    "known_person_display": identity_result.get("known_person_display"),
                     "similarity": identity_result["similarity"],
                 })
 

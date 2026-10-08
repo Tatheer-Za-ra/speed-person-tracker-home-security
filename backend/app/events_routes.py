@@ -5,12 +5,12 @@ from pathlib import Path
 from flask import Blueprint, jsonify, request, session
 from app.auth.service import login_required
 from app.db import get_db_session
-from app.repositories import EventRepository, SnapshotRepository, VideoRepository, SpeedThresholdRepository
+from app.repositories import EventRepository, SnapshotRepository, VideoRepository, SpeedThresholdRepository, KnownPersonRepository
 
 events_bp = Blueprint("events_bp", __name__, url_prefix="/api/events")
 
 
-def _format_event(event, snapshot_repo, video_repo=None, video_cache=None, speed_thresholds=None) -> dict:
+def _format_event(event, snapshot_repo, video_repo=None, video_cache=None, speed_thresholds=None, person_repo=None, person_cache=None) -> dict:
     """Format event record for JSON response, attaching metadata, snapshot URL, video title & calculated footage timestamp."""
     snapshot = snapshot_repo.get_snapshot_by_event_id(event.id)
     snapshot_url = None
@@ -27,6 +27,38 @@ def _format_event(event, snapshot_repo, video_repo=None, video_cache=None, speed
             metadata = json.loads(event.metadata_json)
         except Exception:
             metadata = {}
+
+    # Format known person name/category if this event relates to a known person
+    kp_id = metadata.get("known_person_id")
+    if kp_id:
+        person = None
+        if person_cache is not None and kp_id in person_cache:
+            person = person_cache[kp_id]
+        elif person_repo:
+            person = person_repo.get_by_id(kp_id)
+            if person_cache is not None:
+                person_cache[kp_id] = person
+        elif snapshot_repo and hasattr(snapshot_repo, "db"):
+            from app.models import KnownPerson
+            person = snapshot_repo.db.query(KnownPerson).filter(KnownPerson.id == kp_id).first()
+            if person_cache is not None:
+                person_cache[kp_id] = person
+
+        if person:
+            metadata["known_person_name"] = person.name
+            metadata["known_person_category"] = person.category
+            if person.category:
+                metadata["known_person_display"] = f"{person.name}({person.category})"
+            else:
+                metadata["known_person_display"] = person.name
+        elif metadata.get("known_person_name"):
+            cat = metadata.get("known_person_category")
+            metadata["known_person_display"] = f"{metadata['known_person_name']}({cat})" if cat else metadata["known_person_name"]
+        else:
+            metadata["known_person_display"] = f"Resident #{kp_id}"
+    elif metadata.get("known_person_name"):
+        cat = metadata.get("known_person_category")
+        metadata["known_person_display"] = f"{metadata['known_person_name']}({cat})" if cat else metadata["known_person_name"]
 
     is_alert = event.is_alert
 
@@ -138,7 +170,9 @@ def list_events():
         )
 
         video_cache = {}
-        formatted = [_format_event(ev, snapshot_repo, video_repo, video_cache=video_cache, speed_thresholds=speed_thresholds) for ev in events]
+        person_cache = {}
+        person_repo = KnownPersonRepository(db)
+        formatted = [_format_event(ev, snapshot_repo, video_repo, video_cache=video_cache, speed_thresholds=speed_thresholds, person_repo=person_repo, person_cache=person_cache) for ev in events]
 
         return jsonify({
             "status": "success",
@@ -168,7 +202,9 @@ def list_alerts():
 
         alerts = event_repo.get_alert_events(user_id=user_id, limit=limit)
         video_cache = {}
-        formatted = [_format_event(ev, snapshot_repo, video_repo, video_cache=video_cache, speed_thresholds=speed_thresholds) for ev in alerts]
+        person_cache = {}
+        person_repo = KnownPersonRepository(db)
+        formatted = [_format_event(ev, snapshot_repo, video_repo, video_cache=video_cache, speed_thresholds=speed_thresholds, person_repo=person_repo, person_cache=person_cache) for ev in alerts]
 
         return jsonify({
             "status": "success",
@@ -197,7 +233,9 @@ def event_summary():
 
         # Fetch top 5 recent alerts for quick dashboard highlight
         recent_alerts = event_repo.get_alert_events(user_id=user_id, limit=5)
-        stats["recent_alerts"] = [_format_event(ev, snapshot_repo, speed_thresholds=speed_thresholds) for ev in recent_alerts]
+        person_cache = {}
+        person_repo = KnownPersonRepository(db)
+        stats["recent_alerts"] = [_format_event(ev, snapshot_repo, speed_thresholds=speed_thresholds, person_repo=person_repo, person_cache=person_cache) for ev in recent_alerts]
 
         return jsonify({
             "status": "success",

@@ -24,6 +24,8 @@ function triggerBrowserDownload(blob, filename) {
 export async function downloadPdfReport(params = {}) {
   const query = new URLSearchParams();
   if (params.video_id) query.append("video_id", params.video_id);
+  if (params.batch_id) query.append("batch_id", params.batch_id);
+  if (params.scope) query.append("scope", params.scope);
   if (params.is_alert !== undefined && params.is_alert !== null) {
     query.append("is_alert", params.is_alert);
   }
@@ -44,11 +46,13 @@ export async function downloadPdfReport(params = {}) {
 
 /**
  * Download CSV Security Event Log Spreadsheet.
- * @param {Object} params - { video_id, is_alert, label }
+ * @param {Object} params - { video_id, batch_id, scope, is_alert, label }
  */
 export async function downloadCsvReport(params = {}) {
   const query = new URLSearchParams();
   if (params.video_id) query.append("video_id", params.video_id);
+  if (params.batch_id) query.append("batch_id", params.batch_id);
+  if (params.scope) query.append("scope", params.scope);
   if (params.is_alert !== undefined && params.is_alert !== null) {
     query.append("is_alert", params.is_alert);
   }
@@ -66,3 +70,19 @@ export async function downloadCsvReport(params = {}) {
   triggerBrowserDownload(blob, "security_audit_log.csv");
   return true;
 }
+
+/**
+ * Fetch human-friendly scope info for a video and its upload session (batch).
+ * @param {Object} params - { video_id, batch_id }
+ */
+export async function fetchReportScopeInfo(params = {}) {
+  const query = new URLSearchParams();
+  if (params.video_id) query.append("video_id", params.video_id);
+  if (params.batch_id) query.append("batch_id", params.batch_id);
+
+  const url = `${API_BASE}/scope-info?${query.toString()}`;
+  const response = await fetch(url, { credentials: "include" });
+  if (!response.ok) return null;
+  return response.json();
+}
+

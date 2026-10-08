@@ -82,6 +82,12 @@ def _build_event_metadata(track_summary: dict, speed_info: dict = None, face_inf
     if face_info:
         metadata["face_match_status"] = face_info.get("match_status")
         metadata["known_person_id"] = face_info.get("known_person_id")
+        if face_info.get("known_person_name"):
+            metadata["known_person_name"] = face_info.get("known_person_name")
+        if face_info.get("known_person_category"):
+            metadata["known_person_category"] = face_info.get("known_person_category")
+        if face_info.get("known_person_display"):
+            metadata["known_person_display"] = face_info.get("known_person_display")
         metadata["face_similarity"] = face_info.get("similarity")
 
     return json.dumps(metadata)

@@ -404,6 +404,7 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
         onClose={() => setIsReportModalOpen(false)}
         defaultVideoId={videoId}
         videoFilename={filename}
+        batchId={videoDetails?.batch_id}
       />
 
       {/* Snapshot Lightbox Inspection Modal */}

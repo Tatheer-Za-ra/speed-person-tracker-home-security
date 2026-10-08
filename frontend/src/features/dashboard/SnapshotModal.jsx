@@ -253,14 +253,14 @@ function SnapshotModal({ event, onClose, speedThresholds }) {
                       )}
                     </span>
                   </div>
-                  {(meta.known_person_name || meta.known_person_id) && (
+                  {(meta.known_person_display || meta.known_person_name || meta.known_person_id) && (
                     <div className="meta-item">
                       <span className="meta-label" style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
                         <User size={14} />
                         <span>Resident Profile</span>
                       </span>
                       <span className="meta-val" style={{ fontWeight: "700" }}>
-                        {meta.known_person_name || `#${meta.known_person_id}`}
+                        {meta.known_person_display || (meta.known_person_name ? (meta.known_person_category ? `${meta.known_person_name}(${meta.known_person_category})` : meta.known_person_name) : `#${meta.known_person_id}`)}
                       </span>
                     </div>
                   )}

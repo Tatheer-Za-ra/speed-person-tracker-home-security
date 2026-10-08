@@ -39,6 +39,9 @@ class KnownPersonRepository:
             .first()
         )
 
+    def get_by_id(self, person_id: int):
+        return self.db.query(KnownPerson).filter(KnownPerson.id == person_id).first()
+
     def find_duplicate(self, image_hash: str, exclude_id: int | None = None):
         query = self.db.query(KnownPerson).filter(
             KnownPerson.image_hash == image_hash)

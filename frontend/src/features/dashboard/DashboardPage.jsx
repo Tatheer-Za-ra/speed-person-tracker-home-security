@@ -131,6 +131,7 @@ function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage, o
         onClose={() => setIsReportModalOpen(false)}
         defaultVideoId={videoId}
         videoFilename={currentRunFilter?.filename}
+        batchId={currentRunFilter?.batchId || currentRunFilter?.batch_id}
       />
 
       {/* Snapshot Lightbox Modal */}

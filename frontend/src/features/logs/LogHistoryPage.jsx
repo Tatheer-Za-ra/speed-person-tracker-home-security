@@ -383,6 +383,7 @@ function LogHistoryPage({
           onClose={() => setReportTargetVideo(null)}
           defaultVideoId={reportTargetVideo.video_id}
           videoFilename={reportTargetVideo.original_filename}
+          batchId={reportTargetVideo.batch_id}
         />
       )}
     </div>

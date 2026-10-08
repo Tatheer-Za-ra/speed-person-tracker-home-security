@@ -221,7 +221,7 @@ function BatchEventTimeline({ events, onSelectEvent, videoDurationSeconds, isFil
                           meta.face_match_status === "known" ? (
                             <span style={{ color: "#059669", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "5px" }}>
                               <UserCheck size={14} />
-                              <span>Resident: {meta.known_person_name || `#${meta.known_person_id || "Verified"}`}</span>
+                              <span>Resident: {meta.known_person_display || (meta.known_person_name ? (meta.known_person_category ? `${meta.known_person_name}(${meta.known_person_category})` : meta.known_person_name) : (meta.known_person_id ? `#${meta.known_person_id}` : "Verified"))}</span>
                             </span>
                           ) : (
                             <span style={{ color: "#e11d48", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "5px" }}>

@@ -1,5 +1,6 @@
 
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.db import Base
@@ -37,6 +38,8 @@ class FaceTemplate(Base):
     known_person_id = Column(Integer, ForeignKey("known_persons.id"), unique=True, nullable=False)
     embedding_data = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    known_person = relationship("KnownPerson", lazy="joined")
 
 
 class Config(Base):
