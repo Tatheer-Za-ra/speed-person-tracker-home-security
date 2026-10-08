@@ -243,6 +243,7 @@ function App() {
           <LogHistoryPage
             onNavigateToRun={handleNavigateToRun}
             onNavigateToUpload={() => navigateTo("videos")}
+            onNavigateToConfig={(tab = "retention") => navigateTo("config", { tab })}
             onNavigateToAnalytics={() => {
               navigateTo("event-details", {
                 runFilter: { videoId: null, mode: "summary", filename: null, sourcePage: "logs" },

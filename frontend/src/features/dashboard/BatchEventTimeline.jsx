@@ -147,12 +147,12 @@ function BatchEventTimeline({ events, onSelectEvent, videoDurationSeconds, isFil
               {videoEvents.map((ev) => {
                 const meta = ev.metadata || {};
                 const snapshotUrl = ev.snapshot_url ? `${API_HOST}${ev.snapshot_url}` : null;
-                const activeLimit = (speedThresholds && ev.label && speedThresholds[ev.label])
-                  ? Number(speedThresholds[ev.label])
-                  : (meta.speed_limit_kmh ?? (ev.label === "motorcycle" ? 45 : 30));
+                const activeLimit = (meta.speed_limit_kmh ?? meta.limit_kmh ?? (speedThresholds && ev.label && speedThresholds[ev.label]))
+                  ? Number(meta.speed_limit_kmh ?? meta.limit_kmh ?? speedThresholds[ev.label])
+                  : (ev.label === "motorcycle" ? 40 : 30);
                 const isOverspeed = meta.estimated_speed_kmh !== undefined
                   ? (parseFloat(meta.estimated_speed_kmh) > activeLimit)
-                  : (meta.speed_status === "OVERSPEED");
+                  : (meta.speed_status === "OVERSPEED" || ev.is_alert);
                 const normCategory = normalizeCategory(ev.label, meta.face_match_status);
                 const isUnknownPerson = ev.label === "person" && meta.face_match_status !== "known";
                 const isAlert = ev.is_alert || isUnknownPerson;

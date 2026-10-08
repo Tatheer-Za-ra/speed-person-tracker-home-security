@@ -39,6 +39,9 @@ def check_and_migrate_db():
                 if "duration_seconds" not in existing_cols:
                     conn.execute(text("ALTER TABLE videos ADD COLUMN duration_seconds FLOAT"))
                     print("[DB Migration] Added column 'duration_seconds' to 'videos' table.")
+                if "speed_thresholds_json" not in existing_cols:
+                    conn.execute(text("ALTER TABLE videos ADD COLUMN speed_thresholds_json TEXT"))
+                    print("[DB Migration] Added column 'speed_thresholds_json' to 'videos' table.")
                 conn.commit()
     except Exception as e:
         print(f"[DB Migration] Notice: migration check encountered: {e}")

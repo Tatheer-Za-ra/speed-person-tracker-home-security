@@ -65,6 +65,9 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
           const match = logs.find((item) => String(item.video_id || item.id) === String(videoId));
           if (match) {
             setVideoDetails(match);
+            if (match.speed_thresholds || match.run_thresholds) {
+              setSpeedThresholds(match.speed_thresholds || match.run_thresholds);
+            }
           }
         }
       } catch (err) {
@@ -83,7 +86,7 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
       try {
         const { response, data } = await fetchSpeedThresholds();
         if (response.ok && data?.status === "success" && data?.thresholds) {
-          setSpeedThresholds(data.thresholds);
+          setSpeedThresholds((prev) => prev || data.thresholds);
         }
       } catch (err) {
         console.error("Could not fetch speed thresholds:", err);
@@ -147,18 +150,20 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
   // Extract exact speed limits applied during this video run
   const runSpeedLimits = useMemo(() => {
     const limits = {
-      car: speedThresholds.car ?? 30,
-      motorcycle: speedThresholds.motorcycle ?? 45,
-      truck: speedThresholds.truck ?? 25,
+      car: videoDetails?.speed_thresholds?.car ?? videoDetails?.run_thresholds?.car ?? speedThresholds.car ?? 30,
+      motorcycle: videoDetails?.speed_thresholds?.motorcycle ?? videoDetails?.run_thresholds?.motorcycle ?? speedThresholds.motorcycle ?? 40,
+      truck: videoDetails?.speed_thresholds?.truck ?? videoDetails?.run_thresholds?.truck ?? speedThresholds.truck ?? 25,
     };
     events.forEach((ev) => {
       const meta = ev.metadata || {};
       if (ev.label && meta.speed_limit_kmh) {
-        limits[ev.label] = meta.speed_limit_kmh;
+        limits[ev.label] = Number(meta.speed_limit_kmh);
+      } else if (ev.label && meta.limit_kmh) {
+        limits[ev.label] = Number(meta.limit_kmh);
       }
     });
     return limits;
-  }, [events, speedThresholds]);
+  }, [events, videoDetails, speedThresholds]);
 
   if (!videoId) {
     return (
@@ -241,7 +246,7 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
         <SummaryAnalyticsTab
           runVideoId={videoId}
           runFilename={filename}
-          speedThresholds={speedThresholds}
+          speedThresholds={runSpeedLimits}
         />
       ) : (
         <>
@@ -386,7 +391,7 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
                 onSelectEvent={(ev) => setSelectedEvent(ev)}
                 videoDurationSeconds={videoDetails?.duration_seconds || events[0]?.duration_seconds}
                 isFiltered={filteredEvents.length !== events.length}
-                speedThresholds={speedThresholds}
+                speedThresholds={runSpeedLimits}
               />
             )}
           </div>
@@ -406,7 +411,7 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
         <SnapshotModal
           event={selectedEvent}
           onClose={() => setSelectedEvent(null)}
-          speedThresholds={speedThresholds}
+          speedThresholds={runSpeedLimits}
         />
       )}
 

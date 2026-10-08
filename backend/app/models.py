@@ -60,6 +60,7 @@ class Video(Base):
     calibration_diagnostic_path = Column(Text, nullable=True)
     recording_start_time = Column(DateTime(timezone=True), nullable=True)
     duration_seconds = Column(Float, nullable=True)
+    speed_thresholds_json = Column(Text, nullable=True)
 
 class ProcessingLog(Base):
     __tablename__ = "processing_logs"

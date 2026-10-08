@@ -93,9 +93,11 @@ def list_current_batch_videos():
                 if msg and "%" in msg:
                     match = re.search(r"(\d+)%", msg)
                     if match:
-                        progress = int(match.group(1))
+                        progress = max(1, min(99, int(match.group(1))))
                 if progress == 0:
-                    progress = 10
+                    progress = 5
+            elif (status or "").lower() == "queued":
+                progress = 0
 
             site_calib = None
             is_active_profile_fallback = False
@@ -158,13 +160,28 @@ def get_video_status(video_id):
             return jsonify({"error": "Video not found"}), 404
 
         log = log_repo.get_log_by_video_id(video.id)
+        status = log.status if log else None
+        msg = log.message if log else None
+        progress = 0
+        if (status or "").lower() == "completed":
+            progress = 100
+        elif (status or "").lower() == "processing":
+            if msg and "%" in msg:
+                match = re.search(r"(\d+)%", msg)
+                if match:
+                    progress = max(1, min(99, int(match.group(1))))
+            if progress == 0:
+                progress = 5
+        elif (status or "").lower() == "queued":
+            progress = 0
 
         return jsonify({
             "video_id": video.id,
             "batch_id": video.batch_id,
             "original_filename": video.original_filename,
-            "status": log.status if log else None,
-            "message": log.message if log else None,
+            "status": status,
+            "message": msg,
+            "progress_percent": progress,
         }), 200
     finally:
         db.close()
@@ -181,7 +198,25 @@ def list_all_video_logs():
     try:
         video_repo = VideoRepository(db)
         logs_data = video_repo.get_all_videos_with_stats(user_id=user_id)
-        return jsonify({"status": "success", "logs": logs_data}), 200
+
+        from app.retention_service import get_retention_warning_info
+        retention_warning = get_retention_warning_info(db, user_id=user_id)
+
+        # Annotate each video log with expiry status
+        expiring_vids = {v["video_id"]: v for v in retention_warning.get("expiring_videos", [])}
+        for log_item in logs_data:
+            vid = log_item.get("video_id")
+            if vid in expiring_vids:
+                log_item["is_expiring_soon"] = True
+                log_item["hours_until_purge"] = expiring_vids[vid].get("hours_until_purge", 0.0)
+            else:
+                log_item["is_expiring_soon"] = False
+
+        return jsonify({
+            "status": "success",
+            "logs": logs_data,
+            "retention_warning": retention_warning,
+        }), 200
     finally:
         db.close()
 

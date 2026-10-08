@@ -103,3 +103,124 @@ def run_retention_cleanup(db_session, explicit_days: Optional[int] = None, user_
         "cutoff_date": cutoff_date.isoformat(),
         "last_cleanup_at": now_str,
     }
+
+
+def get_retention_warning_info(db_session, user_id: Optional[int] = None) -> Dict[str, Any]:
+    """
+    Checks if any videos will reach the user's auto-purge retention threshold
+    within the next 24 hours (or are already overdue for the next purge cycle).
+    """
+    settings = get_retention_settings(db_session, user_id=user_id)
+    retention_days = settings.get("retention_days", 0)
+
+    if retention_days <= 0:
+        return {
+            "has_warning": False,
+            "retention_days": 0,
+            "expiring_count": 0,
+            "expiring_videos": [],
+            "message": "",
+        }
+
+    now = datetime.now()
+    video_query = db_session.query(Video)
+    if user_id is not None:
+        video_query = video_query.join(UploadBatch, Video.batch_id == UploadBatch.id).filter(UploadBatch.user_id == user_id)
+    all_videos = video_query.all()
+
+    expiring_videos = []
+    for v in all_videos:
+        if not v.uploaded_at:
+            continue
+        expiry_dt = v.uploaded_at + timedelta(days=retention_days)
+        time_until_purge = expiry_dt - now
+        hours_until_purge = time_until_purge.total_seconds() / 3600.0
+
+        # Trigger warning if within <= 24 hours or already overdue
+        if hours_until_purge <= 24.0:
+            expiring_videos.append({
+                "video_id": v.id,
+                "original_filename": v.original_filename,
+                "uploaded_at": v.uploaded_at.isoformat(),
+                "hours_until_purge": max(0.0, round(hours_until_purge, 1)),
+                "is_overdue": hours_until_purge <= 0.0,
+            })
+
+    if expiring_videos:
+        return {
+            "has_warning": True,
+            "retention_days": retention_days,
+            "expiring_count": len(expiring_videos),
+            "expiring_videos": expiring_videos,
+            "message": (
+                f"Data Retention Notice: Your policy is set to {retention_days} Days. "
+                f"{len(expiring_videos)} video session(s) will reach the expiration limit within the next 24 hours "
+                f"and will be automatically purged by the daily scheduled retention service."
+            ),
+        }
+
+    return {
+        "has_warning": False,
+        "retention_days": retention_days,
+        "expiring_count": 0,
+        "expiring_videos": [],
+        "message": "",
+    }
+
+
+def run_scheduled_daily_retention_cleanup(db_session) -> Dict[str, Any]:
+    """
+    Automated background cleanup task running every 24 hours.
+    Iterates over all user accounts and triggers purge if 24 hours have elapsed
+    since their last cleanup.
+    """
+    now = datetime.now()
+    results = []
+
+    user_ids = set()
+    from app.models import User
+    try:
+        users = db_session.query(User).all()
+        for u in users:
+            user_ids.add(u.id)
+    except Exception:
+        pass
+
+    cfg_user_rows = db_session.query(Config).filter(Config.key.like("retention_days_user_%")).all()
+    for row in cfg_user_rows:
+        try:
+            uid = int(row.key.replace("retention_days_user_", ""))
+            user_ids.add(uid)
+        except Exception:
+            pass
+
+    if not user_ids:
+        user_ids.add(None)
+
+    for uid in user_ids:
+        try:
+            settings = get_retention_settings(db_session, user_id=uid)
+            ret_days = settings.get("retention_days", 0)
+            if ret_days <= 0:
+                continue
+
+            last_clean = settings.get("last_cleanup_at")
+            should_run = False
+            if not last_clean:
+                should_run = True
+            else:
+                try:
+                    last_dt = datetime.fromisoformat(last_clean)
+                    if (now - last_dt) >= timedelta(hours=24):
+                        should_run = True
+                except Exception:
+                    should_run = True
+
+            if should_run:
+                res = run_retention_cleanup(db_session, user_id=uid)
+                print(f"[Automated Retention Purge] User {uid}: {res.get('message')}")
+                results.append({"user_id": uid, "result": res})
+        except Exception as err:
+            print(f"[Automated Retention Purge Error] User {uid}: {err}")
+
+    return {"status": "completed", "executed_purges": results}

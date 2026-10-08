@@ -98,24 +98,24 @@ function ConfigurationPage({ initialTab, onTabChange }) {
 
             <div className="speed-values-grid">
               <div className="speed-value-card">
-                <span className="speed-cat-icon">
-                  <Car size={28} style={{ color: "#0284c7" }} />
+                <span className="speed-cat-icon car-bg">
+                  <Car size={26} style={{ color: "#0284c7" }} />
                 </span>
                 <span className="speed-cat-name">Car Speed Limit</span>
                 <span className="speed-cat-limit">{speedThresholds.car ?? 30} km/h</span>
               </div>
 
               <div className="speed-value-card">
-                <span className="speed-cat-icon">
-                  <Bike size={28} style={{ color: "#d97706" }} />
+                <span className="speed-cat-icon bike-bg">
+                  <Bike size={26} style={{ color: "#d97706" }} />
                 </span>
                 <span className="speed-cat-name">Bike / Motorcycle Limit</span>
                 <span className="speed-cat-limit">{speedThresholds.motorcycle ?? 40} km/h</span>
               </div>
 
               <div className="speed-value-card">
-                <span className="speed-cat-icon">
-                  <Truck size={28} style={{ color: "#059669" }} />
+                <span className="speed-cat-icon truck-bg">
+                  <Truck size={26} style={{ color: "#059669" }} />
                 </span>
                 <span className="speed-cat-name">Truck Speed Limit</span>
                 <span className="speed-cat-limit">{speedThresholds.truck ?? 25} km/h</span>

@@ -1,6 +1,18 @@
 // frontend/src/features/dashboard/SpeedConfigModal.jsx
 
 import React, { useState, useEffect } from "react";
+import { 
+  Gauge, 
+  X, 
+  Car, 
+  Bike, 
+  Truck, 
+  RotateCcw, 
+  Check, 
+  AlertTriangle, 
+  CheckCircle2, 
+  Loader2 
+} from "lucide-react";
 import { fetchSpeedThresholds, updateSpeedThresholds } from "../../api/configApi";
 import "./SpeedConfigModal.css";
 
@@ -132,12 +144,17 @@ function SpeedConfigModal({ isOpen, onClose, onThresholdsUpdated }) {
       <div className="speed-modal-card" onClick={(e) => e.stopPropagation()}>
         <div className="speed-modal-header">
           <div className="speed-modal-title">
-            <span className="speed-modal-icon">⚡</span>
+            <Gauge size={22} className="speed-modal-icon" style={{ color: "#2563eb" }} />
             <span>Speed Limit Threshold Settings</span>
           </div>
 
-          <button type="button" className="speed-modal-close" onClick={onClose}>
-            &times;
+          <button
+            type="button"
+            className="speed-modal-close"
+            onClick={onClose}
+            aria-label="Close modal"
+          >
+            <X size={20} />
           </button>
         </div>
 
@@ -145,16 +162,31 @@ function SpeedConfigModal({ isOpen, onClose, onThresholdsUpdated }) {
           Set maximum velocity speed limits (km/h) for vehicle categories. Any detected target exceeding its limit will automatically trigger a <strong>SECURITY ALERT</strong>.
         </p>
 
-        {errorMessage && <div className="speed-modal-alert error">{errorMessage}</div>}
-        {successMessage && <div className="speed-modal-alert success">{successMessage}</div>}
+        {errorMessage && (
+          <div className="speed-modal-alert error">
+            <AlertTriangle size={16} style={{ flexShrink: 0 }} />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+        {successMessage && (
+          <div className="speed-modal-alert success">
+            <CheckCircle2 size={16} style={{ flexShrink: 0 }} />
+            <span>{successMessage}</span>
+          </div>
+        )}
 
         {loading ? (
-          <div className="speed-modal-loading">Loading speed settings...</div>
+          <div className="speed-modal-loading">
+            <Loader2 size={24} style={{ animation: "spin 1s linear infinite" }} />
+            <span>Loading speed settings...</span>
+          </div>
         ) : (
           <form onSubmit={handleSubmit} noValidate className="speed-modal-form">
             <div className="threshold-input-row">
               <label htmlFor="speed-car" className="threshold-label">
-                <span className="cat-icon">🚗</span>
+                <span className="cat-icon car-icon-wrap">
+                  <Car size={18} />
+                </span>
                 <span>Car Speed Limit (km/h)</span>
               </label>
               <input
@@ -168,7 +200,9 @@ function SpeedConfigModal({ isOpen, onClose, onThresholdsUpdated }) {
 
             <div className="threshold-input-row">
               <label htmlFor="speed-moto" className="threshold-label">
-                <span className="cat-icon">🏍️</span>
+                <span className="cat-icon bike-icon-wrap">
+                  <Bike size={18} />
+                </span>
                 <span>Bike / Motorcycle Speed Limit (km/h)</span>
               </label>
               <input
@@ -182,7 +216,9 @@ function SpeedConfigModal({ isOpen, onClose, onThresholdsUpdated }) {
 
             <div className="threshold-input-row">
               <label htmlFor="speed-truck" className="threshold-label">
-                <span className="cat-icon">🚚</span>
+                <span className="cat-icon truck-icon-wrap">
+                  <Truck size={18} />
+                </span>
                 <span>Truck Speed Limit (km/h)</span>
               </label>
               <input
@@ -201,7 +237,8 @@ function SpeedConfigModal({ isOpen, onClose, onThresholdsUpdated }) {
                 onClick={handleResetDefaults}
                 disabled={saving}
               >
-                ↺ Reset Defaults (30/40/25)
+                <RotateCcw size={15} />
+                <span>Reset Defaults (30 / 40 / 25 km/h)</span>
               </button>
 
               <div className="main-actions-group">
@@ -219,7 +256,17 @@ function SpeedConfigModal({ isOpen, onClose, onThresholdsUpdated }) {
                   className="save-thresholds-btn"
                   disabled={saving}
                 >
-                  {saving ? "Saving..." : "Save Thresholds"}
+                  {saving ? (
+                    <>
+                      <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check size={16} />
+                      <span>Save Thresholds</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

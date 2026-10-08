@@ -95,7 +95,26 @@
 }
 
 .speed-cat-icon {
-  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  background: #f1f5f9;
+  transition: transform 0.2s ease;
+}
+
+.speed-cat-icon.car-bg {
+  background: rgba(2, 132, 199, 0.12);
+}
+
+.speed-cat-icon.bike-bg {
+  background: rgba(217, 119, 6, 0.12);
+}
+
+.speed-cat-icon.truck-bg {
+  background: rgba(5, 150, 105, 0.12);
 }
 
 .speed-cat-name {

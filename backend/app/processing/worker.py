@@ -45,7 +45,7 @@ class ProcessingWorker:
                 is_site_calib_requested = "site calibration" in (queued_log.message or "").lower()
 
                 queued_log.status = "processing"
-                queued_log.message = "Raw frame processing and tracking started"
+                queued_log.message = "Initializing frame analysis... 5%"
                 queued_log.started_at = datetime.now()
                 db.commit()
 
@@ -54,6 +54,8 @@ class ProcessingWorker:
                 batch = db.query(UploadBatch).filter(UploadBatch.id == queued_video.batch_id).first()
                 user_id = batch.user_id if batch else 1
                 speed_limits = speed_repo.get_threshold_map(user_id)
+                queued_video.speed_thresholds_json = json.dumps(speed_limits)
+                db.commit()
 
                 template_repo = FaceTemplateRepository(db)
                 face_templates = template_repo.get_templates_for_user(user_id)
@@ -64,7 +66,7 @@ class ProcessingWorker:
                 # Check if Site Auto-Calibration was explicitly requested for this new camera location
                 if is_site_calib_requested:
                     try:
-                        queued_log.message = "Running site perspective calibration & vanishing point extraction..."
+                        queued_log.message = "Running site perspective calibration... 8%"
                         db.commit()
 
                         import os, sys
@@ -93,6 +95,7 @@ class ProcessingWorker:
 
                         queued_video.site_calibration_json = json.dumps(calib_profile)
                         queued_video.calibration_diagnostic_path = diag_path
+                        queued_log.message = "Site perspective calibration complete... 10%"
                         db.commit()
 
                         # Automatically activate this newly trained site profile for future runs
@@ -111,12 +114,24 @@ class ProcessingWorker:
                     # Auto-Calibration checkbox was NOT checked: Use active account camera calibration profile!
                     camera_params = get_camera_calibration_config(db, user_id=user_id)
 
+                import time
+                last_pct = -1
+                last_update_time = 0.0
+
                 def on_progress(pct, current_f, total_f):
-                    try:
-                        queued_log.message = "Processing video..."
-                        db.commit()
-                    except Exception:
-                        pass
+                    nonlocal last_pct, last_update_time
+                    now = time.time()
+                    # Scale video analysis to span 10% to 88%
+                    scaled_pct = max(10, min(88, int(10 + (pct * 0.78))))
+                    # Update DB when percentage increments and at least 0.25s has elapsed
+                    if scaled_pct != last_pct and (now - last_update_time) >= 0.25:
+                        last_pct = scaled_pct
+                        last_update_time = now
+                        try:
+                            queued_log.message = f"Processing video... {scaled_pct}%"
+                            db.commit()
+                        except Exception:
+                            pass
 
                 result = analyze_video_frames(
                     queued_video.stored_path,
@@ -204,6 +219,14 @@ class ProcessingWorker:
                                     file_path=snapshot_path,
                                 )
                                 created_snapshots.append(created_snapshot)
+                                snap_pct = min(98, 90 + int((len(created_snapshots) / max(1, len(created_events))) * 8))
+                                if snap_pct != last_pct:
+                                    last_pct = snap_pct
+                                    try:
+                                        queued_log.message = f"Processing video... {snap_pct}%"
+                                        db.commit()
+                                    except Exception:
+                                        pass
                     finally:
                         if cap is not None:
                             cap.release()
@@ -214,6 +237,12 @@ class ProcessingWorker:
                             track_counts[class_name] += 1
 
                     stable_tracks_count = len(result["tracks_summary"])
+
+                    try:
+                        queued_log.message = "Processing video... 99%"
+                        db.commit()
+                    except Exception:
+                        pass
 
                     queued_log.status = "completed"
                     queued_log.message = (

@@ -79,6 +79,9 @@ export default function SummaryAnalyticsTab({ runVideoId, runFilename, onSelectH
       const { response, data } = await fetchEventAnalytics(params);
       if (response.ok && data.status === "success" && data.analytics) {
         setAnalytics(data.analytics);
+        if (data.analytics.video_meta?.speed_thresholds) {
+          setLocalSpeedThresholds(data.analytics.video_meta.speed_thresholds);
+        }
       } else {
         setError(data?.message || "Failed to load security analytics.");
       }

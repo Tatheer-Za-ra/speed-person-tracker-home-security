@@ -67,12 +67,11 @@ def update_speed_thresholds():
         record = repo.set_threshold_for_user(user_id, category, limit_val)
         updated[category] = float(record.limit_kmh)
 
-    # Automatically synchronize existing vehicle events with updated thresholds
-    sync_events_with_speed_thresholds(db, user_id=user_id)
-
+    # Note: Existing video runs and historical logs preserve their point-in-time
+    # speed thresholds. Newly updated thresholds apply to subsequent video runs.
     return jsonify({
         "status": "success",
-        "message": "Speed thresholds updated successfully.",
+        "message": "Speed thresholds updated successfully for future video runs.",
         "thresholds": repo.get_threshold_map(user_id)
     }), 200
 

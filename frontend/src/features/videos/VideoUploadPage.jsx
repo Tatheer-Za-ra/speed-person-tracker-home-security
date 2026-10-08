@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Zap,
   Eye,
@@ -237,6 +237,13 @@ function VideoUploadPage({ onNavigateToRun }) {
   const [fileStartTimes, setFileStartTimes] = useState({});
   const [unknownTimeMap, setUnknownTimeMap] = useState({});
 
+  const hasActiveProcessing = useMemo(() => {
+    return videos.some((v) => {
+      const st = (v.status || "").toLowerCase();
+      return st === "processing" || st === "queued";
+    });
+  }, [videos]);
+
   const fetchVideos = async () => {
     try {
       const { response, data } = await listVideos();
@@ -251,12 +258,13 @@ function VideoUploadPage({ onNavigateToRun }) {
 
   useEffect(() => {
     fetchVideos();
+    const interval = hasActiveProcessing ? 1000 : 3000;
     const intervalId = setInterval(() => {
       fetchVideos();
-    }, 2000);
+    }, interval);
 
     return () => clearInterval(intervalId);
-  }, []);
+  }, [hasActiveProcessing]);
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files || []);
@@ -666,7 +674,7 @@ function VideoUploadPage({ onNavigateToRun }) {
               const isCompleted = statusLower === "completed";
               const isProcessing = statusLower === "processing" || statusLower === "queued";
               const isFailed = statusLower === "failed";
-              const progressPct = video.progress_percent ?? (isCompleted ? 100 : isProcessing ? 15 : 0);
+              const progressPct = video.progress_percent ?? (isCompleted ? 100 : isProcessing ? 5 : 0);
 
               return (
                 <div key={video.id} className="video-item-wrapper">
@@ -722,7 +730,7 @@ function VideoUploadPage({ onNavigateToRun }) {
                             <Loader2 size={14} className="spin-icon" />
                             <span>
                               {(() => {
-                                const msg = video.message || "Processing video...";
+                                const msg = video.message || (statusLower === "queued" ? "Queued for processing..." : "Processing video...");
                                 if (/processing video/i.test(msg)) {
                                   return "Processing video...";
                                 }
@@ -753,7 +761,7 @@ function VideoUploadPage({ onNavigateToRun }) {
                     <div className="post-processing-action-card">
                       <div className="action-card-header">
                         <CheckCircle2 size={15} style={{ color: "#059669" }} />
-                        <span>Analysis Complete — Review Results</span>
+                        <span>Analysis Complete (100%) — Review Results</span>
                       </div>
 
                       <div className="action-buttons-group">

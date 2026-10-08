@@ -29,20 +29,12 @@ def _format_event(event, snapshot_repo, video_repo=None, video_cache=None, speed
             metadata = {}
 
     is_alert = event.is_alert
-    if speed_thresholds and event.label in speed_thresholds:
-        limit_kmh = float(speed_thresholds[event.label])
-        metadata["speed_limit_kmh"] = limit_kmh
-        spd = float(metadata.get("estimated_speed_kmh") or 0.0)
-        if spd > 0:
-            is_overspeed = spd > limit_kmh
-            metadata["speed_status"] = "OVERSPEED" if is_overspeed else "NORMAL"
-            if event.label != "person":
-                is_alert = is_overspeed
 
     video_title = None
     recording_start_time = None
     duration_seconds = None
     calculated_timestamp = None
+    video_speed_thresholds = None
 
     if video_repo and event.video_id:
         v = None
@@ -63,6 +55,31 @@ def _format_event(event, snapshot_repo, video_repo=None, video_cache=None, speed
                 calculated_timestamp = calc_dt.isoformat()
             if v.duration_seconds is not None:
                 duration_seconds = round(v.duration_seconds, 2)
+            if v.speed_thresholds_json:
+                try:
+                    video_speed_thresholds = json.loads(v.speed_thresholds_json)
+                except Exception:
+                    video_speed_thresholds = None
+
+    # Resolve speed limit for this event from its original video run snapshot or metadata
+    limit_kmh = None
+    if video_speed_thresholds and event.label in video_speed_thresholds:
+        limit_kmh = float(video_speed_thresholds[event.label])
+    elif "speed_limit_kmh" in metadata and metadata["speed_limit_kmh"] is not None:
+        limit_kmh = float(metadata["speed_limit_kmh"])
+    elif "limit_kmh" in metadata and metadata["limit_kmh"] is not None:
+        limit_kmh = float(metadata["limit_kmh"])
+    elif speed_thresholds and event.label in speed_thresholds:
+        limit_kmh = float(speed_thresholds[event.label])
+
+    if limit_kmh is not None:
+        metadata["speed_limit_kmh"] = limit_kmh
+
+    # Preserve recorded speed_status or evaluate against this video's limit
+    if "speed_status" not in metadata and event.label in {"car", "motorcycle", "truck"}:
+        spd = float(metadata.get("estimated_speed_kmh") or 0.0)
+        if spd > 0 and limit_kmh:
+            metadata["speed_status"] = "OVERSPEED" if spd > limit_kmh else "NORMAL"
 
     return {
         "id": event.id,
@@ -228,11 +245,19 @@ def event_analytics():
             video_repo = VideoRepository(db)
             v = video_repo.get_video_by_id(video_id, user_id=user_id)
             if v:
+                v_thresholds = None
+                if v.speed_thresholds_json:
+                    try:
+                        v_thresholds = json.loads(v.speed_thresholds_json)
+                    except Exception:
+                        v_thresholds = None
                 video_meta = {
                     "id": v.id,
                     "original_filename": v.original_filename,
                     "recording_start_time": v.recording_start_time.isoformat() if v.recording_start_time else None,
                     "duration_seconds": v.duration_seconds,
+                    "speed_thresholds": v_thresholds,
+                    "run_thresholds": v_thresholds,
                 }
 
         analytics["video_meta"] = video_meta

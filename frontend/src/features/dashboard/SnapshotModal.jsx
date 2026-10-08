@@ -167,12 +167,12 @@ function SnapshotModal({ event, onClose, speedThresholds }) {
                     <span className="meta-val">{meta.max_speed_kmh ?? meta.estimated_speed_kmh} km/h</span>
                   </div>
                   {(() => {
-                    const displayLimit = (speedThresholds && event.label && speedThresholds[event.label])
-                      ? Number(speedThresholds[event.label])
-                      : (meta.speed_limit_kmh ?? (event.label === "motorcycle" ? 45 : 30));
+                    const displayLimit = (meta.speed_limit_kmh ?? meta.limit_kmh ?? (speedThresholds && event.label && speedThresholds[event.label]))
+                      ? Number(meta.speed_limit_kmh ?? meta.limit_kmh ?? speedThresholds[event.label])
+                      : (event.label === "motorcycle" ? 40 : 30);
                     const isOverspeed = meta.estimated_speed_kmh !== undefined
                       ? (parseFloat(meta.estimated_speed_kmh) > displayLimit)
-                      : (meta.speed_status === "OVERSPEED");
+                      : (meta.speed_status === "OVERSPEED" || event.is_alert);
 
                     return (
                       <>
