@@ -305,7 +305,7 @@ export default function SummaryAnalyticsTab({ runVideoId, runFilename, onSelectH
                 </span>
               </div>
               <div className="kpi-main-stat purple-stat">
-                {topSpeed ? `${topSpeed.speed} km/h` : "—"}
+                {topSpeed ? `${topSpeed.speed} km/h` : "-"}
               </div>
               <div className="kpi-subtext">
                 {topSpeed ? (

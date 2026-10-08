@@ -91,9 +91,7 @@ def _get_events_for_request(request_args):
             if len(target_videos) == 1:
                 scope_desc = f'Entire Upload Session ("{target_videos[0].original_filename}")'
             else:
-                names_summary = ", ".join([f'"{v.original_filename}"' for v in target_videos[:3]])
-                if len(target_videos) > 3:
-                    names_summary += f", +{len(target_videos) - 3} more"
+                names_summary = ", ".join([f'"{v.original_filename}"' for v in target_videos])
                 scope_desc = f"Entire Upload Session ({len(target_videos)} Videos: {names_summary})"
         else:
             # Fallback if no batch found
@@ -230,12 +228,8 @@ def get_report_scope_info():
         fmt_filenames = [_fmt_name(f) for f in filenames]
 
         if count > 1:
-            if count <= 2:
-                files_str = ", ".join([f'"{f}"' for f in fmt_filenames])
-                session_label = f"Entire Upload Session ({count} videos: {files_str})"
-            else:
-                files_str = ", ".join([f'"{f}"' for f in fmt_filenames[:2]]) + f", +{count - 2} more"
-                session_label = f"Entire Upload Session ({count} videos: {files_str})"
+            files_str = ", ".join([f'"{f}"' for f in fmt_filenames])
+            session_label = f"Entire Upload Session ({count} videos: {files_str})"
         elif count == 1:
             session_label = f'Entire Upload Session (Single video: "{fmt_filenames[0]}")'
         else:

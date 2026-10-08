@@ -60,7 +60,7 @@ function CapabilitiesGrid({
           Everyday protection HavenTrack handles for you.
         </h2>
         <p className="capabilities-subheadline">
-          Turn residential camera footage into verified visitor logs, speed enforcement, and formal audit reports—100% privately on local hardware.
+          Turn residential camera footage into verified visitor logs, speed enforcement, and formal audit reports, 100% privately on local hardware.
         </p>
 
         {/* 6 Cards Grid (3 Columns x 2 Rows) */}
@@ -88,7 +88,7 @@ function CapabilitiesGrid({
 
             {/* Explanatory text starting right below the icon across full width */}
             <p className="cap-card-desc">
-              Automatically flag delivery vans, cars, and bikes exceeding your private driveway or street limits.
+              Flag delivery vans, cars, and bikes exceeding private driveway speed limits.
             </p>
 
             {/* Spacious Visual Viewport */}
@@ -141,7 +141,7 @@ function CapabilitiesGrid({
 
             {/* Explanatory text starting right below the icon across full width */}
             <p className="cap-card-desc">
-              Recognize family members and authorized residents arriving home while keeping all facial profiles private.
+              Verify family members and authorized residents while keeping facial data private.
             </p>
 
             {/* Spacious Visual Viewport */}
@@ -192,7 +192,7 @@ function CapabilitiesGrid({
 
             {/* Explanatory text starting right below the icon across full width */}
             <p className="cap-card-desc">
-              Review the unified timeline of all detected activities—including overspeed vehicles, resident entries, and visitor alerts.
+              Review the unified timeline of overspeed alerts, resident entries, and visitors.
             </p>
 
             {/* Spacious Visual Viewport: Multi-Object Surveillance Stream */}
@@ -243,7 +243,7 @@ function CapabilitiesGrid({
 
             {/* Explanatory text starting right below the icon across full width */}
             <p className="cap-card-desc">
-              Pinpoint peak traffic rush hours, measure velocity patterns, and analyze hourly distributions across all CCTV history, past 7 days, or custom dates.
+              Analyze peak traffic rush hours, vehicle speeds, and hourly neighborhood trends.
             </p>
 
             {/* Spacious Visual Viewport: Dark-Mode Peak Rush Analytics Graph */}
@@ -251,7 +251,7 @@ function CapabilitiesGrid({
               <div className="rush-mini-chart">
                 <div className="rush-highlight-banner">
                   <Clock size={14} className="rush-clock-icon" />
-                  <span>Rush Peak: <strong>8:00 AM – 9:00 AM</strong> (42 vehicles)</span>
+                  <span>Rush Peak: <strong>8:00 AM - 9:00 AM</strong> (42 vehicles)</span>
                 </div>
                 <div className="rush-bars-row">
                   <div className="mini-bar" style={{ height: "25%" }} />
@@ -304,7 +304,7 @@ function CapabilitiesGrid({
 
             {/* Explanatory text starting right below the icon across full width */}
             <p className="cap-card-desc">
-              Export formal, time-stamped incident summaries and evidence tables in PDF or CSV format for HOA or authorities.
+              Export formal timestamped incident summaries and evidence tables in PDF or CSV.
             </p>
 
             {/* Spacious Visual Viewport: Official PDF Certificate Preview */}
@@ -356,7 +356,7 @@ function CapabilitiesGrid({
 
             {/* Explanatory text starting right below the icon across full width */}
             <p className="cap-card-desc">
-              Keep all video footage and sensitive facial data strictly on your home computer with automated cleanup.
+              Keep surveillance footage and facial data strictly on your local home computer.
             </p>
 
             {/* Spacious Visual Viewport: Local Storage Hub & Trust Chips */}

@@ -59,7 +59,7 @@ function WorkflowSteps() {
         </h2>
         <p className="workflow-subheadline">
           HavenTrack transforms recorded residential CCTV footage into automated vehicle speed monitoring 
-          and face-verified home security—running 100% locally and privately on your own hardware.
+          and face-verified home security, running 100% locally and privately on your own hardware.
         </p>
 
         {/* 2-Top + 1-Bottom Grid */}
