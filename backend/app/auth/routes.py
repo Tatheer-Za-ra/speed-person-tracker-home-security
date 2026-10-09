@@ -1,3 +1,4 @@
+import re
 from flask import Blueprint, jsonify, request, session
 
 from app.auth.service import hash_password, verify_password
@@ -5,6 +6,8 @@ from app.db import get_db_session
 from app.repositories import UserRepository
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
+
+EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 @auth_bp.route("/signup", methods=["POST"])
@@ -16,6 +19,12 @@ def signup():
 
     if not name or not email or not password:
         return jsonify({"error": "Name, email, and password are required"}), 400
+
+    if not EMAIL_REGEX.match(email):
+        return jsonify({"error": "Please enter a valid email address"}), 400
+
+    if len(password) < 8:
+        return jsonify({"error": "Password must be at least 8 characters long"}), 400
 
     db = get_db_session()
     try:
@@ -53,6 +62,9 @@ def login():
 
     if not email or not password:
         return jsonify({"error": "Email and password are required"}), 400
+
+    if not EMAIL_REGEX.match(email):
+        return jsonify({"error": "Please enter a valid email address"}), 400
 
     db = get_db_session()
     try:

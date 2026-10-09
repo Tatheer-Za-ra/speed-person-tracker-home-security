@@ -107,8 +107,8 @@ function AuthPage({ onLoginSuccess }) {
             </h1>
             <p className="auth-card-subtitle">
               {mode === "login"
-                ? "Access your security portal. Manage offline vehicle tracking, verify resident profiles, and review incident telemetry."
-                : "Create an administrator account to calibrate residential cameras, set speed limits, and manage facial profiles."}
+                ? "Access your residential security portal."
+                : "Create an administrator account for local CCTV surveillance."}
             </p>
           </div>
 
