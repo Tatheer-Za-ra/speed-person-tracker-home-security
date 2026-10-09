@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000";
+const API_BASE = "";
 
 export async function listKnownPersons() {
   const response = await fetch(`${API_BASE}/api/known-persons`, {
@@ -21,7 +21,7 @@ export async function createKnownPerson(formData) {
 }
 
 export async function updateKnownPerson(personId, formData) {
-  const response = await fetch(`http://localhost:5000/api/known-persons/${personId}`, {
+  const response = await fetch(`${API_BASE}/api/known-persons/${personId}`, {
     method: "PUT",
     credentials: "include",
     body: formData,

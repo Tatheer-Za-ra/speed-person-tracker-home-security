@@ -26,6 +26,12 @@ body {
   width: 100%;
 }
 
+@media (max-width: 640px) {
+  .app-main-content {
+    padding: 12px 14px;
+  }
+}
+
 .primary-button {
   background: #0066cc;
   color: #ffffff;

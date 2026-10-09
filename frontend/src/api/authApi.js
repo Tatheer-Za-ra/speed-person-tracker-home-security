@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000";
+const API_BASE = "";
 
 export async function signupUser(payload) {
   const response = await fetch(`${API_BASE}/api/auth/signup`, {

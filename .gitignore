@@ -41,6 +41,7 @@ coverage/
 .idea/
 .DS_Store
 Thumbs.db
+cloudflared.exe
 
 # -----------------------------
 # Project local storage & snapshots

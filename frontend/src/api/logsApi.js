@@ -1,6 +1,6 @@
 // frontend/src/api/logsApi.js
 
-const API_BASE = "http://localhost:5000/api/videos/logs";
+const API_BASE = "/api/videos/logs";
 
 /**
  * Fetch list of all historical video processing logs with telemetry stats.

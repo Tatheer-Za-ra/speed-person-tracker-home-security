@@ -133,3 +133,35 @@
 .edit-speed-btn {
   align-self: flex-start;
 }
+
+@media (max-width: 640px) {
+  .config-tab-bar {
+    width: 100%;
+    overflow-x: auto;
+    padding: 4px;
+    gap: 4px;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .config-tab-btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .speed-overview-card {
+    padding: 16px;
+  }
+
+  .speed-values-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .edit-speed-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

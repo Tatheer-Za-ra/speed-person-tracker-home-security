@@ -1,6 +1,6 @@
 // frontend/src/api/eventsApi.js
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = "";
 
 export async function fetchEventSummary() {
   const response = await fetch(`${API_BASE}/api/events/summary`, {

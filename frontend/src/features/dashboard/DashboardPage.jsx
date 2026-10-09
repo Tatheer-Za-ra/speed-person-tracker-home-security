@@ -14,7 +14,7 @@ import CapabilitiesGrid from "./CapabilitiesGrid";
 import WorkflowSteps from "./WorkflowSteps";
 import "./DashboardPage.css";
 
-const API_HOST = "http://localhost:5000";
+const API_HOST = "";
 
 function DashboardPage({ currentRunFilter, onResetRunFilter, onNavigateToPage, onNavigateToConfig, onNavigateToRun }) {
   const [summary, setSummary] = useState(null);

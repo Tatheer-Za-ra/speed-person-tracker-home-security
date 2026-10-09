@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { X, Compass, Sliders, CheckCircle2, Eye, Camera } from "lucide-react";
 import "./CalibrationDiagnosticModal.css";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = "";
 
 export default function CalibrationDiagnosticModal({ video, onClose }) {
   if (!video) return null;

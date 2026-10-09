@@ -1,6 +1,6 @@
 // frontend/src/api/reportsApi.js
 
-const API_BASE = "http://localhost:5000/api/reports";
+const API_BASE = "/api/reports";
 
 /**
  * Triggers a browser file download from a Blob response.

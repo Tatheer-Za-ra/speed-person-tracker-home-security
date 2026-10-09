@@ -35,10 +35,17 @@ def create_app():
     from app.db import check_and_migrate_db
     check_and_migrate_db()
 
+    import re
     CORS(
         app,
         supports_credentials=True,
-        origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+        origins=[
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            re.compile(r"^https://.*\.trycloudflare\.com$"),
+            re.compile(r"^https://.*\.ngrok-free\.app$"),
+            re.compile(r"^https://.*\.ngrok\.app$"),
+        ],
     )
 
     app.register_blueprint(auth_bp)

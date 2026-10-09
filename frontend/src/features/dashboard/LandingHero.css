@@ -365,3 +365,68 @@
   opacity: 0.8;
   padding-left: 4px;
 }
+
+@media (max-width: 640px) {
+  .landing-hero {
+    padding: 24px 0 32px;
+    margin-bottom: 20px;
+  }
+
+  .hero-container {
+    padding: 0 16px;
+    gap: 32px;
+  }
+
+  .hero-top-banner {
+    gap: 24px;
+  }
+
+  .hero-headline {
+    font-size: 1.75rem;
+    min-height: auto;
+  }
+
+  .headline-accent {
+    font-size: 1.6rem;
+    white-space: normal;
+    display: inline;
+    word-break: break-word;
+  }
+
+  .hero-subheadline {
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+  }
+
+  .hero-actions {
+    width: 100%;
+  }
+
+  .primary-cta-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .hero-image-wrapper {
+    max-height: 240px;
+    border-radius: 14px;
+  }
+
+  .card-title {
+    white-space: normal;
+  }
+
+  .feature-card {
+    padding: 16px 18px;
+  }
+}
+
+@media (max-width: 425px) {
+  .hero-headline {
+    font-size: 1.5rem;
+  }
+
+  .headline-accent {
+    font-size: 1.35rem;
+  }
+}

@@ -286,3 +286,35 @@
   justify-content: flex-end;
   margin-top: 6px;
 }
+
+@media (max-width: 640px) {
+  .retention-card {
+    padding: 16px;
+    gap: 18px;
+  }
+
+  .retention-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .cleanup-now-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .retention-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .save-retention-btn {
+    width: 100%;
+  }
+
+  .retention-save-bar {
+    width: 100%;
+  }
+}
+

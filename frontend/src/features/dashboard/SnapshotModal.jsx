@@ -21,7 +21,7 @@ import {
 import { normalizeCategory } from "./FilterBar";
 import { formatTimestamp, formatFootageClockTime, formatMMSS } from "./BatchEventTimeline";
 
-const API_HOST = "http://localhost:5000";
+const API_HOST = "";
 
 function SnapshotModal({ event, onClose, speedThresholds }) {
   useEffect(() => {

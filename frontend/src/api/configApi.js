@@ -1,6 +1,6 @@
 // frontend/src/api/configApi.js
 
-const API_BASE = "http://localhost:5000/api/config";
+const API_BASE = "/api/config";
 
 /**
  * GET /api/config/speed-thresholds

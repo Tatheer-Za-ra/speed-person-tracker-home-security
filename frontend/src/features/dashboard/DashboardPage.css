@@ -764,3 +764,82 @@
   padding: 2px 8px;
   border-radius: 6px;
 }
+
+@media (max-width: 640px) {
+  .dashboard-header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .speed-threshold-pills {
+    width: 100%;
+  }
+
+  .speed-settings-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .details-tabs-pills {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .details-nav-tab {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .isolation-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  .reset-run-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .video-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .video-title-info {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .events-section {
+    padding: 16px;
+  }
+
+  .events-feed-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .command-filter-container {
+    padding: 16px;
+  }
+
+  .modal-content {
+    margin: 10px;
+    border-radius: 14px;
+    max-height: 94vh;
+  }
+
+  .modal-header {
+    padding: 16px;
+  }
+
+  .modal-body-grid {
+    padding: 16px;
+    gap: 16px;
+  }
+}

@@ -182,3 +182,27 @@
   background: #b91c1c;
   color: white;
 }
+
+@media (max-width: 860px) {
+  .known-persons-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .known-person-card {
+    padding: 16px;
+  }
+
+  .known-person-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .known-person-item-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

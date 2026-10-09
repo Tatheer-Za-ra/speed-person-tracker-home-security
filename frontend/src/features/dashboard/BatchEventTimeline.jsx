@@ -4,7 +4,7 @@ import React, { useMemo } from "react";
 import { Clock, Video, Gauge, CheckCircle2, AlertTriangle, UserCheck, UserX } from "lucide-react";
 import { normalizeCategory } from "./FilterBar";
 
-const API_HOST = "http://localhost:5000";
+const API_HOST = "";
 
 export function formatMMSS(seconds) {
   if (seconds === undefined || seconds === null) return "00:00";

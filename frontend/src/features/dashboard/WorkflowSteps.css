@@ -537,3 +537,28 @@
     align-items: flex-start;
   }
 }
+
+@media (max-width: 480px) {
+  .workflow-section {
+    padding: 24px 12px 32px;
+    border-radius: 12px;
+  }
+
+  .workflow-headline {
+    font-size: 1.35rem;
+  }
+
+  .workflow-subheadline {
+    font-size: 0.8rem;
+    margin-bottom: 18px;
+  }
+
+  .workflow-step-card {
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+
+  .outcome-item {
+    padding: 10px 12px;
+  }
+}

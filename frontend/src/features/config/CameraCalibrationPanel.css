@@ -180,3 +180,24 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+@media (max-width: 640px) {
+  .camera-calibration-card {
+    padding: 16px;
+  }
+
+  .dimensions-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .calibration-footer-ai {
+    padding: 12px;
+  }
+
+  .recalculate-events-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+

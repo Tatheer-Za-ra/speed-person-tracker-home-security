@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000";
+const API_BASE = "";
 
 export async function uploadVideos(files, enableSiteCalibration = false, options = {}) {
   const formData = new FormData();
