@@ -16,6 +16,7 @@ import {
 import { fetchVideoLogs, deleteVideoLog } from "../../api/logsApi";
 import ReportModal from "../dashboard/ReportModal";
 import { formatFootageDateTime } from "../videos/dateUtils";
+import { useToast } from "../../context/ToastContext";
 import "./LogHistoryPage.css";
 
 function formatDuration(sec) {
@@ -64,12 +65,11 @@ function LogHistoryPage({
   onNavigateToAnalytics,
   onNavigateToConfig,
 }) {
+  const { toast } = useToast();
   const [logs, setLogs] = useState([]);
   const [retentionWarning, setRetentionWarning] = useState(null);
   const [isWarningDismissed, setIsWarningDismissed] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState("");
 
   // Deletion Modal State
   const [deletingVideo, setDeletingVideo] = useState(null);
@@ -80,7 +80,6 @@ function LogHistoryPage({
 
   const loadLogs = async () => {
     setLoading(true);
-    setError(null);
     try {
       const data = await fetchVideoLogs();
       if (data && data.status === "success") {
@@ -93,7 +92,7 @@ function LogHistoryPage({
       }
     } catch (err) {
       console.error(err);
-      setError("Failed to load video processing history logs.");
+      toast.error("Failed to load video processing history logs.");
     } finally {
       setLoading(false);
     }
@@ -106,15 +105,17 @@ function LogHistoryPage({
   const handleConfirmDelete = async () => {
     if (!deletingVideo) return;
     setIsDeleting(true);
+    const videoName = deletingVideo.original_filename;
     try {
       await deleteVideoLog(deletingVideo.video_id);
-      setSuccessMessage(`Video run "${deletingVideo.original_filename}" deleted successfully.`);
+      const msg = `Video run "${videoName}" deleted successfully.`;
+      toast.success(msg);
       setDeletingVideo(null);
       await loadLogs();
-      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error(err);
-      alert(err.message || "Could not delete video run.");
+      const errorMsg = err.message || "Could not delete video run.";
+      toast.error(errorMsg);
     } finally {
       setIsDeleting(false);
     }
@@ -164,9 +165,6 @@ function LogHistoryPage({
           </button>
         </div>
       </div>
-
-      {successMessage && <div className="logs-alert success">{successMessage}</div>}
-      {error && <div className="logs-alert error">{error}</div>}
 
       {/* 24-Hour Impending Data Purge Disclaimer Alert */}
       {retentionWarning && retentionWarning.has_warning && !isWarningDismissed && (

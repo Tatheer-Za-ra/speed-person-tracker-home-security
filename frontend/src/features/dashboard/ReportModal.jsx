@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { FileSpreadsheet, FileText, Download, Loader2, X } from "lucide-react";
 import { downloadPdfReport, downloadCsvReport, fetchReportScopeInfo } from "../../api/reportsApi";
+import { useToast } from "../../context/ToastContext";
 import "./ReportModal.css";
 
 function ReportModal({ isOpen, onClose, defaultVideoId = null, videoFilename = null, batchId = null }) {
+  const { toast } = useToast();
   const [reportFormat, setReportFormat] = useState("PDF"); // "PDF" | "CSV"
   const [scope, setScope] = useState(defaultVideoId ? "SINGLE" : "BATCH"); // "BATCH" | "SINGLE"
   const [scopeInfo, setScopeInfo] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     if (defaultVideoId) {
@@ -57,8 +57,6 @@ function ReportModal({ isOpen, onClose, defaultVideoId = null, videoFilename = n
 
   const handleDownload = async () => {
     setIsGenerating(true);
-    setErrorMessage("");
-    setSuccessMessage("");
 
     const params = {};
     if ((scope === "SINGLE" || !isMultiVideoBatch) && defaultVideoId) {
@@ -77,18 +75,15 @@ function ReportModal({ isOpen, onClose, defaultVideoId = null, videoFilename = n
     try {
       if (reportFormat === "PDF") {
         await downloadPdfReport(params);
-        setSuccessMessage("PDF Security Audit Report generated successfully!");
+        toast.success("PDF Security Audit Report generated successfully!");
       } else {
         await downloadCsvReport(params);
-        setSuccessMessage("CSV Security Event Log exported successfully!");
+        toast.success("CSV Security Event Log exported successfully!");
       }
-      setTimeout(() => {
-        onClose();
-        setSuccessMessage("");
-      }, 1400);
+      onClose();
     } catch (err) {
       console.error(err);
-      setErrorMessage(err.message || "Failed to generate report.");
+      toast.error(err.message || "Failed to generate report.");
     } finally {
       setIsGenerating(false);
     }
@@ -111,9 +106,6 @@ function ReportModal({ isOpen, onClose, defaultVideoId = null, videoFilename = n
         <p className="report-modal-description">
           Generate structured security audit reports containing telemetry metrics, intruder detections, and velocity classifications.
         </p>
-
-        {errorMessage && <div className="report-modal-alert error">{errorMessage}</div>}
-        {successMessage && <div className="report-modal-alert success">{successMessage}</div>}
 
         {/* Format Selection Cards */}
         <div className="report-format-grid">

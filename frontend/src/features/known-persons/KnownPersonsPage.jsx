@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Upload } from "lucide-react";
 import "./KnownPersonsPage.css";
+import { useToast } from "../../context/ToastContext";
 import {
   createKnownPerson,
   deleteKnownPerson,
@@ -9,9 +10,8 @@ import {
 } from "../../api/knownPersonsApi";
 
 function KnownPersonsPage() {
+  const { toast, confirm } = useToast();
   const [knownPersons, setKnownPersons] = useState([]);
-  const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState("error");
 
   const [form, setForm] = useState({
     name: "",
@@ -49,15 +49,13 @@ function KnownPersonsPage() {
       const { response, data } = await listKnownPersons();
 
       if (!response.ok) {
-        setMessageType("error");
-        setMessage(data.error || "Could not load known persons");
+        toast.error(data?.error || "Could not load known persons");
         return;
       }
 
       setKnownPersons(data);
     } catch {
-      setMessageType("error");
-      setMessage("Could not connect to backend");
+      toast.error("Could not connect to backend server");
     }
   };
 
@@ -112,14 +110,17 @@ function KnownPersonsPage() {
       image: null,
     });
     setPreviewUrl("");
-    setMessage("");
     setFileInputKey((prev) => prev + 1);
   };
 
   const handleDelete = async (person) => {
-    const shouldDelete = window.confirm(
-      `Delete "${person.name}" from known persons?`
-    );
+    const shouldDelete = await confirm({
+      title: "Delete Known Person",
+      message: `Are you sure you want to delete "${person.name}" from known persons? This action cannot be undone.`,
+      confirmText: "Delete Person",
+      cancelText: "Cancel",
+      confirmVariant: "danger",
+    });
 
     if (!shouldDelete) return;
 
@@ -127,13 +128,12 @@ function KnownPersonsPage() {
       const { response, data } = await deleteKnownPerson(person.id);
 
       if (!response.ok) {
-        setMessageType("error");
-        setMessage(data.error || "Could not delete known person");
+        const errorMsg = data?.error || "Could not delete known person";
+        toast.error(errorMsg);
         return;
       }
 
-      setMessageType("success");
-      setMessage("Known person deleted successfully");
+      toast.success(`"${person.name}" deleted successfully`);
 
       if (selectedPerson?.id === person.id) {
         resetForm();
@@ -141,24 +141,20 @@ function KnownPersonsPage() {
 
       fetchPersons();
     } catch {
-      setMessageType("error");
-      setMessage("Could not connect to backend");
+      toast.error("Could not connect to backend server");
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
 
     if (!form.name.trim()) {
-      setMessageType("error");
-      setMessage("Name is required");
+      toast.warning("Name is required");
       return;
     }
 
     if (!selectedPerson && !form.image) {
-      setMessageType("error");
-      setMessage("Image is required");
+      toast.warning("Image is required");
       return;
     }
 
@@ -181,28 +177,24 @@ function KnownPersonsPage() {
       }
 
       if (!response.ok) {
-        setMessageType("error");
-        setMessage(
-          data.error ||
-            (selectedPerson
-              ? "Could not update known person"
-              : "Could not create known person")
-        );
+        const errorMsg =
+          data?.error ||
+          (selectedPerson
+            ? "Could not update known person"
+            : "Could not create known person");
+        toast.error(errorMsg);
         return;
       }
 
-      setMessageType("success");
-      setMessage(
-        selectedPerson
-          ? "Known person updated successfully"
-          : "Known person added successfully"
-      );
+      const successMsg = selectedPerson
+        ? `"${form.name.trim()}" updated successfully`
+        : `"${form.name.trim()}" added to known persons`;
+      toast.success(successMsg);
 
       resetForm();
       fetchPersons();
     } catch {
-      setMessageType("error");
-      setMessage("Could not connect to backend");
+      toast.error("Could not connect to backend server");
     }
   };
 
@@ -210,8 +202,6 @@ function KnownPersonsPage() {
     <div className="known-persons-layout">
       <div className="known-person-card">
         <h2>{selectedPerson ? "Edit Known Person" : "Add Known Person"}</h2>
-
-        {message && <p className={`message ${messageType}`}>{message}</p>}
 
         <form onSubmit={handleSubmit}>
           <div className="known-person-field">

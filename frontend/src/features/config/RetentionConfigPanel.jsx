@@ -7,6 +7,7 @@ import {
   updateRetentionConfig,
   triggerManualCleanup,
 } from "../../api/configApi";
+import { useToast } from "../../context/ToastContext";
 import "./RetentionConfigPanel.css";
 
 const RETENTION_OPTIONS = [
@@ -18,6 +19,7 @@ const RETENTION_OPTIONS = [
 ];
 
 function RetentionConfigPanel() {
+  const { toast } = useToast();
   const [activeRetentionDays, setActiveRetentionDays] = useState(30);
   const [selectedPolicyDays, setSelectedPolicyDays] = useState(30);
   const [lastCleanupAt, setLastCleanupAt] = useState(null);
@@ -27,8 +29,6 @@ function RetentionConfigPanel() {
   const [saving, setSaving] = useState(false);
   const [cleaning, setCleaning] = useState(false);
 
-  // Toast / Alert notifications
-  const [toastMessage, setToastMessage] = useState(null);
   const [cleanupReportModal, setCleanupReportModal] = useState(null);
 
   const loadRetentionInfo = async () => {
@@ -55,24 +55,21 @@ function RetentionConfigPanel() {
 
   const handleSavePolicy = async () => {
     setSaving(true);
-    setToastMessage(null);
     try {
       const { response, data } = await updateRetentionConfig(selectedPolicyDays);
       if (response.ok && data.status === "success") {
         setActiveRetentionDays(selectedPolicyDays);
-        setToastMessage({
-          type: "success",
-          text: `Retention policy settings saved successfully! Window set to ${
+        toast.success(
+          `Retention policy saved! Window set to ${
             selectedPolicyDays === 0 ? "Disabled (Keep Forever)" : `${selectedPolicyDays} Days`
-          }.`,
-        });
-        setTimeout(() => setToastMessage(null), 4000);
+          }.`
+        );
       } else {
-        setToastMessage({ type: "error", text: data.message || "Failed to save retention policy." });
+        toast.error(data?.message || "Failed to save retention policy.");
       }
     } catch (err) {
       console.error(err);
-      setToastMessage({ type: "error", text: "Could not connect to backend server." });
+      toast.error("Could not connect to backend server.");
     } finally {
       setSaving(false);
     }
@@ -80,7 +77,6 @@ function RetentionConfigPanel() {
 
   const handleRunCleanupNow = async () => {
     setCleaning(true);
-    setToastMessage(null);
     try {
       const { response, data } = await triggerManualCleanup();
       if (response.ok && data.status === "success") {
@@ -93,18 +89,14 @@ function RetentionConfigPanel() {
           message: data.message,
         });
 
-        setToastMessage({
-          type: "success",
-          text: data.message,
-        });
-
+        toast.success(data.message || "Storage cleanup completed successfully.");
         await loadRetentionInfo();
       } else {
-        setToastMessage({ type: "error", text: data.message || "Storage cleanup failed." });
+        toast.error(data?.message || "Storage cleanup failed.");
       }
     } catch (err) {
       console.error(err);
-      setToastMessage({ type: "error", text: "Could not execute storage cleanup." });
+      toast.error("Could not execute storage cleanup.");
     } finally {
       setCleaning(false);
     }
@@ -135,16 +127,6 @@ function RetentionConfigPanel() {
             <span>{cleaning ? "Purging Storage..." : "Run Storage Cleanup Now"}</span>
           </button>
         </div>
-
-        {/* Toast Alert Notification */}
-        {toastMessage && (
-          <div className={`retention-alert ${toastMessage.type}`}>
-            <span className="alert-icon">
-              {toastMessage.type === "success" ? <CheckCircle2 size={18} style={{ color: "#10b981" }} /> : <AlertTriangle size={18} style={{ color: "#ef4444" }} />}
-            </span>
-            <span>{toastMessage.text}</span>
-          </div>
-        )}
 
         {/* Stats Grid */}
         <div className="retention-stats-grid">

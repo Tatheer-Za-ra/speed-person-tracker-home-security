@@ -4,54 +4,50 @@ import React, { useState } from "react";
 import { ShieldCheck, Cpu } from "lucide-react";
 import "./AuthPage.css";
 import { loginUser, signupUser } from "../../api/authApi";
+import { useToast } from "../../context/ToastContext";
 import LoginForm from "./LoginForm";
 import SignupForm from "./SignupForm";
 
 function AuthPage({ onLoginSuccess }) {
+  const { toast } = useToast();
   const [mode, setMode] = useState("login");
-  const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState("error");
   const [loading, setLoading] = useState(false);
 
   const handleSignupSubmit = async (formValues) => {
-    setMessage("");
     setLoading(true);
 
     try {
       const { response, data } = await signupUser(formValues);
 
       if (!response.ok) {
-        setMessageType("error");
-        setMessage(data.error || "Signup failed. Please try again.");
+        toast.error(data?.error || "Signup failed. Please try again.");
         return;
       }
 
+      toast.success("Account created successfully! Welcome to HavenTrack.");
       onLoginSuccess(data.user);
     } catch {
-      setMessageType("error");
-      setMessage("Could not connect to backend server. Make sure Flask is running.");
+      toast.error("Could not connect to backend server. Make sure Flask is running.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleLoginSubmit = async (formValues) => {
-    setMessage("");
     setLoading(true);
 
     try {
       const { response, data } = await loginUser(formValues);
 
       if (!response.ok) {
-        setMessageType("error");
-        setMessage(data.error || "Invalid credentials. Please verify email and password.");
+        toast.error(data?.error || "Invalid credentials. Please verify email and password.");
         return;
       }
 
+      toast.success("Signed in successfully. Welcome back!");
       onLoginSuccess(data.user);
     } catch {
-      setMessageType("error");
-      setMessage("Could not connect to backend server. Make sure Flask is running.");
+      toast.error("Could not connect to backend server. Make sure Flask is running.");
     } finally {
       setLoading(false);
     }
@@ -81,20 +77,14 @@ function AuthPage({ onLoginSuccess }) {
             <button
               type="button"
               className={`pill-toggle-btn ${mode === "login" ? "active" : ""}`}
-              onClick={() => {
-                setMode("login");
-                setMessage("");
-              }}
+              onClick={() => setMode("login")}
             >
               Sign In
             </button>
             <button
               type="button"
               className={`pill-toggle-btn ${mode === "signup" ? "active" : ""}`}
-              onClick={() => {
-                setMode("signup");
-                setMessage("");
-              }}
+              onClick={() => setMode("signup")}
             >
               Register
             </button>
@@ -111,13 +101,6 @@ function AuthPage({ onLoginSuccess }) {
                 : "Create an administrator account for local CCTV surveillance."}
             </p>
           </div>
-
-          {/* Feedback Alert Banner */}
-          {message && (
-            <div className={`auth-card-alert ${messageType}`}>
-              <span>{message}</span>
-            </div>
-          )}
 
           {/* Form Component */}
           {mode === "login" ? (

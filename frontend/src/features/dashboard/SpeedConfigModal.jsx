@@ -14,6 +14,7 @@ import {
   Loader2 
 } from "lucide-react";
 import { fetchSpeedThresholds, updateSpeedThresholds } from "../../api/configApi";
+import { useToast } from "../../context/ToastContext";
 import "./SpeedConfigModal.css";
 
 const DEFAULT_THRESHOLDS = {
@@ -23,11 +24,10 @@ const DEFAULT_THRESHOLDS = {
 };
 
 function SpeedConfigModal({ isOpen, onClose, onThresholdsUpdated }) {
+  const { toast } = useToast();
   const [thresholds, setThresholds] = useState(DEFAULT_THRESHOLDS);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
 
   // Fetch current speed limits when modal opens
   useEffect(() => {
@@ -35,8 +35,6 @@ function SpeedConfigModal({ isOpen, onClose, onThresholdsUpdated }) {
 
     const loadThresholds = async () => {
       setLoading(true);
-      setErrorMessage("");
-      setSuccessMessage("");
 
       try {
         const { response, data } = await fetchSpeedThresholds();
@@ -75,20 +73,15 @@ function SpeedConfigModal({ isOpen, onClose, onThresholdsUpdated }) {
       ...prev,
       [category]: value,
     }));
-    setErrorMessage("");
-    setSuccessMessage("");
   };
 
   const handleResetDefaults = () => {
     setThresholds(DEFAULT_THRESHOLDS);
-    setErrorMessage("");
-    setSuccessMessage("Reset to default thresholds. Click Save to apply.");
+    toast.info("Reset to default thresholds. Click Save to apply.");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMessage("");
-    setSuccessMessage("");
 
     // Validate inputs
     const carVal = parseFloat(thresholds.car);
@@ -101,10 +94,10 @@ function SpeedConfigModal({ isOpen, onClose, onThresholdsUpdated }) {
     if (isNaN(truckVal) || truckVal <= 0) invalidCategories.push("Truck");
 
     if (invalidCategories.length > 1) {
-      setErrorMessage("Speed limit values must be positive.");
+      toast.warning("Speed limit values must be positive numbers.");
       return;
     } else if (invalidCategories.length === 1) {
-      setErrorMessage(`${invalidCategories[0]} speed limit value must be positive.`);
+      toast.warning(`${invalidCategories[0]} speed limit value must be positive.`);
       return;
     }
 
@@ -119,21 +112,19 @@ function SpeedConfigModal({ isOpen, onClose, onThresholdsUpdated }) {
       const { response, data } = await updateSpeedThresholds(payload);
 
       if (!response.ok || data.status !== "success") {
-        setErrorMessage(data.message || "Failed to update speed thresholds.");
+        toast.error(data?.message || "Failed to update speed thresholds.");
         return;
       }
 
-      setSuccessMessage("Speed limit thresholds updated successfully!");
+      toast.success("Speed limit thresholds updated successfully!");
       if (onThresholdsUpdated) {
         onThresholdsUpdated(data.thresholds);
       }
 
-      setTimeout(() => {
-        onClose();
-      }, 1200);
+      onClose();
     } catch (err) {
       console.error(err);
-      setErrorMessage("Could not connect to backend server.");
+      toast.error("Could not connect to backend server.");
     } finally {
       setSaving(false);
     }
@@ -161,19 +152,6 @@ function SpeedConfigModal({ isOpen, onClose, onThresholdsUpdated }) {
         <p className="speed-modal-description">
           Set maximum velocity speed limits (km/h) for vehicle categories. Any detected target exceeding its limit will automatically trigger a <strong>SECURITY ALERT</strong>.
         </p>
-
-        {errorMessage && (
-          <div className="speed-modal-alert error">
-            <AlertTriangle size={16} style={{ flexShrink: 0 }} />
-            <span>{errorMessage}</span>
-          </div>
-        )}
-        {successMessage && (
-          <div className="speed-modal-alert success">
-            <CheckCircle2 size={16} style={{ flexShrink: 0 }} />
-            <span>{successMessage}</span>
-          </div>
-        )}
 
         {loading ? (
           <div className="speed-modal-loading">

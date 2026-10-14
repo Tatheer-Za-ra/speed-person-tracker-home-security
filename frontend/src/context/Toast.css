@@ -1,0 +1,337 @@
+/* frontend/src/context/Toast.css */
+
+/* Floating Toast Portal Container */
+.toast-portal-container {
+  position: fixed;
+  top: 80px; /* Positioned cleanly just below the 68px sticky navigation header */
+  right: 24px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 420px;
+  width: calc(100% - 32px);
+  pointer-events: none;
+}
+
+@media (max-width: 720px) {
+  .toast-portal-container {
+    top: 72px; /* Just below the 60px mobile header */
+    right: 16px;
+    left: 16px;
+    width: auto;
+    max-width: none;
+  }
+}
+
+/* Individual Toast Card */
+.toast-card {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 12px 14px 14px;
+  box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.15), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  animation: toastSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s ease;
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Toast Color Variants */
+.toast-card.toast-success {
+  border-left: 4px solid #10b981;
+  background: linear-gradient(to right, #f0fdf4 0%, #ffffff 18%);
+}
+
+.toast-card.toast-success .toast-icon {
+  color: #059669;
+}
+
+.toast-card.toast-success .toast-progress-bar {
+  background: #10b981;
+}
+
+.toast-card.toast-error {
+  border-left: 4px solid #ef4444;
+  background: linear-gradient(to right, #fef2f2 0%, #ffffff 18%);
+}
+
+.toast-card.toast-error .toast-icon {
+  color: #dc2626;
+}
+
+.toast-card.toast-error .toast-progress-bar {
+  background: #ef4444;
+}
+
+.toast-card.toast-warning {
+  border-left: 4px solid #f59e0b;
+  background: linear-gradient(to right, #fffbeb 0%, #ffffff 18%);
+}
+
+.toast-card.toast-warning .toast-icon {
+  color: #d97706;
+}
+
+.toast-card.toast-warning .toast-progress-bar {
+  background: #f59e0b;
+}
+
+.toast-card.toast-info {
+  border-left: 4px solid #0284c7;
+  background: linear-gradient(to right, #f0f9ff 0%, #ffffff 18%);
+}
+
+.toast-card.toast-info .toast-icon {
+  color: #0284c7;
+}
+
+.toast-card.toast-info .toast-progress-bar {
+  background: #0284c7;
+}
+
+/* Toast Icon */
+.toast-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+/* Toast Content Text */
+.toast-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  text-align: left;
+}
+
+.toast-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.toast-message {
+  font-size: 0.8125rem;
+  color: #334155;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* Close Button */
+.toast-close-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.toast-close-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+/* Bottom Progress Bar */
+.toast-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  animation: toastProgress linear forwards;
+}
+
+@keyframes toastProgress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* =========================================================
+   CUSTOM SLEEK CONFIRMATION MODAL
+   ========================================================= */
+.confirm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100000;
+  padding: 20px;
+  animation: confirmFadeIn 0.18s ease;
+}
+
+@keyframes confirmFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.confirm-modal-card {
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  max-width: 440px;
+  width: 100%;
+  padding: 26px 24px 22px;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  animation: confirmScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes confirmScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.confirm-icon-box {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.confirm-icon-box.danger {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+}
+
+.confirm-icon-box.primary {
+  background: #f0f9ff;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+}
+
+.confirm-text-area {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.confirm-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.confirm-message {
+  font-size: 0.9rem;
+  color: #475569;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.confirm-actions-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.confirm-btn-cancel {
+  flex: 1;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.confirm-btn-cancel:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.confirm-btn-action {
+  flex: 1;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.confirm-btn-action.danger {
+  background: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
+}
+
+.confirm-btn-action.danger:hover {
+  background: #b91c1c;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
+}
+
+.confirm-btn-action.primary {
+  background: #0066cc;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.25);
+}
+
+.confirm-btn-action.primary:hover {
+  background: #0052a3;
+  box-shadow: 0 4px 14px rgba(0, 102, 204, 0.35);
+}

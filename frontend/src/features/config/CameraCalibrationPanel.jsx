@@ -5,12 +5,12 @@ import { updateCameraCalibration, fetchCameraCalibration, applyVideoSiteCalibrat
 import { listAllVideoLogs } from "../../api/videoApi";
 import { Compass, ShieldCheck, Film, Info, CheckCircle2, Zap, Trash2 } from "lucide-react";
 import CalibrationDiagnosticModal from "../videos/CalibrationDiagnosticModal";
+import { useToast } from "../../context/ToastContext";
 import "./CameraCalibrationPanel.css";
 
 function CameraCalibrationPanel() {
+  const { toast, confirm } = useToast();
   const [recalculating, setRecalculating] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
   const [activeCalibConfig, setActiveCalibConfig] = useState(null);
   const [calibratedVideos, setCalibratedVideos] = useState([]);
   const [activeCalibVideo, setActiveCalibVideo] = useState(null);
@@ -54,72 +54,84 @@ function CameraCalibrationPanel() {
 
   const handleApplyVideoSiteProfile = async (videoId, filename) => {
     setRecalculating(true);
-    setSuccessMessage("");
-    setErrorMessage("");
 
     try {
       const { response, data } = await applyVideoSiteCalibration(videoId);
       if (response.ok && data.status === "success") {
-        setSuccessMessage(data.message || `Activated camera perspective from '${filename}' for future footage!`);
+        const msg = data.message || `Activated camera perspective from '${filename}' for future footage!`;
+        toast.success(msg);
         fetchActiveConfig();
       } else {
-        setErrorMessage(data.message || "Failed to apply camera perspective profile.");
+        const msg = data.message || "Failed to apply camera perspective profile.";
+        toast.error(msg);
       }
     } catch (err) {
       console.error(err);
-      setErrorMessage("Could not connect to backend server.");
+      toast.error("Could not connect to backend server.");
     } finally {
       setRecalculating(false);
     }
   };
 
   const handleDeleteSiteProfile = async (videoId, filename) => {
-    if (!window.confirm(`Are you sure you want to permanently delete the perspective profile for "${filename}"?`)) {
-      return;
-    }
+    const shouldDelete = await confirm({
+      title: "Delete Perspective Profile",
+      message: `Are you sure you want to permanently delete the perspective profile for "${filename}"?`,
+      confirmText: "Delete Profile",
+      cancelText: "Cancel",
+      confirmVariant: "danger",
+    });
+
+    if (!shouldDelete) return;
 
     setRecalculating(true);
-    setSuccessMessage("");
-    setErrorMessage("");
 
     try {
       const { response, data } = await deleteVideoSiteCalibration(videoId);
       if (response.ok && data.status === "success") {
-        setSuccessMessage(data.message || `Permanently deleted perspective profile for '${filename}'.`);
+        const msg = data.message || `Permanently deleted perspective profile for '${filename}'.`;
+        toast.success(msg);
         fetchActiveConfig();
         fetchCalibratedVideos();
       } else {
-        setErrorMessage(data.message || "Failed to delete perspective profile.");
+        const msg = data.message || "Failed to delete perspective profile.";
+        toast.error(msg);
       }
     } catch (err) {
       console.error(err);
-      setErrorMessage("Could not connect to backend server.");
+      toast.error("Could not connect to backend server.");
     } finally {
       setRecalculating(false);
     }
   };
 
   const handleDeleteAllSiteProfiles = async () => {
-    if (!window.confirm("Are you sure you want to permanently delete ALL saved camera perspective profiles?")) {
-      return;
-    }
+    const shouldDelete = await confirm({
+      title: "Delete All Perspective Profiles",
+      message: "Are you sure you want to permanently delete ALL saved camera perspective profiles? This action cannot be undone.",
+      confirmText: "Delete All Profiles",
+      cancelText: "Cancel",
+      confirmVariant: "danger",
+    });
+
+    if (!shouldDelete) return;
 
     setRecalculating(true);
-    setSuccessMessage("");
-    setErrorMessage("");
 
     try {
       const { response, data } = await deleteAllSiteCalibrations();
       if (response.ok && data.status === "success") {
-        setSuccessMessage(data.message || "Successfully deleted all saved perspective profiles!");
+        const msg = data.message || "Successfully deleted all saved perspective profiles!";
+        toast.success(msg);
         fetchActiveConfig();
         fetchCalibratedVideos();
       } else {
-        setErrorMessage(data.message || "Failed to delete perspective profiles.");
+        const msg = data.message || "Failed to delete perspective profiles.";
+        toast.error(msg);
       }
     } catch (err) {
       console.error(err);
-      setErrorMessage("Could not connect to backend server.");
+      toast.error("Could not connect to backend server.");
     } finally {
       setRecalculating(false);
     }
@@ -127,20 +139,20 @@ function CameraCalibrationPanel() {
 
   const handleRecalculateAll = async () => {
     setRecalculating(true);
-    setSuccessMessage("");
-    setErrorMessage("");
 
     try {
       const { response, data } = await updateCameraCalibration({ mode: "ai_self_calibrated" });
       if (response.ok && data.status === "success") {
-        setSuccessMessage(data.message || "Recalculated speed telemetry for all recorded events.");
+        const msg = data.message || "Recalculated speed telemetry for all recorded events.";
+        toast.success(msg);
         fetchActiveConfig();
       } else {
-        setErrorMessage(data.message || "Failed to trigger speed recalculation.");
+        const msg = data.message || "Failed to trigger speed recalculation.";
+        toast.error(msg);
       }
     } catch (err) {
       console.error(err);
-      setErrorMessage("Could not connect to backend server.");
+      toast.error("Could not connect to backend server.");
     } finally {
       setRecalculating(false);
     }
@@ -165,9 +177,6 @@ function CameraCalibrationPanel() {
           Each uploaded CCTV video calibrates the camera angle for accurate speed detection. Below are saved perspective settings for your camera locations. Select any profile to make it the <strong>active default</strong> for future footage.
         </p>
       </div>
-
-      {errorMessage && <div className="calibration-alert error">{errorMessage}</div>}
-      {successMessage && <div className="calibration-alert success">{successMessage}</div>}
 
       {/* Saved Site Calibration Diagnostic Maps Section */}
       <div className="iso-dimensions-section" style={{ marginTop: "16px" }}>

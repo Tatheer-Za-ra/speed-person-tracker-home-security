@@ -22,6 +22,7 @@ import {
 import "./VideoUploadPage.css";
 import { listVideos, uploadVideos } from "../../api/videoApi";
 import CalibrationDiagnosticModal from "./CalibrationDiagnosticModal";
+import { useToast } from "../../context/ToastContext";
 import {
   getTodayDateString,
   getCurrentLocalDateTimeString,
@@ -222,10 +223,9 @@ function getStatusClass(status) {
 }
 
 function VideoUploadPage({ onNavigateToRun }) {
+  const { toast } = useToast();
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [videos, setVideos] = useState([]);
-  const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState("info");
   const [fileInputKey, setFileInputKey] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [enableSiteCalibration, setEnableSiteCalibration] = useState(false);
@@ -306,7 +306,6 @@ function VideoUploadPage({ onNavigateToRun }) {
       });
       return next;
     });
-    setMessage("");
   };
 
   const toggleUnknownTime = (index) => {
@@ -332,8 +331,7 @@ function VideoUploadPage({ onNavigateToRun }) {
     e.preventDefault();
 
     if (selectedFiles.length === 0) {
-      setMessageType("error");
-      setMessage("Please select at least one video file first.");
+      toast.warning("Please select at least one video file first.");
       return;
     }
 
@@ -343,8 +341,7 @@ function VideoUploadPage({ onNavigateToRun }) {
 
     try {
       setIsUploading(true);
-      setMessageType("info");
-      setMessage("Uploading and starting processing...");
+      toast.info("Uploading video footage and beginning processing...");
 
       const isBatchContinuous = selectedFiles.length > 1 ? isContinuous : false;
       const options = {
@@ -369,14 +366,12 @@ function VideoUploadPage({ onNavigateToRun }) {
       }
 
       await uploadVideos(selectedFiles, enableSiteCalibration, options);
-      setMessageType("success");
-      setMessage("Video upload completed successfully.");
+      toast.success("Video upload completed and queued for analysis.");
       setSelectedFiles([]);
       setFileInputKey((prev) => prev + 1);
       fetchVideos();
     } catch {
-      setMessageType("error");
-      setMessage("Could not connect to backend");
+      toast.error("Could not connect to backend server.");
     } finally {
       setIsUploading(false);
     }
@@ -399,8 +394,6 @@ function VideoUploadPage({ onNavigateToRun }) {
             Upload residential CCTV recordings to detect vehicles, verify residents, and measure driveway speeds.
           </p>
         </div>
-
-        {message && <p className={`message ${messageType}`}>{message}</p>}
 
         <form onSubmit={handleUpload}>
           <div className="videos-field">
