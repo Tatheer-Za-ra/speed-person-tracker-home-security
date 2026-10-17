@@ -5,6 +5,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 PROJECT_ROOT = BASE_DIR.parent
 
 MODELS_DIR = BASE_DIR / "models"
+ARCFACE_MODEL_PATH = MODELS_DIR / "w600k_mbf.onnx"
+FACE_MATCH_THRESHOLD = 0.40
 DEBUG_OUTPUT_DIR = BASE_DIR / "storage" / "debug_frames"
 EVENT_SNAPSHOTS_DIR = BASE_DIR / "storage" / "event_snapshots"
 DEBUG_FACES_DIR = BASE_DIR / "storage" / "debug_faces"

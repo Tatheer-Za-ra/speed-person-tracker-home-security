@@ -4,22 +4,17 @@ import numpy as np
 import cv2
 
 
-FACE_MATCH_THRESHOLD = 0.82
+from app.ai_pipeline.config import FACE_MATCH_THRESHOLD
+from app.ai_pipeline.face_embedder import extract_face_embedding, get_face_embedding_array
 
 
 def create_simple_face_embedding(face_crop):
     """
-    Grayscale face crop -> 32x32 -> normalized -> flattened list or np.ndarray.
+    Extracts 512-d ArcFace embedding as a numpy array.
     """
     if face_crop is None or face_crop.size == 0:
         return None
-
-    if len(face_crop.shape) == 3:
-        face_crop = cv2.cvtColor(face_crop, cv2.COLOR_BGR2GRAY)
-
-    resized = cv2.resize(face_crop, (32, 32))
-    normalized = resized.astype("float32") / 255.0
-    return normalized.flatten()
+    return get_face_embedding_array(face_crop)
 
 
 def preprocess_face_templates(face_templates):
@@ -50,7 +45,7 @@ def preprocess_face_templates(face_templates):
             else:
                 continue
 
-            if emb:
+            if emb and len(emb) == 512:
                 embeddings.append(emb)
                 person_ids.append(pid)
                 p_disp = f"{p_name}({p_cat})" if (p_name and p_cat) else (p_name or None)
@@ -157,7 +152,7 @@ def match_embedding_to_templates(face_embedding, face_templates):
 
 
 def classify_face_crop(face_crop, face_templates):
-    embedding = create_simple_face_embedding(face_crop)
+    embedding = extract_face_embedding(face_crop)
 
     if embedding is None:
         return {

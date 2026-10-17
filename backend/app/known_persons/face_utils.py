@@ -33,13 +33,15 @@ def validate_and_extract_face(image_bytes: bytes):
         return False, "No face detected in image", None
 
     x, y, w, h = max(faces, key=lambda f: f[2] * f[3])
-    face_crop = gray[y:y + h, x:x + w]
+    face_crop = image[y:y + h, x:x + w]
 
     return True, "Valid face image", face_crop
 
 
 def create_initial_embedding(face_crop):
-    resized = cv2.resize(face_crop, (32, 32))
-    normalized = resized.astype("float32") / 255.0
-    embedding = normalized.flatten().tolist()
+    from app.ai_pipeline.face_embedder import extract_face_embedding
+
+    embedding = extract_face_embedding(face_crop)
+    if embedding is None:
+        raise ValueError("Failed to generate biometric face embedding")
     return json.dumps(embedding)
