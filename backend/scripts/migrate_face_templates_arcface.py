@@ -1,5 +1,5 @@
 """
-Migration script to convert existing 32x32 grayscale face templates to 512-d ArcFace embeddings.
+Migration script to convert existing face templates to landmark-aligned 512-d ArcFace embeddings.
 Scans all known persons in both app.db (root) and backend/app.db (if present).
 """
 
@@ -15,7 +15,8 @@ backend_dir = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(backend_dir))
 
 from app.known_persons.face_utils import FACE_CASCADE
-from app.ai_pipeline.face_embedder import extract_face_embedding
+from app.ai_pipeline.face_detector import detect_faces_in_image
+from app.ai_pipeline.face_embedder import extract_face_embedding, align_face_5points
 
 
 def reembed_database(db_path: Path):
@@ -47,17 +48,31 @@ def reembed_database(db_path: Path):
             print(f"    WARNING: Failed to read image from {img_path}")
             continue
 
-        # Extract face crop via Haar cascade
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        faces = FACE_CASCADE.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(60, 60))
+        face_input = None
+        # Try RetinaFace with 5-point landmark alignment
+        try:
+            detected = detect_faces_in_image(img)
+            if detected:
+                lm = detected[0].get("landmarks")
+                if lm:
+                    aligned = align_face_5points(img, lm)
+                    if aligned is not None:
+                        face_input = aligned
+                        print(f"    Aligned face with 5-point landmarks.")
+        except Exception as e:
+            print(f"    Landmark alignment fallback: {e}")
 
-        if len(faces) > 0:
-            x, y, w, h = max(faces, key=lambda f: f[2] * f[3])
-            face_crop = img[y:y+h, x:x+w]
-        else:
-            face_crop = img
+        # Fallback to Haar cascade crop
+        if face_input is None:
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            faces = FACE_CASCADE.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(60, 60))
+            if len(faces) > 0:
+                x, y, w, h = max(faces, key=lambda f: f[2] * f[3])
+                face_input = img[y:y+h, x:x+w]
+            else:
+                face_input = img
 
-        embedding = extract_face_embedding(face_crop)
+        embedding = extract_face_embedding(face_input)
         if not embedding or len(embedding) != 512:
             print(f"    ERROR: Failed to extract 512-d ArcFace embedding for {name} (got {len(embedding) if embedding else 0})")
             continue

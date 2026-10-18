@@ -167,3 +167,46 @@ def compute_cosine_similarity(emb1: Union[np.ndarray, List[float]], emb2: Union[
     if n1 == 0 or n2 == 0:
         return 0.0
     return float(np.dot(v1, v2) / (n1 * n2))
+
+
+# Canonical 5 facial landmarks for ArcFace (112, 112)
+ARCFACE_REFERENCE_PTS = np.array([
+    [38.2946, 51.6963],  # subject's right eye (viewer's left)
+    [73.5318, 51.6963],  # subject's left eye (viewer's right)
+    [56.0252, 71.7366],  # nose tip
+    [41.5493, 92.3655],  # subject's right mouth corner (viewer's left)
+    [70.7299, 92.3655],  # subject's left mouth corner (viewer's right)
+], dtype=np.float32)
+
+
+def align_face_5points(image: np.ndarray, landmarks: Optional[dict]) -> Optional[np.ndarray]:
+    """
+    Warps a face image using 5-point facial landmarks to canonical ArcFace template (112, 112).
+    landmarks dict format: {'right_eye': [x, y], 'left_eye': [x, y], 'nose': [x, y], 'mouth_right': [x, y], 'mouth_left': [x, y]}
+    """
+    if image is None or image.size == 0 or not landmarks:
+        return None
+
+    required_keys = ("right_eye", "left_eye", "nose", "mouth_right", "mouth_left")
+    if not all(k in landmarks for k in required_keys):
+        return None
+
+    try:
+        src_pts = np.array([
+            landmarks["right_eye"],
+            landmarks["left_eye"],
+            landmarks["nose"],
+            landmarks["mouth_right"],
+            landmarks["mouth_left"],
+        ], dtype=np.float32)
+
+        M, _ = cv2.estimateAffinePartial2D(src_pts, ARCFACE_REFERENCE_PTS)
+        if M is None:
+            return None
+
+        aligned = cv2.warpAffine(image, M, (112, 112), borderValue=0.0)
+        return aligned
+    except Exception as e:
+        logger.warning(f"Error during 5-point face alignment: {e}")
+        return None
+

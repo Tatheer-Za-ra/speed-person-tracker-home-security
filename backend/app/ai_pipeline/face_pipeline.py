@@ -6,6 +6,7 @@ import cv2
 from app.ai_pipeline.config import DEBUG_FACES_DIR
 from app.ai_pipeline.face_detector import detect_faces_in_image
 from app.ai_pipeline.face_matcher import classify_face_crop, preprocess_face_templates
+from app.ai_pipeline.face_embedder import align_face_5points
 
 
 # the whole bbox region without expansion, to avoid cropping out faces near the edges of the bbox
@@ -158,18 +159,24 @@ def extract_faces_from_tracks(video_path, tracks_summary, face_templates):
             classified_faces = []
 
             for face in faces:
-                fx1 = max(0, int(face["x1"]))
-                fy1 = max(0, int(face["y1"]))
-                fx2 = min(person_crop.shape[1], int(face["x2"]))
-                fy2 = min(person_crop.shape[0], int(face["y2"]))
+                landmarks = face.get("landmarks")
+                aligned_face = align_face_5points(person_crop, landmarks)
 
-                if fx2 <= fx1 or fy2 <= fy1:
-                    continue
+                if aligned_face is not None:
+                    face_input = aligned_face
+                else:
+                    fx1 = max(0, int(face["x1"]))
+                    fy1 = max(0, int(face["y1"]))
+                    fx2 = min(person_crop.shape[1], int(face["x2"]))
+                    fy2 = min(person_crop.shape[0], int(face["y2"]))
 
-                face_crop = person_crop[fy1:fy2, fx1:fx2]
+                    if fx2 <= fx1 or fy2 <= fy1:
+                        continue
+
+                    face_input = person_crop[fy1:fy2, fx1:fx2]
 
                 identity_result = classify_face_crop(
-                    face_crop=face_crop,
+                    face_crop=face_input,
                     face_templates=cached_face_templates,
                 )
 
