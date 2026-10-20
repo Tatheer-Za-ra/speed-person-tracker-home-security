@@ -4,7 +4,7 @@ curl -X POST http://127.0.0.1:5000/api/videos/upload -b cookies.txt -F "videos=@
 venv\Scripts\activate
 npm run dev
 cd ..
-
+python run.py
 
 curl -X POST http://127.0.0.1:5000/api/auth/login -H "Content-Type: application/json" -c cookies.txt -d "{\"email\":\"zara@example.com\",\"password\":\"123\"}"
 

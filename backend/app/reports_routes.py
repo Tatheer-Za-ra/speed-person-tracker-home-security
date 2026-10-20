@@ -215,6 +215,17 @@ def get_report_scope_info():
         elif current_video:
             batch_videos = [current_video]
 
+        # If video_id was not explicitly passed (e.g. opened from dashboard), resolve to the latest processed video
+        if not current_video:
+            if batch_videos:
+                current_video = batch_videos[0]
+            elif user_id:
+                all_v = video_repo.get_all_videos(user_id=user_id)
+                if all_v:
+                    current_video = all_v[-1]
+                    if not batch_videos:
+                        batch_videos = [current_video]
+
         filenames = [v.original_filename for v in batch_videos]
         count = len(filenames)
 
@@ -237,11 +248,16 @@ def get_report_scope_info():
 
         current_video_label = None
         if current_video:
-            current_video_label = f'Current Video Run ("{_fmt_name(current_video.original_filename)}")'
+            if video_id:
+                current_video_label = f'Current Video Run ("{_fmt_name(current_video.original_filename)}")'
+            else:
+                current_video_label = f'Latest Video Run ("{_fmt_name(current_video.original_filename)}")'
+        else:
+            current_video_label = "Latest Video Activity Run"
 
         return jsonify({
             "status": "success",
-            "video_id": video_id,
+            "video_id": video_id or (current_video.id if current_video else None),
             "batch_id": batch_id,
             "video_filename": current_video.original_filename if current_video else None,
             "current_video_label": current_video_label,

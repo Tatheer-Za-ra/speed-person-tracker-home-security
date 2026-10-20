@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { FileSpreadsheet, FileText, Download, Loader2, X } from "lucide-react";
 import { downloadPdfReport, downloadCsvReport, fetchReportScopeInfo } from "../../api/reportsApi";
 import { useToast } from "../../context/ToastContext";
@@ -51,6 +51,28 @@ function ReportModal({ isOpen, onClose, defaultVideoId = null, videoFilename = n
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
+  const effectiveVideoId = defaultVideoId || scopeInfo?.video_id || null;
+  const effectiveBatchId = batchId || scopeInfo?.batch_id || null;
+
+  // Clean, human-friendly target label without ever exposing "#null"
+  const targetVideoLabel = useMemo(() => {
+    if (scopeInfo?.current_video_label) {
+      return scopeInfo.current_video_label;
+    }
+    if (videoFilename) {
+      return defaultVideoId
+        ? `Current Video Run ("${videoFilename}")`
+        : `Latest Video Run ("${videoFilename}")`;
+    }
+    if (defaultVideoId) {
+      return `Video Run #${defaultVideoId}`;
+    }
+    if (scopeInfo?.video_filename) {
+      return `Latest Video Run ("${scopeInfo.video_filename}")`;
+    }
+    return "Latest Video Run";
+  }, [scopeInfo, videoFilename, defaultVideoId]);
+
   if (!isOpen) return null;
 
   const isMultiVideoBatch = (scopeInfo?.batch_video_count || 0) > 1;
@@ -59,16 +81,16 @@ function ReportModal({ isOpen, onClose, defaultVideoId = null, videoFilename = n
     setIsGenerating(true);
 
     const params = {};
-    if ((scope === "SINGLE" || !isMultiVideoBatch) && defaultVideoId) {
-      params.video_id = defaultVideoId;
+    if ((scope === "SINGLE" || !isMultiVideoBatch) && effectiveVideoId) {
+      params.video_id = effectiveVideoId;
       params.scope = "single";
     } else {
       params.scope = "batch";
-      if (defaultVideoId) {
-        params.video_id = defaultVideoId;
+      if (effectiveVideoId) {
+        params.video_id = effectiveVideoId;
       }
-      if (batchId) {
-        params.batch_id = batchId;
+      if (effectiveBatchId) {
+        params.batch_id = effectiveBatchId;
       }
     }
 
@@ -139,7 +161,7 @@ function ReportModal({ isOpen, onClose, defaultVideoId = null, videoFilename = n
           </div>
           {isMultiVideoBatch ? (
             <div className="scope-radio-group">
-              {defaultVideoId && (
+              {effectiveVideoId && (
                 <label className="scope-radio-label">
                   <input
                     type="radio"
@@ -148,8 +170,8 @@ function ReportModal({ isOpen, onClose, defaultVideoId = null, videoFilename = n
                     checked={scope === "SINGLE"}
                     onChange={() => setScope("SINGLE")}
                   />
-                  <span title={videoFilename || String(defaultVideoId)}>
-                    {scopeInfo?.current_video_label || `Current Video Run ${videoFilename ? `("${videoFilename}")` : `#${defaultVideoId}`}`}
+                  <span title={videoFilename || String(effectiveVideoId)}>
+                    {targetVideoLabel}
                   </span>
                 </label>
               )}
@@ -169,8 +191,8 @@ function ReportModal({ isOpen, onClose, defaultVideoId = null, videoFilename = n
             </div>
           ) : (
             <div className="scope-single-info" style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.76rem", color: "#334155" }}>
-              <span title={videoFilename || String(defaultVideoId || "")}>
-                {scopeInfo?.current_video_label || (videoFilename ? `Current Video Run ("${videoFilename}")` : `Video Run #${defaultVideoId}`)}
+              <span title={videoFilename || String(effectiveVideoId || "")}>
+                {targetVideoLabel}
               </span>
             </div>
           )}

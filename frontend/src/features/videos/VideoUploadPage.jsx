@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import {
   Zap,
   Eye,
@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   HelpCircle,
   RotateCcw,
+  ChevronDown,
 } from "lucide-react";
 import "./VideoUploadPage.css";
 import { listVideos, uploadVideos } from "../../api/videoApi";
@@ -30,14 +31,25 @@ import {
 } from "./dateUtils";
 
 
+const HOURS_12 = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
+const MINUTES_60 = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
+const SECONDS_60 = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
+
 /**
  * Reusable Column-Labeled DateTime Picker Component
- * Displays distinct column headings: Date, Hr, Min, Sec, AM/PM
- * Strictly prevents any future date or time (capped at current moment).
+ * Includes a sleek, fixed-height multi-column scrollable time popover (Hr, Min, Sec, AM/PM)
+ * with auto-scrolling, smart AM/PM auto-flip, and click-outside dismissal.
  */
 export function FootageDateTimePicker({ value, onChange, disabled = false, isCompact = false }) {
   const now = new Date();
   const todayStr = getTodayDateString();
+
+  const [isOpen, setIsOpen] = useState(false);
+  const pickerRef = useRef(null);
+  const hrRef = useRef(null);
+  const minRef = useRef(null);
+  const secRef = useRef(null);
+  const ampmRef = useRef(null);
 
   // Parse current value into discrete parts
   const parseParts = (val) => {
@@ -70,7 +82,40 @@ export function FootageDateTimePicker({ value, onChange, disabled = false, isCom
     setParts(parseParts(value));
   }, [value]);
 
-  // Emit updated ISO string with strict past/present validation
+  // Click-outside listener to close time popover
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    }
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [isOpen]);
+
+  // Auto-scroll each column to active selected item when opened
+  useEffect(() => {
+    if (isOpen) {
+      const scrollTimer = setTimeout(() => {
+        const scrollToActive = (colRef) => {
+          if (!colRef.current) return;
+          const activeEl = colRef.current.querySelector(".time-scroll-item.selected");
+          if (activeEl) {
+            activeEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          }
+        };
+        scrollToActive(hrRef);
+        scrollToActive(minRef);
+        scrollToActive(secRef);
+        scrollToActive(ampmRef);
+      }, 30);
+      return () => clearTimeout(scrollTimer);
+    }
+  }, [isOpen]);
+
+  // Emit updated ISO string with smart AM/PM adjustment and strict past/present validation
   const updateAndEmit = (newParts) => {
     const currentNow = new Date();
     let { date, hr, min, sec, ampm } = newParts;
@@ -100,6 +145,20 @@ export function FootageDateTimePicker({ value, onChange, disabled = false, isCom
     const [y, m, d] = date.split("-").map(Number);
     let target = new Date(y, m - 1, d, hr24, minNum, secNum);
 
+    // Smart adjustment: If today and selecting this hour with PM results in a future time,
+    // test if AM would be valid in the past (e.g. user selects 09 while it was previously PM).
+    if (date === todayStr && target.getTime() > currentNow.getTime()) {
+      if (ampm === "PM") {
+        const testHr24 = hrNum === 12 ? 0 : hrNum;
+        const testTarget = new Date(y, m - 1, d, testHr24, minNum, secNum);
+        if (testTarget.getTime() <= currentNow.getTime()) {
+          ampm = "AM";
+          hr24 = testHr24;
+          target = testTarget;
+        }
+      }
+    }
+
     // Edge Case: Date or Time cannot be greater than current moment
     if (target.getTime() > currentNow.getTime()) {
       target = new Date(currentNow.getTime());
@@ -119,8 +178,16 @@ export function FootageDateTimePicker({ value, onChange, disabled = false, isCom
     }
   };
 
+  const handleSetCurrentTime = () => {
+    const nowIso = getCurrentLocalDateTimeString();
+    setParts(parseParts(nowIso));
+    if (onChange) {
+      onChange(nowIso);
+    }
+  };
+
   return (
-    <div className={`footage-dt-picker ${isCompact ? "compact" : ""}`}>
+    <div className={`footage-dt-picker ${isCompact ? "compact" : ""}`} ref={pickerRef}>
       {/* Date Column */}
       <div className="dt-col date-col">
         <label className="dt-col-label">Date</label>
@@ -136,71 +203,131 @@ export function FootageDateTimePicker({ value, onChange, disabled = false, isCom
         />
       </div>
 
-      {/* Time Columns with explicit Hr, Min, Sec headings */}
-      <div className="dt-time-cols-container">
-        <div className="dt-col hr-col">
-          <label className="dt-col-label">Hr</label>
-          <input
-            type="number"
-            className="dt-input num-input"
-            min="1"
-            max="12"
-            value={parts.hr}
-            onChange={(e) => updateAndEmit({ ...parts, hr: e.target.value })}
+      {/* Time Trigger & Scrollable Multi-Column Dropdown */}
+      <div className="dt-col time-col">
+        <label className="dt-col-label">Time (Hr : Min : Sec)</label>
+        <div className="dt-time-interactive-container">
+          <button
+            type="button"
+            className={`dt-time-trigger-btn ${isOpen ? "open" : ""}`}
+            onClick={() => !disabled && setIsOpen(!isOpen)}
             disabled={disabled}
-            placeholder="HH"
-            title="Hour (1-12)"
-            required
-          />
-        </div>
-
-        <span className="dt-separator">:</span>
-
-        <div className="dt-col min-col">
-          <label className="dt-col-label">Min</label>
-          <input
-            type="number"
-            className="dt-input num-input"
-            min="0"
-            max="59"
-            value={parts.min}
-            onChange={(e) => updateAndEmit({ ...parts, min: e.target.value })}
-            disabled={disabled}
-            placeholder="MM"
-            title="Minutes (0-59)"
-            required
-          />
-        </div>
-
-        <span className="dt-separator">:</span>
-
-        <div className="dt-col sec-col">
-          <label className="dt-col-label">Sec</label>
-          <input
-            type="number"
-            className="dt-input num-input"
-            min="0"
-            max="59"
-            value={parts.sec}
-            onChange={(e) => updateAndEmit({ ...parts, sec: e.target.value })}
-            disabled={disabled}
-            placeholder="SS"
-            title="Seconds (0-59)"
-            required
-          />
-        </div>
-
-        <div className="dt-col ampm-col">
-          <label className="dt-col-label">AM/PM</label>
-          <select
-            className="dt-input ampm-select"
-            value={parts.ampm}
-            onChange={(e) => updateAndEmit({ ...parts, ampm: e.target.value })}
-            disabled={disabled}
+            title="Click to open time selector"
           >
-            <option value="AM">AM</option>
-            <option value="PM">PM</option>
-          </select>
+            <Clock size={13} style={{ color: "#0284c7" }} />
+            <span className="time-digits-display">
+              <span className="t-num">{parts.hr}</span>
+              <span className="t-colon">:</span>
+              <span className="t-num">{parts.min}</span>
+              <span className="t-colon">:</span>
+              <span className="t-num">{parts.sec}</span>
+              <span className="t-ampm">{parts.ampm}</span>
+            </span>
+            <ChevronDown size={13} className={`t-arrow ${isOpen ? "rotate" : ""}`} />
+          </button>
+
+          <button
+            type="button"
+            className="dt-now-pill-btn"
+            onClick={handleSetCurrentTime}
+            disabled={disabled}
+            title="Reset to current real-world clock time"
+          >
+            Now
+          </button>
+
+          {/* Fixed-Height Multi-Column Scrollable Dropdown Menu */}
+          {isOpen && (
+            <div className="time-scroll-popover">
+              <div className="time-scroll-columns-grid">
+                {/* Hours Column */}
+                <div className="time-scroll-column" ref={hrRef}>
+                  <div className="time-column-header">HR</div>
+                  <div className="time-column-list">
+                    {HOURS_12.map((h) => (
+                      <button
+                        key={h}
+                        type="button"
+                        className={`time-scroll-item ${parts.hr === h ? "selected" : ""}`}
+                        onClick={() => updateAndEmit({ ...parts, hr: h })}
+                      >
+                        {h}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Minutes Column */}
+                <div className="time-scroll-column" ref={minRef}>
+                  <div className="time-column-header">MIN</div>
+                  <div className="time-column-list">
+                    {MINUTES_60.map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        className={`time-scroll-item ${parts.min === m ? "selected" : ""}`}
+                        onClick={() => updateAndEmit({ ...parts, min: m })}
+                      >
+                        {m}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Seconds Column */}
+                <div className="time-scroll-column" ref={secRef}>
+                  <div className="time-column-header">SEC</div>
+                  <div className="time-column-list">
+                    {SECONDS_60.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        className={`time-scroll-item ${parts.sec === s ? "selected" : ""}`}
+                        onClick={() => updateAndEmit({ ...parts, sec: s })}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* AM/PM Column */}
+                <div className="time-scroll-column ampm-column" ref={ampmRef}>
+                  <div className="time-column-header">AM/PM</div>
+                  <div className="time-column-list">
+                    {["AM", "PM"].map((ap) => (
+                      <button
+                        key={ap}
+                        type="button"
+                        className={`time-scroll-item ${parts.ampm === ap ? "selected" : ""}`}
+                        onClick={() => updateAndEmit({ ...parts, ampm: ap })}
+                      >
+                        {ap}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Popover Footer with Quick 'Current Time' and 'Done' */}
+              <div className="time-popover-footer">
+                <button
+                  type="button"
+                  className="time-footer-now-btn"
+                  onClick={handleSetCurrentTime}
+                >
+                  Current Time
+                </button>
+                <button
+                  type="button"
+                  className="time-footer-done-btn"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
