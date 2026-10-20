@@ -67,11 +67,15 @@ def update_speed_thresholds():
         record = repo.set_threshold_for_user(user_id, category, limit_val)
         updated[category] = float(record.limit_kmh)
 
-    # Note: Existing video runs and historical logs preserve their point-in-time
-    # speed thresholds. Newly updated thresholds apply to subsequent video runs.
+    # Sync existing events for this user with the new speed thresholds so all-scope stats reflect them immediately
+    try:
+        sync_events_with_speed_thresholds(db, user_id=user_id)
+    except Exception as e:
+        print(f"Warning: Failed to sync events with speed thresholds: {e}")
+
     return jsonify({
         "status": "success",
-        "message": "Speed thresholds updated successfully for future video runs.",
+        "message": "Speed thresholds updated successfully.",
         "thresholds": repo.get_threshold_map(user_id)
     }), 200
 

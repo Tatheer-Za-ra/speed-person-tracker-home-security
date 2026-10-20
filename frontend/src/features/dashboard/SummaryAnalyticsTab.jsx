@@ -44,19 +44,24 @@ export default function SummaryAnalyticsTab({ runVideoId, runFilename, onSelectH
   const [analytics, setAnalytics] = useState(null);
   const [localSpeedThresholds, setLocalSpeedThresholds] = useState(propSpeedThresholds || null);
 
+  const loadThresholds = async () => {
+    try {
+      const { response, data } = await fetchSpeedThresholds();
+      if (response.ok && data?.status === "success" && data?.thresholds) {
+        setLocalSpeedThresholds(data.thresholds);
+      }
+    } catch (err) {
+      console.error("Could not fetch speed thresholds in analytics:", err);
+    }
+  };
+
   useEffect(() => {
-    if (propSpeedThresholds) {
+    if (runVideoId && propSpeedThresholds) {
       setLocalSpeedThresholds(propSpeedThresholds);
       return;
     }
-    fetchSpeedThresholds()
-      .then(({ response, data }) => {
-        if (response.ok && data?.status === "success" && data?.thresholds) {
-          setLocalSpeedThresholds(data.thresholds);
-        }
-      })
-      .catch((err) => console.error("Could not fetch speed thresholds in analytics:", err));
-  }, [propSpeedThresholds]);
+    loadThresholds();
+  }, [runVideoId, propSpeedThresholds]);
 
   // Active highlighted hour from chart hover or click
   const [hoveredHour, setHoveredHour] = useState(null);
@@ -79,8 +84,10 @@ export default function SummaryAnalyticsTab({ runVideoId, runFilename, onSelectH
       const { response, data } = await fetchEventAnalytics(params);
       if (response.ok && data.status === "success" && data.analytics) {
         setAnalytics(data.analytics);
-        if (data.analytics.video_meta?.speed_thresholds) {
+        if (scope === "single" && data.analytics.video_meta?.speed_thresholds) {
           setLocalSpeedThresholds(data.analytics.video_meta.speed_thresholds);
+        } else if (data.analytics.speed_thresholds) {
+          setLocalSpeedThresholds(data.analytics.speed_thresholds);
         }
       } else {
         setError(data?.message || "Failed to load security analytics.");
@@ -92,6 +99,20 @@ export default function SummaryAnalyticsTab({ runVideoId, runFilename, onSelectH
       setLoading(false);
     }
   };
+
+  // Real-time listener: Update stats whenever speed thresholds are edited in Config page or Modal
+  useEffect(() => {
+    const handleThresholdsUpdated = (e) => {
+      if (e.detail) {
+        setLocalSpeedThresholds(e.detail);
+      } else {
+        loadThresholds();
+      }
+      loadAnalytics();
+    };
+    window.addEventListener("speedThresholdsUpdated", handleThresholdsUpdated);
+    return () => window.removeEventListener("speedThresholdsUpdated", handleThresholdsUpdated);
+  }, [scope, preset, startDate, endDate, runVideoId]);
 
   useEffect(() => {
     loadAnalytics();
@@ -470,9 +491,9 @@ export default function SummaryAnalyticsTab({ runVideoId, runFilename, onSelectH
                   const Icon = item.category === "motorcycle" ? Bike : item.category === "truck" ? Truck : Car;
                   const overspeedPct = item.total > 0 ? Math.round((item.overspeed / item.total) * 100) : 0;
                   const isViolationHigh = overspeedPct > 40;
-                  const activeCatLimit = (localSpeedThresholds && localSpeedThresholds[item.category])
-                    ? localSpeedThresholds[item.category]
-                    : (item.limit ?? (item.category === "motorcycle" ? 45 : 30));
+                  const activeCatLimit = (localSpeedThresholds && (localSpeedThresholds[item.category] != null || localSpeedThresholds[item.category === "motorcycle" ? "bike" : "motorcycle"] != null))
+                    ? (localSpeedThresholds[item.category] ?? localSpeedThresholds[item.category === "motorcycle" ? "bike" : "motorcycle"])
+                    : (item.limit ?? (item.category === "motorcycle" ? 40 : item.category === "truck" ? 25 : 30));
 
                   return (
                     <div key={item.category} className="vehicle-cat-card">
@@ -482,7 +503,7 @@ export default function SummaryAnalyticsTab({ runVideoId, runFilename, onSelectH
                             <Icon size={18} />
                           </span>
                           <div>
-                            <span className="cat-name">{item.category.toUpperCase()}</span>
+                            <span className="cat-name">{item.category === "motorcycle" ? "BIKE / MOTORCYCLE" : item.category.toUpperCase()}</span>
                             <span className="cat-limit">Limit: <strong>{activeCatLimit} km/h</strong></span>
                           </div>
                         </div>

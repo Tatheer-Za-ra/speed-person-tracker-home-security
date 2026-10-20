@@ -261,6 +261,11 @@ class EventRepository:
                 if batch_obj:
                     effective_user_id = batch_obj.user_id
 
+        if not effective_user_id:
+            latest_batch = self.db.query(UploadBatch).order_by(UploadBatch.id.desc()).first()
+            if latest_batch:
+                effective_user_id = latest_batch.user_id
+
         user_thresholds = {}
         if video_id:
             vid_obj = self.db.query(Video).filter(Video.id == video_id).first()
@@ -277,10 +282,19 @@ class EventRepository:
             except Exception:
                 user_thresholds = {}
 
+        def _get_thresh(cat, fallback):
+            if cat in user_thresholds:
+                return float(user_thresholds[cat])
+            if cat == "motorcycle" and "bike" in user_thresholds:
+                return float(user_thresholds["bike"])
+            if cat == "bike" and "motorcycle" in user_thresholds:
+                return float(user_thresholds["motorcycle"])
+            return float(fallback)
+
         vehicle_categories = {
-            "car": {"category": "car", "total": 0, "overspeed": 0, "speeds": [], "max_speed": 0.0, "avg_speed": 0.0, "limit": float(user_thresholds.get("car", 30.0))},
-            "motorcycle": {"category": "motorcycle", "total": 0, "overspeed": 0, "speeds": [], "max_speed": 0.0, "avg_speed": 0.0, "limit": float(user_thresholds.get("motorcycle", 40.0))},
-            "truck": {"category": "truck", "total": 0, "overspeed": 0, "speeds": [], "max_speed": 0.0, "avg_speed": 0.0, "limit": float(user_thresholds.get("truck", 25.0))},
+            "car": {"category": "car", "total": 0, "overspeed": 0, "speeds": [], "max_speed": 0.0, "avg_speed": 0.0, "limit": _get_thresh("car", 30.0)},
+            "motorcycle": {"category": "motorcycle", "total": 0, "overspeed": 0, "speeds": [], "max_speed": 0.0, "avg_speed": 0.0, "limit": _get_thresh("motorcycle", 40.0)},
+            "truck": {"category": "truck", "total": 0, "overspeed": 0, "speeds": [], "max_speed": 0.0, "avg_speed": 0.0, "limit": _get_thresh("truck", 25.0)},
         }
 
         severity_counts = {
@@ -380,8 +394,12 @@ class EventRepository:
                             v_lim = float(v_map[vcat])
                     except Exception:
                         pass
-                lim = float(v_lim or meta.get("speed_limit_kmh") or meta.get("limit_kmh") or user_thresholds.get(vcat) or cat_info["limit"])
                 if video_id:
+                    lim = float(v_lim or meta.get("speed_limit_kmh") or meta.get("limit_kmh") or _get_thresh(vcat, cat_info["limit"]))
+                    cat_info["limit"] = lim
+                else:
+                    # In all-video scope, the configured speed threshold is the authoritative limit
+                    lim = _get_thresh(vcat, cat_info["limit"])
                     cat_info["limit"] = lim
 
                 if spd > 0:

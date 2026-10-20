@@ -299,6 +299,10 @@ def event_analytics():
                 }
 
         analytics["video_meta"] = video_meta
+
+        st_repo = SpeedThresholdRepository(db)
+        analytics["speed_thresholds"] = st_repo.get_threshold_map(user_id or 1)
+
         analytics["filters"] = {
             "video_id": video_id,
             "start_date": start_date,

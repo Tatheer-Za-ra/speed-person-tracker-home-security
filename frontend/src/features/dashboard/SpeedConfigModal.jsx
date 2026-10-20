@@ -120,6 +120,7 @@ function SpeedConfigModal({ isOpen, onClose, onThresholdsUpdated }) {
       if (onThresholdsUpdated) {
         onThresholdsUpdated(data.thresholds);
       }
+      window.dispatchEvent(new CustomEvent("speedThresholdsUpdated", { detail: data.thresholds }));
 
       onClose();
     } catch (err) {

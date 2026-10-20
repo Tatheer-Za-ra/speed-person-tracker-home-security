@@ -19,7 +19,7 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
   const [videoDetails, setVideoDetails] = useState(null);
   const [speedThresholds, setSpeedThresholds] = useState({
     car: 30.0,
-    motorcycle: 45.0,
+    motorcycle: 40.0,
     truck: 25.0,
   });
 
@@ -81,18 +81,28 @@ function EventDetailsPage({ runFilter, onBackToVideos, onBackToLogs }) {
     loadRunEvents();
   }, [videoId]);
 
+  const loadThresholds = async () => {
+    try {
+      const { response, data } = await fetchSpeedThresholds();
+      if (response.ok && data?.status === "success" && data?.thresholds) {
+        setSpeedThresholds(data.thresholds);
+      }
+    } catch (err) {
+      console.error("Could not fetch speed thresholds:", err);
+    }
+  };
+
   useEffect(() => {
-    const loadThresholds = async () => {
-      try {
-        const { response, data } = await fetchSpeedThresholds();
-        if (response.ok && data?.status === "success" && data?.thresholds) {
-          setSpeedThresholds((prev) => prev || data.thresholds);
-        }
-      } catch (err) {
-        console.error("Could not fetch speed thresholds:", err);
+    loadThresholds();
+    const handleThresholdsUpdated = (e) => {
+      if (e.detail) {
+        setSpeedThresholds(e.detail);
+      } else {
+        loadThresholds();
       }
     };
-    loadThresholds();
+    window.addEventListener("speedThresholdsUpdated", handleThresholdsUpdated);
+    return () => window.removeEventListener("speedThresholdsUpdated", handleThresholdsUpdated);
   }, []);
 
   const handleOpenCalibModal = async () => {
