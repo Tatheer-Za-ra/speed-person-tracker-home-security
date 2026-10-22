@@ -132,7 +132,8 @@ export function ToastProvider({ children }) {
     const action = options.action || null;
 
     const newToast = { id, message, type, title, duration, action };
-    setToasts((prev) => [...prev, newToast]);
+    // Maintain strictly ONE toast on screen at a time to eliminate redundant toast stacking
+    setToasts([newToast]);
     return id;
   }, []);
 
@@ -141,6 +142,11 @@ export function ToastProvider({ children }) {
     error: (msg, opts) => addToast(msg, "error", typeof opts === "string" ? { title: opts } : opts),
     warning: (msg, opts) => addToast(msg, "warning", typeof opts === "string" ? { title: opts } : opts),
     info: (msg, opts) => addToast(msg, "info", typeof opts === "string" ? { title: opts } : opts),
+    dismiss: (id) => {
+      if (id) removeToast(id);
+      else setToasts([]);
+    },
+    clear: () => setToasts([]),
   };
 
   const confirm = useCallback((options) => {

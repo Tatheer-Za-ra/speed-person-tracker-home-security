@@ -61,3 +61,6 @@ python -c "from app.db import get_db_session; from app.repositories import FaceT
 C:\Users\PMLS\Desktop\9 am_helpers.mp4
 
 python -c "from app.db import get_db_session; from app.repositories import FaceTemplateRepository; from app.ai_pipeline.pipeline_service import analyze_video_frames; import pprint; db=get_db_session(); templates=FaceTemplateRepository(db).list_all_templates(); result=analyze_video_frames(r'C:\Users\PMLS\Desktop\9 am_helpers.mp4', face_templates=templates); pprint.pprint(result.get('faces_output')); db.close()"
+
+
+.\backend\venv\Scripts\python.exe -c "import sys; sys.path.insert(0, 'backend'); from app.db import get_db_session; from app.models import ProcessingLog; db=get_db_session(); [setattr(l, 'status', 'failed') for l in db.query(ProcessingLog).filter(ProcessingLog.status=='processing').all()]; db.commit(); print('All stuck jobs cleared!'); db.close()"

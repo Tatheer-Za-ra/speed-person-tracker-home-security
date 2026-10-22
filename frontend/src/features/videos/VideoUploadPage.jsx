@@ -99,18 +99,20 @@ export function FootageDateTimePicker({ value, onChange, disabled = false, isCom
   useEffect(() => {
     if (isOpen) {
       const scrollTimer = setTimeout(() => {
-        const scrollToActive = (colRef) => {
-          if (!colRef.current) return;
-          const activeEl = colRef.current.querySelector(".time-scroll-item.selected");
+        const scrollToActive = (listRef) => {
+          if (!listRef.current) return;
+          const container = listRef.current;
+          const activeEl = container.querySelector(".time-scroll-item.selected");
           if (activeEl) {
-            activeEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
+            const targetTop = activeEl.offsetTop - (container.clientHeight / 2) + (activeEl.clientHeight / 2);
+            container.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
           }
         };
         scrollToActive(hrRef);
         scrollToActive(minRef);
         scrollToActive(secRef);
         scrollToActive(ampmRef);
-      }, 30);
+      }, 50);
       return () => clearTimeout(scrollTimer);
     }
   }, [isOpen]);
@@ -241,9 +243,9 @@ export function FootageDateTimePicker({ value, onChange, disabled = false, isCom
             <div className="time-scroll-popover">
               <div className="time-scroll-columns-grid">
                 {/* Hours Column */}
-                <div className="time-scroll-column" ref={hrRef}>
+                <div className="time-scroll-column">
                   <div className="time-column-header">HR</div>
-                  <div className="time-column-list">
+                  <div className="time-column-list" ref={hrRef}>
                     {HOURS_12.map((h) => (
                       <button
                         key={h}
@@ -258,9 +260,9 @@ export function FootageDateTimePicker({ value, onChange, disabled = false, isCom
                 </div>
 
                 {/* Minutes Column */}
-                <div className="time-scroll-column" ref={minRef}>
+                <div className="time-scroll-column">
                   <div className="time-column-header">MIN</div>
-                  <div className="time-column-list">
+                  <div className="time-column-list" ref={minRef}>
                     {MINUTES_60.map((m) => (
                       <button
                         key={m}
@@ -275,9 +277,9 @@ export function FootageDateTimePicker({ value, onChange, disabled = false, isCom
                 </div>
 
                 {/* Seconds Column */}
-                <div className="time-scroll-column" ref={secRef}>
+                <div className="time-scroll-column">
                   <div className="time-column-header">SEC</div>
-                  <div className="time-column-list">
+                  <div className="time-column-list" ref={secRef}>
                     {SECONDS_60.map((s) => (
                       <button
                         key={s}
@@ -292,9 +294,9 @@ export function FootageDateTimePicker({ value, onChange, disabled = false, isCom
                 </div>
 
                 {/* AM/PM Column */}
-                <div className="time-scroll-column ampm-column" ref={ampmRef}>
+                <div className="time-scroll-column ampm-column">
                   <div className="time-column-header">AM/PM</div>
-                  <div className="time-column-list">
+                  <div className="time-column-list" ref={ampmRef}>
                     {["AM", "PM"].map((ap) => (
                       <button
                         key={ap}

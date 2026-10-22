@@ -44,7 +44,6 @@ function AuthPage({ onLoginSuccess }) {
         return;
       }
 
-      toast.success("Signed in successfully. Welcome back!");
       onLoginSuccess(data.user);
     } catch {
       toast.error("Could not connect to backend server. Make sure Flask is running.");

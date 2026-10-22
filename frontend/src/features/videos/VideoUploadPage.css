@@ -831,7 +831,7 @@
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  width: 220px;
+  width: 236px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -851,16 +851,21 @@
 
 .time-scroll-columns-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1.1fr;
+  grid-template-columns: 1fr 1fr 1fr 1.15fr;
   height: 180px;
+  min-height: 180px;
+  max-height: 180px;
   border-bottom: 1px solid #e2e8f0;
   background: #ffffff;
+  overflow: hidden;
 }
 
 .time-scroll-column {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
+  overflow: hidden;
   border-right: 1px solid #f1f5f9;
 }
 
@@ -882,20 +887,23 @@
 }
 
 .time-column-list {
-  flex: 1;
+  flex: 1 1 0px;
+  min-height: 0;
+  max-height: 154px;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 2px 0;
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: #cbd5e1 #f8fafc;
+  -webkit-overflow-scrolling: touch;
 }
 
 .time-column-list::-webkit-scrollbar {
-  width: 4px;
+  width: 5px;
 }
 
 .time-column-list::-webkit-scrollbar-track {
-  background: transparent;
+  background: #f8fafc;
 }
 
 .time-column-list::-webkit-scrollbar-thumb {
